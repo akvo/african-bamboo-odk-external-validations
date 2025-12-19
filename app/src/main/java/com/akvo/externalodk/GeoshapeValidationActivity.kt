@@ -32,9 +32,9 @@ class GeoshapeValidationActivity : Activity() {
         }
 
         try {
-            val polygon = loadPolygonFromAssets("polygon.json")
+            val polygon = loadPolygonFromSharedPreferences()
             if (polygon == null) {
-                finishWithResult("invalid input: could not load polygon.json")
+                finishWithResult("invalid input: could not load polygon from configuration")
                 return
             }
 
@@ -57,10 +57,15 @@ class GeoshapeValidationActivity : Activity() {
         }
     }
 
-    private fun loadPolygonFromAssets(fileName: String): Polygon? {
+    private fun loadPolygonFromSharedPreferences(): Polygon? {
         return try {
-            val json = assets.open(fileName).bufferedReader().use { it.readText() }
-            val featureCollection = FeatureCollection.fromJson(json)
+            val sharedPreferences = getSharedPreferences("region_prefs", MODE_PRIVATE)
+            val json = sharedPreferences.getString("geojson_polygon", null)
+            
+            // Fallback to assets if no GeoJSON in SharedPreferences
+            val geoJsonContent = json ?: assets.open("polygon.json").bufferedReader().use { it.readText() }
+            
+            val featureCollection = FeatureCollection.fromJson(geoJsonContent)
             val feature = featureCollection.features()?.firstOrNull()
             feature?.geometry() as? Polygon
         } catch (e: IOException) {
