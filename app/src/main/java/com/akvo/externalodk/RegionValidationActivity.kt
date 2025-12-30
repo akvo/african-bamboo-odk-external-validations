@@ -25,11 +25,9 @@ class RegionValidationActivity : AppCompatActivity() {
         // 3. Return Result
         val resultIntent = Intent()
         if (isValid) {
-            resultIntent.putExtra("value", "valid")
-            resultIntent.putExtra("msg_key", "Success!")
+            resultIntent.putExtra("value", "valid: Success!")
         } else {
-            resultIntent.putExtra("value", "invalid")
-            resultIntent.putExtra("msg_key", "This region is currently suspended due to security alerts.")
+            resultIntent.putExtra("value", "invalid: This is an example of an error message.")
         }
 
         setResult(Activity.RESULT_OK, resultIntent)
