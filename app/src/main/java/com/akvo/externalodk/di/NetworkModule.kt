@@ -1,6 +1,7 @@
 package com.akvo.externalodk.di
 
 import com.akvo.externalodk.data.network.BasicAuthInterceptor
+import com.akvo.externalodk.data.network.DynamicBaseUrlInterceptor
 import com.akvo.externalodk.data.network.KoboApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -38,10 +39,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
+        dynamicBaseUrlInterceptor: DynamicBaseUrlInterceptor,
         basicAuthInterceptor: BasicAuthInterceptor,
         loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor(dynamicBaseUrlInterceptor)
             .addInterceptor(basicAuthInterceptor)
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
