@@ -25,7 +25,7 @@ import com.akvo.externalodk.data.entity.SubmissionEntity
         SubmissionEntity::class,
         FormMetadataEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
