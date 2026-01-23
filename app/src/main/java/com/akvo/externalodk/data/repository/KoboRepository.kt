@@ -143,6 +143,7 @@ class KoboRepository @Inject constructor(
         val submissionTimeStr = jsonObject.extractString("_submission_time") ?: return null
         val submissionTime = parseSubmissionTime(submissionTimeStr) ?: return null
         val submittedBy = jsonObject.extractString("_submitted_by")
+        val instanceName = jsonObject.extractString("meta/instanceName")
 
         // Extract system data (geolocation, tags)
         val systemData = buildSystemData(jsonObject)
@@ -156,6 +157,7 @@ class KoboRepository @Inject constructor(
             _id = id,
             submissionTime = submissionTime,
             submittedBy = submittedBy,
+            instanceName = instanceName,
             rawData = rawData,
             systemData = systemData
         )

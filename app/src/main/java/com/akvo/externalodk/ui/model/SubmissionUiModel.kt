@@ -2,7 +2,8 @@ package com.akvo.externalodk.ui.model
 
 data class SubmissionUiModel(
     val uuid: String,
-    val submittedBy: String,
-    val submissionTime: String,
+    val displayTitle: String,
+    val syncedOnText: String,
+    val submissionTimestamp: Long,
     val isSynced: Boolean = true
 )
