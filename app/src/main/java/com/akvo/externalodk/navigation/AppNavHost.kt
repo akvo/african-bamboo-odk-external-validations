@@ -10,6 +10,7 @@ import com.akvo.externalodk.ui.screen.DownloadCompleteScreen
 import com.akvo.externalodk.ui.screen.HomeDashboardScreen
 import com.akvo.externalodk.ui.screen.LoadingScreen
 import com.akvo.externalodk.ui.screen.LoginScreen
+import com.akvo.externalodk.ui.screen.SubmissionDetailScreen
 import com.akvo.externalodk.ui.screen.SyncCompleteScreen
 
 @Composable
@@ -96,6 +97,17 @@ fun AppNavHost(
                     navController.navigate(Login) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onSubmissionClick = { uuid ->
+                    navController.navigate(SubmissionDetail(uuid))
+                }
+            )
+        }
+
+        composable<SubmissionDetail> {
+            SubmissionDetailScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

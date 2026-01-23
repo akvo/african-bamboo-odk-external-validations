@@ -67,6 +67,7 @@ import com.akvo.externalodk.ui.viewmodel.SortOption
 fun HomeDashboardScreen(
     onResyncClick: () -> Unit,
     onLogout: () -> Unit,
+    onSubmissionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -78,6 +79,7 @@ fun HomeDashboardScreen(
         onLogout = {
             viewModel.logout { onLogout() }
         },
+        onSubmissionClick = onSubmissionClick,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onSearchActiveChange = viewModel::onSearchActiveChange,
         onSortOptionChange = viewModel::onSortOptionChange,
@@ -92,6 +94,7 @@ private fun HomeDashboardContent(
     uiState: HomeUiState,
     onResyncClick: () -> Unit,
     onLogout: () -> Unit,
+    onSubmissionClick: (String) -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onSearchActiveChange: (Boolean) -> Unit,
     onSortOptionChange: (SortOption) -> Unit,
@@ -277,6 +280,7 @@ private fun HomeDashboardContent(
                 SubmissionList(
                     submissions = uiState.filteredSubmissions,
                     listState = listState,
+                    onSubmissionClick = onSubmissionClick,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
@@ -290,6 +294,7 @@ private fun HomeDashboardContent(
 private fun SubmissionList(
     submissions: List<com.akvo.externalodk.ui.model.SubmissionUiModel>,
     listState: LazyListState,
+    onSubmissionClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -301,7 +306,10 @@ private fun SubmissionList(
             items = submissions,
             key = { it.uuid }
         ) { submission ->
-            SubmissionListItem(submission = submission)
+            SubmissionListItem(
+                submission = submission,
+                onClick = { onSubmissionClick(submission.uuid) }
+            )
         }
     }
 }
@@ -401,6 +409,7 @@ private fun HomeDashboardPreview() {
             ),
             onResyncClick = {},
             onLogout = {},
+            onSubmissionClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -417,6 +426,7 @@ private fun HomeDashboardLoadingPreview() {
             uiState = HomeUiState(isLoading = true),
             onResyncClick = {},
             onLogout = {},
+            onSubmissionClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -438,6 +448,7 @@ private fun HomeDashboardSearchActivePreview() {
             ),
             onResyncClick = {},
             onLogout = {},
+            onSubmissionClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -457,6 +468,7 @@ private fun HomeDashboardEmptyPreview() {
             ),
             onResyncClick = {},
             onLogout = {},
+            onSubmissionClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},

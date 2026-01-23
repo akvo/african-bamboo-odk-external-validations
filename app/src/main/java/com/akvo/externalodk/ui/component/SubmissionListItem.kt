@@ -1,5 +1,6 @@
 package com.akvo.externalodk.ui.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,9 +25,14 @@ import com.akvo.externalodk.ui.theme.ExternalODKTheme
 @Composable
 fun SubmissionListItem(
     submission: SubmissionUiModel,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -68,6 +74,7 @@ private fun SubmissionListItemWithInstanceNamePreview() {
                 submissionTimestamp = 1737452400000L,
                 isSynced = true
             ),
+            onClick = {},
             modifier = Modifier.padding(8.dp)
         )
     }
@@ -85,6 +92,7 @@ private fun SubmissionListItemFallbackPreview() {
                 submissionTimestamp = 1737447300000L,
                 isSynced = true
             ),
+            onClick = {},
             modifier = Modifier.padding(8.dp)
         )
     }

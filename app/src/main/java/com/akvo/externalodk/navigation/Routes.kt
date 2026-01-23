@@ -24,6 +24,9 @@ data class DownloadComplete(
 object Home
 
 @Serializable
+data class SubmissionDetail(val uuid: String)
+
+@Serializable
 data class SyncComplete(
     val addedRecords: Int,
     val updatedRecords: Int,
