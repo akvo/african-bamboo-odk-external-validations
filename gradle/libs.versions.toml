@@ -2,6 +2,8 @@
 agp = "8.13.2"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
+jts = "1.19.0"
+appcompat = "1.6.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -73,6 +75,7 @@ retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = 
 retrofit-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerialization" }
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+jts-core = { group = "org.locationtech.jts", name = "jts-core", version.ref = "jts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

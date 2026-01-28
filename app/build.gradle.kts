@@ -87,6 +87,9 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)
 
     // Unit Tests
+
+    // JTS Topology Suite for polygon validation
+    implementation(libs.jts.core)
     testImplementation(libs.junit)
     testImplementation(libs.room.testing)
     testImplementation(libs.mockk)
