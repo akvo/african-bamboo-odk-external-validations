@@ -62,6 +62,8 @@ import com.akvo.externalodk.ui.theme.ExternalODKTheme
 import com.akvo.externalodk.ui.viewmodel.HomeUiState
 import com.akvo.externalodk.ui.viewmodel.HomeViewModel
 import com.akvo.externalodk.ui.viewmodel.SortOption
+import com.akvo.externalodk.ui.model.SubmissionUiModel
+
 
 @Composable
 fun HomeDashboardScreen(
@@ -292,7 +294,7 @@ private fun HomeDashboardContent(
 
 @Composable
 private fun SubmissionList(
-    submissions: List<com.akvo.externalodk.ui.model.SubmissionUiModel>,
+    submissions: List<SubmissionUiModel>,
     listState: LazyListState,
     onSubmissionClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -478,21 +480,21 @@ private fun HomeDashboardEmptyPreview() {
 }
 
 private val previewSubmissions = listOf(
-    com.akvo.externalodk.ui.model.SubmissionUiModel(
+    SubmissionUiModel(
         uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
         displayTitle = "enum_009-SID-03-2026-01-21",
         syncedOnText = "Synced on Tue, Jan 21, 2026 at 09:30",
         submissionTimestamp = 1737452400000L,
         isSynced = true
     ),
-    com.akvo.externalodk.ui.model.SubmissionUiModel(
+    SubmissionUiModel(
         uuid = "b2c3d4e5-f6a7-8901-bcde-f12345678901",
         displayTitle = "enum_010-SID-04-2026-01-21",
         syncedOnText = "Synced on Tue, Jan 21, 2026 at 08:15",
         submissionTimestamp = 1737447300000L,
         isSynced = true
     ),
-    com.akvo.externalodk.ui.model.SubmissionUiModel(
+    SubmissionUiModel(
         uuid = "c3d4e5f6-a7b8-9012-cdef-123456789012",
         displayTitle = "2026-01-20 16:45",
         syncedOnText = "Synced on Mon, Jan 20, 2026 at 16:45",
