@@ -1,14 +1,18 @@
 package com.akvo.externalodk.ui.component
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,80 +25,56 @@ import com.akvo.externalodk.ui.theme.ExternalODKTheme
 @Composable
 fun SubmissionListItem(
     submission: SubmissionUiModel,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp, horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = Icons.Outlined.Description,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = submission.submittedBy,
-                    style = MaterialTheme.typography.titleMedium
+                    text = submission.displayTitle,
+                    style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = submission.submissionTime,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = submission.uuid.take(8) + "...",
+                    text = submission.syncedOnText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            StatusBadge(isSynced = submission.isSynced)
         }
         HorizontalDivider()
     }
 }
 
-@Composable
-private fun StatusBadge(
-    isSynced: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val backgroundColor = if (isSynced) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.errorContainer
-    }
-    val textColor = if (isSynced) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onErrorContainer
-    }
-    val text = if (isSynced) "Synced" else "Pending"
-
-    Surface(
-        color = backgroundColor,
-        shape = MaterialTheme.shapes.small,
-        modifier = modifier
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = textColor,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
-private fun SubmissionListItemPreview() {
+private fun SubmissionListItemWithInstanceNamePreview() {
     ExternalODKTheme {
         SubmissionListItem(
             submission = SubmissionUiModel(
                 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-                submittedBy = "ifirmawan",
-                submissionTime = "2026-01-21 09:30",
+                displayTitle = "enum_009-SID-03-2026-01-23",
+                syncedOnText = "Synced on Tue, Jan 21, 2026 at 09:30",
+                submissionTimestamp = 1737452400000L,
                 isSynced = true
             ),
+            onClick = {},
             modifier = Modifier.padding(8.dp)
         )
     }
@@ -102,15 +82,17 @@ private fun SubmissionListItemPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun SubmissionListItemPendingPreview() {
+private fun SubmissionListItemFallbackPreview() {
     ExternalODKTheme {
         SubmissionListItem(
             submission = SubmissionUiModel(
                 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-                submittedBy = "john.doe",
-                submissionTime = "2026-01-21 08:15",
-                isSynced = false
+                displayTitle = "2026-01-21 08:15",
+                syncedOnText = "Synced on Tue, Jan 21, 2026 at 08:15",
+                submissionTimestamp = 1737447300000L,
+                isSynced = true
             ),
+            onClick = {},
             modifier = Modifier.padding(8.dp)
         )
     }

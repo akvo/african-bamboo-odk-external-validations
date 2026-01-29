@@ -19,6 +19,7 @@ import androidx.room.Index
  * @param _id Internal KoboToolbox ID
  * @param submissionTime Parsed from "_submission_time" as Long for efficient sorting
  * @param submittedBy Parsed from "_submitted_by" for list display
+ * @param instanceName Parsed from "meta/instanceName" for display (ODK Collect style)
  * @param rawData Full JSON string of the dynamic form data (all question responses)
  * @param systemData Optional JSON string for system fields like "_geolocation", "_tags"
  */
@@ -27,6 +28,7 @@ import androidx.room.Index
     indices = [
         Index(value = ["assetUid"]),
         Index(value = ["submissionTime"]),
+        Index(value = ["instanceName"]),
         Index(value = ["_uuid"])
     ]
 )
@@ -37,6 +39,7 @@ data class SubmissionEntity(
     val _id: String,
     val submissionTime: Long,
     val submittedBy: String?,
+    val instanceName: String?,
     val rawData: String,
     val systemData: String? = null
 )

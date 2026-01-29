@@ -1,6 +1,7 @@
 package com.akvo.externalodk.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.akvo.externalodk.data.network.AuthCredentials
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,9 @@ data class LoginUiState(
 }
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val authCredentials: AuthCredentials
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -44,7 +47,12 @@ class LoginViewModel @Inject constructor() : ViewModel() {
     }
 
     fun startLoginAndDownloadProcess() {
-        // TODO: Will be implemented with API sync
-        // For now, the navigation is handled by the screen's onDownloadStart callback
+        val state = _uiState.value
+        authCredentials.set(
+            username = state.username,
+            password = state.password,
+            assetUid = state.formId,
+            serverUrl = state.serverUrl
+        )
     }
 }

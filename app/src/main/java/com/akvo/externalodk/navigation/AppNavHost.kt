@@ -10,16 +10,20 @@ import com.akvo.externalodk.ui.screen.DownloadCompleteScreen
 import com.akvo.externalodk.ui.screen.HomeDashboardScreen
 import com.akvo.externalodk.ui.screen.LoadingScreen
 import com.akvo.externalodk.ui.screen.LoginScreen
+import com.akvo.externalodk.ui.screen.SubmissionDetailScreen
 import com.akvo.externalodk.ui.screen.SyncCompleteScreen
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    isLoggedIn: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val startDestination: Any = if (isLoggedIn) Home else Login
+
     NavHost(
         navController = navController,
-        startDestination = Login,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable<Login> {
@@ -37,32 +41,32 @@ fun AppNavHost(
                 LoadingType.RESYNC -> "Syncing data..."
             }
             LoadingScreen(
+                loadingType = route.type,
                 message = message,
-                onLoadingComplete = {
-                    when (route.type) {
-                        LoadingType.DOWNLOAD -> {
-                            // Mock data for download complete
-                            navController.navigate(
-                                DownloadComplete(
-                                    totalEntries = 42,
-                                    latestSubmissionDate = "2026-01-21 09:30"
-                                )
-                            ) {
-                                popUpTo(Login) { inclusive = true }
-                            }
-                        }
-                        LoadingType.RESYNC -> {
-                            // Mock data for sync complete
-                            navController.navigate(
-                                SyncComplete(
-                                    addedRecords = 5,
-                                    updatedRecords = 3,
-                                    latestRecordTimestamp = "2026-01-21 10:45"
-                                )
-                            ) {
-                                popUpTo(Home)
-                            }
-                        }
+                onDownloadComplete = { totalEntries, latestDate ->
+                    navController.navigate(
+                        DownloadComplete(
+                            totalEntries = totalEntries,
+                            latestSubmissionDate = latestDate
+                        )
+                    ) {
+                        popUpTo(Login) { inclusive = true }
+                    }
+                },
+                onResyncComplete = { added, updated, latestTimestamp ->
+                    navController.navigate(
+                        SyncComplete(
+                            addedRecords = added,
+                            updatedRecords = updated,
+                            latestRecordTimestamp = latestTimestamp
+                        )
+                    ) {
+                        popUpTo(Home)
+                    }
+                },
+                onBackToLogin = {
+                    navController.navigate(Login) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
@@ -93,6 +97,17 @@ fun AppNavHost(
                     navController.navigate(Login) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onSubmissionClick = { uuid ->
+                    navController.navigate(SubmissionDetail(uuid))
+                }
+            )
+        }
+
+        composable<SubmissionDetail> {
+            SubmissionDetailScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

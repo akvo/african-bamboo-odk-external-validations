@@ -63,6 +63,7 @@ class SubmissionDaoTest : DatabaseTest() {
         val submissionTime = result["_submission_time"]?.jsonPrimitive?.content
             ?: throw IllegalArgumentException("Missing _submission_time")
         val submittedBy = result["_submitted_by"]?.jsonPrimitive?.content
+        val instanceName = result["meta/instanceName"]?.jsonPrimitive?.content
 
         // Convert the entire JsonObject back to string for rawData
         val rawJson = json.encodeToString(JsonElement.serializer(), result)
@@ -73,6 +74,7 @@ class SubmissionDaoTest : DatabaseTest() {
             _id = id,
             submissionTime = parseSubmissionTime(submissionTime),
             submittedBy = submittedBy,
+            instanceName = instanceName,
             rawData = rawJson,
             systemData = null
         )
