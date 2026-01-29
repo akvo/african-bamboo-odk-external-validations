@@ -1,7 +1,6 @@
 package com.akvo.externalodk.ui.screen
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,7 +40,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -107,7 +105,6 @@ private fun HomeDashboardContent(
     var showLogoutDialog by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
-    val sortSheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(uiState.isSearchActive) {
         if (uiState.isSearchActive) {
@@ -124,10 +121,7 @@ private fun HomeDashboardContent(
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogout()
-                    }
+                    onClick = onLogout
                 ) {
                     Text("Logout", color = MaterialTheme.colorScheme.error)
                 }
