@@ -1,0 +1,82 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "_id": 987654321,
+      "formhub/uuid": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+      "counter1": "5",
+      "counter2": "2",
+      "counter3": "3",
+      "__version__": "vXyZaBcDeFgHiJkLmNoPqRs",
+      "meta/instanceID": "uuid:12345678-abcd-1234-efgh-123456789abc",
+      "_xform_id_string": "xYzAbCdEfGhIjKlMnOpQrS",
+      "_uuid": "12345678-abcd-1234-efgh-123456789abc",
+      "meta/rootUuid": "uuid:12345678-abcd-1234-efgh-123456789abc",
+      "_attachments": [],
+      "_status": "submitted_via_web",
+      "_geolocation": [
+        null,
+        null
+      ],
+      "_submission_time": "2024-01-15T14:30:22",
+      "_tags": [],
+      "_notes": [],
+      "_validation_status": {},
+      "_submitted_by": "jsmith"
+    },
+    {
+      "_id": 123456789,
+      "formhub/uuid": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7",
+      "counter1": "8",
+      "counter2": "7",
+      "counter3": "4",
+      "manual_boundary": "-6.1234567 108.7654321 115.0 6.2;-6.1234568 108.7654322 112.0 5.8;-6.1234569 108.7654323 110.0 5.5;-6.1234570 108.7654324 109.0 5.3;-6.1234571 108.7654325 109.0 5.3;-6.1234572 108.7654326 110.0 5.4;-6.1234573 108.7654327 111.0 5.6;-6.1234574 108.7654328 112.0 5.8;-6.1234567 108.7654321 115.0 6.2",
+      "validate_shape": "valid",
+      "__version__": "vAbCdEfGhIjKlMnOpQrStU",
+      "meta/instanceID": "uuid:abcdef12-3456-7890-abcd-ef1234567890",
+      "_xform_id_string": "aBcDeFgHiJkLmNoPqRsTuV",
+      "_uuid": "abcdef12-3456-7890-abcd-ef1234567890",
+      "meta/rootUuid": "uuid:abcdef12-3456-7890-abcd-ef1234567890",
+      "_attachments": [],
+      "_status": "submitted_via_web",
+      "_geolocation": [
+        null,
+        null
+      ],
+      "_submission_time": "2024-02-20T08:15:45",
+      "_tags": [],
+      "_notes": [],
+      "_validation_status": {},
+      "_submitted_by": "mjohnson"
+    },
+    {
+      "_id": 456789123,
+      "formhub/uuid": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8",
+      "counter1": "9",
+      "counter2": "8",
+      "counter3": "5",
+      "manual_boundary": "-5.2345678 107.8765432 0.0 0.0;-5.2345679 107.8765433 0.0 0.0;-5.2345680 107.8765434 0.0 0.0;-5.2345681 107.8765435 0.0 0.0;-5.2345682 107.8765436 0.0 0.0;-5.2345678 107.8765432 0.0 0.0",
+      "validate_shape": "valid",
+      "region": "Central",
+      "validate_region": "valid",
+      "__version__": "vWxYzAbCdEfGhIjKlMnOpQ",
+      "meta/instanceID": "uuid:fedcba98-7654-3210-fedc-ba9876543210",
+      "_xform_id_string": "wXyZaBcDeFgHiJkLmNoPqR",
+      "_uuid": "fedcba98-7654-3210-fedc-ba9876543210",
+      "meta/rootUuid": "uuid:fedcba98-7654-3210-fedc-ba9876543210",
+      "_attachments": [],
+      "_status": "submitted_via_web",
+      "_geolocation": [
+        null,
+        null
+      ],
+      "_submission_time": "2024-03-25T16:45:18",
+      "_tags": [],
+      "_notes": [],
+      "_validation_status": {},
+      "_submitted_by": "rdavis"
+    }
+  ]
+}
