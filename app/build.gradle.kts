@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -30,6 +33,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -42,6 +46,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,8 +58,48 @@ dependencies {
 
     // JTS Topology Suite for polygon validation
     implementation(libs.jts.core)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+
+    // Navigation
+    implementation(libs.navigation.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Security - Encrypted SharedPreferences
+    implementation(libs.security.crypto)
+
+    // Networking
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization)
+
+    // Unit Tests
     testImplementation(libs.junit)
+    testImplementation(libs.room.testing)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlinx.serialization.json)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.runner)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
