@@ -8,13 +8,13 @@ plugins {
 }
 
 android {
-    namespace = "com.akvo.externalodk"
+    namespace = "org.akvo.afribamodkvalidator"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.akvo.externalodk"
+        applicationId = "org.akvo.afribamodkvalidator"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

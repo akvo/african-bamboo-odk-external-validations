@@ -1,6 +1,6 @@
-# ExternalODK
-
-An Android client application for KoboToolbox API integration. ExternalODK enables users to download, view, and manage form submissions from KoboToolbox servers with offline validation capabilities.
+# AfriBamODKValidator
+> African Bamboo Plot Validator
+An Android client application for KoboToolbox API integration. AfriBamODKValidator enables users to download, view, and manage form submissions from KoboToolbox servers with offline validation capabilities.
 
 ## Features
 
@@ -51,8 +51,8 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/akvo/ExternalODK.git
-   cd ExternalODK
+   git clone https://github.com/akvo/african-bamboo-odk-external-validations.git AfriBamODKValidator
+   cd AfriBamODKValidator
    ```
 
 2. **Open in Android Studio**
@@ -127,14 +127,14 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 **Database Tests** - Room DAO operations with in-memory database:
 ```bash
 # All database tests
-./gradlew test --tests "com.akvo.externalodk.data.*"
+./gradlew test --tests "org.akvo.afribamodkvalidator.data.*"
 
 # Specific DAO tests
-./gradlew test --tests "com.akvo.externalodk.data.dao.SubmissionDaoTest"
-./gradlew test --tests "com.akvo.externalodk.data.dao.FormMetadataDaoTest"
+./gradlew test --tests "org.akvo.afribamodkvalidator.data.dao.SubmissionDaoTest"
+./gradlew test --tests "org.akvo.afribamodkvalidator.data.dao.FormMetadataDaoTest"
 
 # TypeConverter tests
-./gradlew test --tests "com.akvo.externalodk.data.database.ConvertersTest"
+./gradlew test --tests "org.akvo.afribamodkvalidator.data.database.ConvertersTest"
 ```
 
 #### 2. Instrumented Tests (Requires Device/Emulator)
@@ -147,14 +147,14 @@ adb devices
 ./gradlew connectedAndroidTest
 
 # Run specific instrumented test
-./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.akvo.externalodk.ExampleInstrumentedTest
+./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=org.akvo.afribamodkvalidator.ExampleInstrumentedTest
 ```
 
 ### Test Structure
 
 ```
 app/src/test/                          # Unit tests (JVM, fast)
-├── java/com/akvo/externalodk/
+├── java/org/akvo/afribamodkvalidator/
 │   ├── data/
 │   │   ├── dao/
 │   │   │   ├── SubmissionDaoTest.kt   # 11 tests: CRUD, Flow, pagination
@@ -169,7 +169,7 @@ app/src/test/                          # Unit tests (JVM, fast)
         └── assets-456-data-list.json  # Form 456 sample data
 
 app/src/androidTest/                   # Instrumented tests (device)
-└── java/com/akvo/externalodk/
+└── java/org/akvo/afribamodkvalidator/
     └── ExampleInstrumentedTest.kt
 ```
 
@@ -289,8 +289,8 @@ fun `test Flow emissions`() = runTest {
 ## Project Structure
 
 ```
-app/src/main/java/com/akvo/externalodk/
-├── ExternalODKApplication.kt    # Hilt Application class
+app/src/main/java/org/akvo/afribamodkvalidator/
+├── AfriBamODKValidatorApplication.kt    # Hilt Application class
 ├── MainActivity.kt              # Main entry point
 ├── navigation/
 │   ├── Routes.kt                # Type-safe navigation routes

@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test
 
 # Run a specific unit test class
-./gradlew test --tests "com.akvo.externalodk.ExampleUnitTest"
+./gradlew test --tests "org.akvo.afribamodkvalidator.ExampleUnitTest"
 
 # Run instrumented tests (requires emulator/device)
 ./gradlew connectedAndroidTest
@@ -43,7 +43,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Planned Dependencies**: Room (database), Retrofit (API), Hilt (DI), Kotlinx Serialization
 
 ### Project Purpose
-ExternalODK is a client application for KoboToolbox API integration. It handles multiple forms with varying schemas using a hybrid storage approach.
+AfriBamODKValidator is a client application for KoboToolbox API integration. It handles multiple forms with varying schemas using a hybrid storage approach.
 
 ### Core Design Patterns
 

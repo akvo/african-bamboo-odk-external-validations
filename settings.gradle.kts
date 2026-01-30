@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ExternalODK"
+rootProject.name = "AfriBamODKValidator"
 include(":app")
