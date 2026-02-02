@@ -10,6 +10,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Lazy loading pagination for large datasets
 - Sync status tracking for submissions
 - Material 3 design with Jetpack Compose
+- **ODK External App**: Polygon validation for geoshape fields
 
 ## Tech Stack
 
@@ -310,6 +311,51 @@ Login → Download Loading → Download Complete → Home/Dashboard
                                                     ↓
                               Sync Complete ← Resync Loading
 ```
+
+## ODK External App: Polygon Validation
+
+ExternalODK functions as an ODK external app that validates polygon/geoshape data before submission.
+
+### Validation Checks
+
+| Check | Description | Error Message |
+|-------|-------------|---------------|
+| Vertex Count | Polygon must have at least 3 distinct points | "Polygon has too few vertices" |
+| Minimum Area | Polygon must be larger than 10 sq meters | "Polygon area is too small" |
+| Self-Intersection | Polygon edges cannot cross each other | "Polygon lines intersect or cross each other" |
+
+### XLSForm Configuration
+
+Use explicit value passing when you want to validate a field from a separate trigger (e.g., a button or another field):
+
+**survey sheet:**
+
+| type | name | label | appearance | required |
+|------|------|-------|------------|----------|
+| geoshape | manual_boundary | Draw boundary | | yes |
+| text | validate_trigger | Tap to validate | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${manual_boundary}) | |
+
+### How Blocking Works
+
+The blocking is handled by the **return code** from the app, not by an XLSForm constraint:
+
+1. **Validation fails**: App returns `RESULT_CANCELED` and shows an error AlertDialog. ODK Collect does NOT update the field value - the user stays on the question and must fix the polygon.
+
+2. **Validation passes**: App returns `RESULT_OK` with the data. ODK Collect accepts the value and allows the user to proceed.
+
+The `required=yes` column ensures the user can't skip the field entirely. The external app's `RESULT_CANCELED` ensures invalid polygons are rejected.
+
+### Supported Input Formats
+
+- **ODK Geoshape**: `lat lng alt acc; lat lng alt acc; ...` (semicolon-separated points)
+- **WKT**: `POLYGON ((x1 y1, x2 y2, x3 y3, x1 y1))`
+
+### Installation
+
+1. Build the APK: `./gradlew assembleDebug`
+2. Install on the same device as ODK Collect: `./gradlew installDebug`
+3. Configure your XLSForm with the external app appearance
+4. Deploy the form to your device
 
 ## Contributing
 
