@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
+import org.akvo.afribamodkvalidator.data.entity.PlotEntity
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 
 /**
@@ -23,9 +24,10 @@ import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 @Database(
     entities = [
         SubmissionEntity::class,
-        FormMetadataEntity::class
+        FormMetadataEntity::class,
+        PlotEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
