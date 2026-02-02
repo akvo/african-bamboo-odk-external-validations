@@ -63,7 +63,7 @@ class PolygonValidator(
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
                 .map { pointStr ->
-                    val parts = pointStr.split("\\s+".toRegex())
+                    val parts = pointStr.split(WHITESPACE_REGEX)
                     if (parts.size < 2) return null
                     val lat = parts[0].toDouble()
                     val lng = parts[1].toDouble()
@@ -120,5 +120,6 @@ class PolygonValidator(
         private const val TAG = "PolygonValidator"
         const val MIN_VERTICES = 4 // 3 distinct points + 1 closing point
         const val MIN_AREA_SQ_METERS = 10.0
+        private val WHITESPACE_REGEX = "\\s+".toRegex()
     }
 }
