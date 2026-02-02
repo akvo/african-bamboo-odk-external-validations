@@ -78,10 +78,24 @@ bd close <id>         # Complete issue
 bd sync               # Sync with git remote
 ```
 
+## Code Review Requirement
+
+**After completing any beads task**, always run a code review before committing:
+
+1. Use `/code-reviewer` skill to review local changes
+2. Use `/reviewing-changes` skill for Android-specific pattern validation (MVVM, Compose, etc.)
+
+This ensures code quality and catches issues before they're committed.
+
 ## Session Completion Protocol
 
 Before completing any session, run:
 ```bash
+# 1. Review your changes first
+/code-reviewer        # Review local changes for correctness
+/reviewing-changes    # Android-specific pattern validation
+
+# 2. Then commit and sync
 git status            # Check changes
 git add <files>       # Stage code
 bd sync               # Sync beads changes

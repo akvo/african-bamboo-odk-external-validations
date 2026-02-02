@@ -76,7 +76,8 @@ concat(${enumerator_id}, '-', ${woreda}, '-', today())
 
 ## Overlap Detection
 
-- Block on ANY overlap (not percentage-based)
+- Block on overlaps >= 5% of smaller polygon area
+- Calculate: intersection area / min(newPlotArea, existingPlotArea)
 - Proximity filter: only check plots in same `woreda`
 - Bounding box pre-filter in SQL for performance
 - JTS `intersects()` for precise geometry check
