@@ -11,6 +11,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Sync status tracking for submissions
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
+- **Plot Overlap Detection**: Detect and block overlapping plots (>= 5% threshold)
 
 ## Tech Stack
 
@@ -21,7 +22,8 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 | Architecture | MVVM with Clean Architecture |
 | DI | Hilt 2.51.1 |
 | Navigation | Navigation Compose 2.8.5 |
-| Database | Room 2.6.1 (planned) |
+| Database | Room 2.6.1 |
+| Geometry | JTS Topology Suite 1.19.0 |
 | Serialization | Kotlinx Serialization 1.6.3 |
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 36 |
@@ -356,6 +358,74 @@ The `required=yes` column ensures the user can't skip the field entirely. The ex
 2. Install on the same device as ODK Collect: `./gradlew installDebug`
 3. Configure your XLSForm with the external app appearance
 4. Deploy the form to your device
+
+## Plot Overlap Detection
+
+The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 5% or more of the smaller polygon's area, validation fails.
+
+### How It Works
+
+1. **Single-polygon validation** runs first (vertex count, area, self-intersection)
+2. **Bounding box pre-filter** queries nearby plots from the database (same region)
+3. **JTS geometry check** computes precise intersection area
+4. **Threshold check**: overlap >= 5% of smaller polygon → blocked
+
+### Intent Extras
+
+Pass these extras from XLSForm to enable overlap detection:
+
+| Extra | Description | Required |
+|-------|-------------|----------|
+| `shape` | Polygon data (geoshape or WKT format) | Yes |
+| `plot_name` | Farmer name for error messages | Yes |
+| `region` | Administrative region for proximity filter | Yes |
+| `sub_region` | Sub-region (optional filtering) | No |
+| `form_id` | KoboToolbox form asset UID | No |
+| `instance_name` | Form instance name for draft matching | No |
+
+### XLSForm Configuration for Overlap Detection
+
+**survey sheet:**
+
+| type | name | label | appearance |
+|------|------|-------|------------|
+| geoshape | plot_boundary | Draw plot boundary | |
+| text | first_name | First Name | |
+| text | father_name | Father's Name | |
+| text | grandfather_name | Grandfather's Name | |
+| select_one regions | region | Select Region | |
+| select_one sub_regions | sub_region | Select Sub-Region | |
+| calculate | full_name | | |
+| text | validate_plot | Validate Plot | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${plot_boundary},plot_name=${full_name},region=${region},sub_region=${sub_region},form_id=${asset_uid},instance_name=${instance_name}) |
+
+**calculations sheet:**
+
+| name | calculation |
+|------|-------------|
+| full_name | concat(${first_name}, ' ', ${father_name}, ' ', ${grandfather_name}) |
+| asset_uid | 'your-kobo-form-asset-uid' |
+| instance_name | concat(${enumerator_id}, '-', ${region}, '-', today()) |
+
+### Overlap Error Messages
+
+When overlap is detected:
+```
+New plot for Abebe Kebede Tadesse overlaps with plot for Girma Tesfaye Hailu
+```
+
+### Overlap Threshold
+
+- **Threshold**: 5% of the smaller polygon's area
+- **Calculation**: `intersection_area / min(new_plot_area, existing_plot_area) * 100`
+- **Rationale**: Allows minor boundary touching (GPS inaccuracy) while blocking significant overlaps
+
+### Draft Plot Storage
+
+On successful validation, the plot is saved as a draft in the local database:
+- Stored with `isDraft = true`
+- Linked to form via `instanceName`
+- Used for overlap detection with subsequent plots
+- Can be matched to synced submissions later
 
 ## Contributing
 
