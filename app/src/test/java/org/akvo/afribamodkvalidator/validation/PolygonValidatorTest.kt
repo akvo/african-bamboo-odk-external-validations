@@ -42,14 +42,14 @@ class PolygonValidatorTest {
     }
 
     @Test
-    fun `line with 3 points fails vertex check`() {
-        // 3 points but not closed - becomes 3 points + closing = 4, but a line isn't valid
-        val lineShape = "0.0 0.0 0 0; 10.0 10.0 0 0; 0.0 10.0 0 0"
+    fun `triangle with 3 points plus closing passes minimum vertex check`() {
+        // 3 points auto-closed to 4 points meets MIN_VERTICES = 4
+        // Large triangle (10 degrees ≈ 1,113 km) passes area check
+        val triangle = "0.0 0.0 0 0; 10.0 10.0 0 0; 0.0 10.0 0 0"
 
-        val result = validator.validate(lineShape)
-        // Should fail because after closing it's only 4 vertices (minimum)
-        // But the actual content forms a valid triangle if area is sufficient
-        assertTrue(result is ValidationResult.Success || result is ValidationResult.Error)
+        val result = validator.validate(triangle)
+
+        assertTrue("Expected Success but got $result", result is ValidationResult.Success)
     }
 
     // Test A: Polygon area too small

@@ -63,7 +63,7 @@ class PolygonValidator(
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
                 .map { pointStr ->
-                    val parts = pointStr.split("\\s+".toRegex())
+                    val parts = pointStr.split(WHITESPACE_REGEX)
                     if (parts.size < 2) return null
                     val lat = parts[0].toDouble()
                     val lng = parts[1].toDouble()
@@ -108,17 +108,18 @@ class PolygonValidator(
         val areaInSquareDegrees = polygon.area
 
         // Convert square degrees to square meters
-        // At the equator, 1 degree ~ 111,320 meters
         // Longitude shrinks by cos(latitude)
-        val metersPerDegreeLat = 111320.0
-        val metersPerDegreeLng = 111320.0 * cos(Math.toRadians(lat))
+        val metersPerDegreeLat = METERS_PER_DEGREE_AT_EQUATOR
+        val metersPerDegreeLng = METERS_PER_DEGREE_AT_EQUATOR * cos(Math.toRadians(lat))
 
         return areaInSquareDegrees * metersPerDegreeLat * metersPerDegreeLng
     }
 
     companion object {
         private const val TAG = "PolygonValidator"
+        private const val METERS_PER_DEGREE_AT_EQUATOR = 111320.0
         const val MIN_VERTICES = 4 // 3 distinct points + 1 closing point
         const val MIN_AREA_SQ_METERS = 10.0
+        private val WHITESPACE_REGEX = "\\s+".toRegex()
     }
 }
