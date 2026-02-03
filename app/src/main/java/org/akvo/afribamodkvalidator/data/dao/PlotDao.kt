@@ -63,11 +63,13 @@ interface PlotDao {
     /**
      * Update draft status when a submission is synced.
      * Links the draft to the submission and marks it as no longer a draft.
+     * Only updates records that are still drafts to prevent overwriting already-synced plots.
      */
     @Query("""
         UPDATE plots
         SET isDraft = 0, submissionUuid = :submissionUuid
         WHERE instanceName = :instanceName
+        AND isDraft = 1
     """)
     suspend fun updateDraftStatus(instanceName: String, submissionUuid: String): Int
 
@@ -94,6 +96,12 @@ interface PlotDao {
      */
     @Query("SELECT * FROM plots WHERE uuid = :uuid")
     suspend fun getByUuid(uuid: String): PlotEntity?
+
+    /**
+     * Get multiple plots by their UUIDs.
+     */
+    @Query("SELECT * FROM plots WHERE uuid IN (:uuids)")
+    suspend fun getPlotsByUuids(uuids: List<String>): List<PlotEntity>
 
     /**
      * Delete a plot by UUID.
