@@ -68,6 +68,7 @@ fun HomeDashboardScreen(
     onResyncClick: () -> Unit,
     onLogout: () -> Unit,
     onSubmissionClick: (String) -> Unit,
+    onOfflineMapsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -80,6 +81,7 @@ fun HomeDashboardScreen(
             viewModel.logout { onLogout() }
         },
         onSubmissionClick = onSubmissionClick,
+        onOfflineMapsClick = onOfflineMapsClick,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onSearchActiveChange = viewModel::onSearchActiveChange,
         onSortOptionChange = viewModel::onSortOptionChange,
@@ -95,6 +97,7 @@ private fun HomeDashboardContent(
     onResyncClick: () -> Unit,
     onLogout: () -> Unit,
     onSubmissionClick: (String) -> Unit,
+    onOfflineMapsClick: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onSearchActiveChange: (Boolean) -> Unit,
     onSortOptionChange: (SortOption) -> Unit,
@@ -219,6 +222,13 @@ private fun HomeDashboardContent(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
+                            DropdownMenuItem(
+                                text = { Text("Offline Maps") },
+                                onClick = {
+                                    showMenu = false
+                                    onOfflineMapsClick()
+                                }
+                            )
                             DropdownMenuItem(
                                 text = { Text("Logout") },
                                 onClick = {
@@ -406,6 +416,7 @@ private fun HomeDashboardPreview() {
             onResyncClick = {},
             onLogout = {},
             onSubmissionClick = {},
+            onOfflineMapsClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -423,6 +434,7 @@ private fun HomeDashboardLoadingPreview() {
             onResyncClick = {},
             onLogout = {},
             onSubmissionClick = {},
+            onOfflineMapsClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -445,6 +457,7 @@ private fun HomeDashboardSearchActivePreview() {
             onResyncClick = {},
             onLogout = {},
             onSubmissionClick = {},
+            onOfflineMapsClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -465,6 +478,7 @@ private fun HomeDashboardEmptyPreview() {
             onResyncClick = {},
             onLogout = {},
             onSubmissionClick = {},
+            onOfflineMapsClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},

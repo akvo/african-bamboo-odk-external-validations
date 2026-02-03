@@ -10,6 +10,7 @@ import org.akvo.afribamodkvalidator.ui.screen.DownloadCompleteScreen
 import org.akvo.afribamodkvalidator.ui.screen.HomeDashboardScreen
 import org.akvo.afribamodkvalidator.ui.screen.LoadingScreen
 import org.akvo.afribamodkvalidator.ui.screen.LoginScreen
+import org.akvo.afribamodkvalidator.ui.screen.OfflineMapScreen
 import org.akvo.afribamodkvalidator.ui.screen.SubmissionDetailScreen
 import org.akvo.afribamodkvalidator.ui.screen.SyncCompleteScreen
 
@@ -100,6 +101,9 @@ fun AppNavHost(
                 },
                 onSubmissionClick = { uuid ->
                     navController.navigate(SubmissionDetail(uuid))
+                },
+                onOfflineMapsClick = {
+                    navController.navigate(OfflineMap)
                 }
             )
         }
@@ -122,6 +126,14 @@ fun AppNavHost(
                     navController.navigate(Home) {
                         popUpTo(Home) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable<OfflineMap> {
+            OfflineMapScreen(
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
