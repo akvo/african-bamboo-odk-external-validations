@@ -12,6 +12,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
 - **Plot Overlap Detection**: Detect and block overlapping plots (>= 5% threshold)
+- **Map Visualization**: View overlapping plots on interactive map with offline tile support
 
 ## Tech Stack
 
@@ -24,6 +25,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 | Navigation | Navigation Compose 2.8.5 |
 | Database | Room 2.6.1 |
 | Geometry | JTS Topology Suite 1.19.0 |
+| Maps | OSMDroid 6.1.18 |
 | Serialization | Kotlinx Serialization 1.6.3 |
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 36 |
@@ -429,6 +431,74 @@ On successful validation, the plot is saved as a draft in the local database:
 - Linked to form via `instanceName`
 - Used for overlap detection with subsequent plots
 - Can be matched to synced submissions later
+
+## Map Visualization
+
+The app includes map visualization for viewing plot overlaps on an interactive satellite map.
+
+### Features
+
+- **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
+- **Color Coding**: Current plot (blue), overlapping plots (red)
+- **Offline Maps**: Download map tiles for field use without internet connectivity
+- **Tap to Identify**: Tap any polygon to see the plot name
+
+### Offline Map Downloads
+
+Access offline maps via **Menu → Offline Maps** from the home screen.
+
+**Predefined Regions**: Configured in `assets/offline_regions.json`:
+```json
+{
+  "regions": [
+    {
+      "name": "Addis Ababa",
+      "north": 9.1,
+      "east": 38.9,
+      "south": 8.8,
+      "west": 38.6
+    }
+  ]
+}
+```
+
+**Download Settings**:
+- Zoom levels: 15-18 (suitable for plot-level detail)
+- Cache expiration: 1 year
+- Storage: App internal storage
+
+### Tile Source Policy
+
+> **Important for Production Use**
+>
+> The default configuration uses OpenStreetMap tiles for development and testing. OSM's [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/) restricts bulk downloading.
+>
+> **For production deployments, you should:**
+> 1. Use your own tile server (e.g., self-hosted OpenMapTiles)
+> 2. Use a commercial tile provider (e.g., Mapbox, MapTiler, Thunderforest)
+> 3. Or obtain explicit permission from OSM for bulk downloads
+>
+> To change the tile source, modify `OFFLINE_TILE_SOURCE` in `OfflineMapScreen.kt`.
+
+### Adding Custom Regions
+
+Edit `app/src/main/assets/offline_regions.json` to add regions for your deployment:
+
+```json
+{
+  "regions": [
+    {
+      "name": "Your Region Name",
+      "north": <max_latitude>,
+      "east": <max_longitude>,
+      "south": <min_latitude>,
+      "west": <min_longitude>
+    }
+  ]
+}
+```
+
+Use [bboxfinder.com](http://bboxfinder.com/) to find bounding box coordinates for your area.
 
 ## Contributing
 
