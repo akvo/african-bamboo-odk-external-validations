@@ -1,10 +1,5 @@
 package org.akvo.afribamodkvalidator.data.repository
 
-import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
-import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
-import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
-import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
-import org.akvo.afribamodkvalidator.data.network.KoboApiService
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -12,6 +7,11 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
+import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
+import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
+import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
+import org.akvo.afribamodkvalidator.data.network.KoboApiService
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset

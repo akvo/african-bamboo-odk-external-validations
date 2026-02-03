@@ -1,8 +1,8 @@
 package org.akvo.afribamodkvalidator.data.dao
 
+import kotlinx.coroutines.test.runTest
 import org.akvo.afribamodkvalidator.data.database.DatabaseTest
 import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
