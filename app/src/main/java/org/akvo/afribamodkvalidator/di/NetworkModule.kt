@@ -1,8 +1,5 @@
 package org.akvo.afribamodkvalidator.di
 
-import org.akvo.afribamodkvalidator.data.network.BasicAuthInterceptor
-import org.akvo.afribamodkvalidator.data.network.DynamicBaseUrlInterceptor
-import org.akvo.afribamodkvalidator.data.network.KoboApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -12,6 +9,9 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.akvo.afribamodkvalidator.data.network.BasicAuthInterceptor
+import org.akvo.afribamodkvalidator.data.network.DynamicBaseUrlInterceptor
+import org.akvo.afribamodkvalidator.data.network.KoboApiService
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton

@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 import kotlinx.coroutines.flow.Flow
+import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 
 /**
  * Data Access Object for submissions.

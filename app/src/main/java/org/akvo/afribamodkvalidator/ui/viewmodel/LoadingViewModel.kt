@@ -2,15 +2,15 @@ package org.akvo.afribamodkvalidator.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
-import org.akvo.afribamodkvalidator.data.network.AuthCredentials
-import org.akvo.afribamodkvalidator.data.repository.KoboRepository
-import org.akvo.afribamodkvalidator.navigation.LoadingType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
+import org.akvo.afribamodkvalidator.data.network.AuthCredentials
+import org.akvo.afribamodkvalidator.data.repository.KoboRepository
+import org.akvo.afribamodkvalidator.navigation.LoadingType
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

@@ -4,8 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
-import org.akvo.afribamodkvalidator.navigation.SubmissionDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +16,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
+import org.akvo.afribamodkvalidator.navigation.SubmissionDetail
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

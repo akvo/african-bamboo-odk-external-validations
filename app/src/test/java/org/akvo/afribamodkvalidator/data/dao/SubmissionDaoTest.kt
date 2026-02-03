@@ -1,14 +1,14 @@
 package org.akvo.afribamodkvalidator.data.dao
 
 import app.cash.turbine.test
-import org.akvo.afribamodkvalidator.data.database.DatabaseTest
-import org.akvo.afribamodkvalidator.data.dto.KoboDataResponse
-import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.akvo.afribamodkvalidator.data.database.DatabaseTest
+import org.akvo.afribamodkvalidator.data.dto.KoboDataResponse
+import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull

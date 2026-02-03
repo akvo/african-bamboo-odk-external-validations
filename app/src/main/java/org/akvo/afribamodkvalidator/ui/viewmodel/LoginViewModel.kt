@@ -1,12 +1,12 @@
 package org.akvo.afribamodkvalidator.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import org.akvo.afribamodkvalidator.data.network.AuthCredentials
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.akvo.afribamodkvalidator.data.network.AuthCredentials
 import javax.inject.Inject
 
 data class LoginUiState(
