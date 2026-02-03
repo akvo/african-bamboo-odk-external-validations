@@ -12,12 +12,17 @@ import androidx.room.PrimaryKey
  * - minLat/maxLat/minLon/maxLon: Bounding box for efficient SQL pre-filtering
  * - isDraft: Tracks whether plot is from draft (local) or synced submission
  * - region: Indexed for proximity filtering (only check overlaps within same region)
+ *
+ * Index strategy for findOverlapCandidates query:
+ * - Composite (region, minLon) supports equality on region + range on minLon
+ * - Composite (region, minLat) supports equality on region + range on minLat
+ * - SQLite query planner selects the most effective index per query
  */
 @Entity(
     tableName = "plots",
     indices = [
-        Index(value = ["region"]),
-        Index(value = ["minLat", "maxLat", "minLon", "maxLon"]),
+        Index(value = ["region", "minLon"]),
+        Index(value = ["region", "minLat"]),
         Index(value = ["instanceName"]),
         Index(value = ["submissionUuid"])
     ]
