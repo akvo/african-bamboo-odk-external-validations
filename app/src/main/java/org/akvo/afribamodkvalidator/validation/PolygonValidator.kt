@@ -53,6 +53,15 @@ class PolygonValidator(
     }
 
     /**
+     * Parse input string to JTS Polygon.
+     * Supports both ODK geoshape format and WKT.
+     * Exposed for use by OverlapChecker when WKT parsing fails.
+     */
+    fun parseToJtsPolygon(input: String): Polygon? {
+        return parsePolygon(input)
+    }
+
+    /**
      * Parse ODK geoshape format: "lat lng alt acc; lat lng alt acc; ..."
      * Each point is space-separated: latitude longitude altitude accuracy
      * Points are separated by semicolons
