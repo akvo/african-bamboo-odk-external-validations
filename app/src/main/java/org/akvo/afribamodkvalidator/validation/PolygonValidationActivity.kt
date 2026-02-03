@@ -83,10 +83,17 @@ class PolygonValidationActivity : AppCompatActivity() {
         // Compute bounding box for SQL query
         val bbox = overlapChecker.computeBoundingBox(polygon)
         val polygonWkt = overlapChecker.toWkt(polygon)
-        val plotUuid = UUID.randomUUID().toString()
 
         lifecycleScope.launch {
             try {
+                // Check for existing plot with same instanceName to prevent duplicates on re-validation
+                val existingPlot = if (instanceName.isNotEmpty()) {
+                    plotDao.findByInstanceName(instanceName)
+                } else {
+                    null
+                }
+                val plotUuid = existingPlot?.uuid ?: UUID.randomUUID().toString()
+
                 // Query overlap candidates from database
                 val candidates = if (region.isNotEmpty()) {
                     plotDao.findOverlapCandidates(
