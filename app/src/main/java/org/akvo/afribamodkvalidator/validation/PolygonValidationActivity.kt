@@ -124,9 +124,12 @@ class PolygonValidationActivity : AppCompatActivity() {
                     returnSuccess(polygonData)
                 }
             } catch (e: Exception) {
-                // Database error - log and proceed without overlap check
+                // Database error - block submission to prevent unvalidated duplicates
                 android.util.Log.e(TAG, "Failed to check overlaps", e)
-                returnSuccess(polygonData)
+                showErrorAndBlock(
+                    "Unable to verify plot overlaps. Please check your connection and try again.",
+                    polygonData
+                )
             }
         }
     }
