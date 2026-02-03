@@ -108,14 +108,21 @@ class PolygonValidationActivity : AppCompatActivity() {
                 val overlaps = overlapChecker.checkOverlaps(polygon, candidates)
 
                 if (overlaps.isNotEmpty()) {
-                    // Found overlapping plots - show error with all conflicting plot names
+                    // Found overlapping plots - show error with map preview option
                     val overlappingNames = overlaps.joinToString(", ") { it.plotName }
                     val errorMessage = if (overlaps.size == 1) {
                         "New plot for $plotName overlaps with plot for $overlappingNames"
                     } else {
                         "New plot for $plotName overlaps with ${overlaps.size} plots: $overlappingNames"
                     }
-                    showErrorAndBlock(errorMessage, polygonData)
+                    val overlappingUuids = overlaps.map { it.uuid }
+                    showOverlapError(
+                        message = errorMessage,
+                        data = polygonData,
+                        currentPolygonWkt = polygonWkt,
+                        currentPlotName = plotName,
+                        overlappingUuids = overlappingUuids
+                    )
                 } else {
                     // No significant overlap - save draft and return success
                     saveDraftPlot(
@@ -186,6 +193,37 @@ class PolygonValidationActivity : AppCompatActivity() {
                 }
                 dialog.dismiss()
                 finish()
+            }
+            .show()
+    }
+
+    private fun showOverlapError(
+        message: String,
+        data: String,
+        currentPolygonWkt: String,
+        currentPlotName: String,
+        overlappingUuids: List<String>
+    ) {
+        AlertDialog.Builder(this)
+            .setTitle("Validation Failed")
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK") { dialog, _ ->
+                val resultIntent = Intent().apply {
+                    putExtra("value", null as String?)
+                }
+                setResult(RESULT_OK, resultIntent)
+                dialog.dismiss()
+                finish()
+            }
+            .setNeutralButton("View on Map") { _, _ ->
+                val mapIntent = MapPreviewActivity.createIntent(
+                    context = this,
+                    currentPolygonWkt = currentPolygonWkt,
+                    currentPlotName = currentPlotName,
+                    overlappingUuids = overlappingUuids
+                )
+                startActivity(mapIntent)
             }
             .show()
     }
