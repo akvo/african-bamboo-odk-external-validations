@@ -8,6 +8,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
+import org.akvo.afribamodkvalidator.data.dao.PlotDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
@@ -24,7 +25,8 @@ import javax.inject.Singleton
 class KoboRepository @Inject constructor(
     private val apiService: KoboApiService,
     private val submissionDao: SubmissionDao,
-    private val formMetadataDao: FormMetadataDao
+    private val formMetadataDao: FormMetadataDao,
+    private val plotDao: PlotDao
 ) {
 
     /**
@@ -81,6 +83,8 @@ class KoboRepository @Inject constructor(
                         )
                     )
                 }
+                // Match drafts to submissions after sync
+                matchDraftsToSubmissions()
             }
 
             Result.success(totalFetched)
@@ -119,20 +123,47 @@ class KoboRepository @Inject constructor(
                 start += pageSize
             } while (response.next != null)
 
-            // Update sync timestamp
-            val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
-            if (latestSubmissionTime != null) {
-                formMetadataDao.insertOrUpdate(
-                    FormMetadataEntity(
-                        assetUid = assetUid,
-                        lastSyncTimestamp = latestSubmissionTime
+            // Update sync timestamp and match drafts if we fetched anything
+            if (totalFetched > 0) {
+                val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
+                if (latestSubmissionTime != null) {
+                    formMetadataDao.insertOrUpdate(
+                        FormMetadataEntity(
+                            assetUid = assetUid,
+                            lastSyncTimestamp = latestSubmissionTime
+                        )
                     )
-                )
+                }
+                // Match drafts to submissions after sync
+                matchDraftsToSubmissions()
             }
 
             Result.success(totalFetched)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Links draft plots to synced submissions by matching instanceName.
+     *
+     * For each draft plot:
+     * - Finds a submission with matching instanceName
+     * - If found, updates the plot: isDraft=false, submissionUuid=submission._uuid
+     * - If no match, the draft remains unchanged
+     */
+    private suspend fun matchDraftsToSubmissions() {
+        val drafts = plotDao.getAllDrafts()
+
+        for (draft in drafts) {
+            val submission = submissionDao.findByInstanceName(draft.instanceName)
+            if (submission != null) {
+                plotDao.updateDraftStatus(
+                    instanceName = draft.instanceName,
+                    submissionUuid = submission._uuid
+                )
+            }
+            // No match: draft remains a draft (no action needed)
         }
     }
 

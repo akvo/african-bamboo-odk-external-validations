@@ -68,6 +68,13 @@ interface SubmissionDao {
     suspend fun getByUuid(uuid: String): SubmissionEntity?
 
     /**
+     * Find submission by instanceName for draft matching.
+     * Returns the first match (should be unique in practice).
+     */
+    @Query("SELECT * FROM submissions WHERE instanceName = :instanceName LIMIT 1")
+    suspend fun findByInstanceName(instanceName: String): SubmissionEntity?
+
+    /**
      * Delete all submissions (for logout/data clearing).
      */
     @Query("DELETE FROM submissions")
