@@ -83,6 +83,12 @@ interface PlotDao {
     suspend fun getAll(): List<PlotEntity>
 
     /**
+     * Get all draft plots for matching to synced submissions.
+     */
+    @Query("SELECT * FROM plots WHERE isDraft = 1")
+    suspend fun getAllDrafts(): List<PlotEntity>
+
+    /**
      * Get all plots as Flow for reactive UI updates.
      */
     @Query("SELECT * FROM plots ORDER BY createdAt DESC")
