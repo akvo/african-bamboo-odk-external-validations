@@ -118,7 +118,6 @@ class PolygonValidationActivity : AppCompatActivity() {
                     val overlappingUuids = overlaps.map { it.uuid }
                     showOverlapError(
                         message = errorMessage,
-                        data = polygonData,
                         currentPolygonWkt = polygonWkt,
                         currentPlotName = plotName,
                         overlappingUuids = overlappingUuids
@@ -199,7 +198,6 @@ class PolygonValidationActivity : AppCompatActivity() {
 
     private fun showOverlapError(
         message: String,
-        data: String,
         currentPolygonWkt: String,
         currentPlotName: String,
         overlappingUuids: List<String>
