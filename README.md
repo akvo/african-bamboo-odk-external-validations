@@ -440,9 +440,13 @@ The app includes map visualization for viewing plot overlaps on an interactive *
 
 - **Satellite Imagery**: High-resolution satellite view for accurate field boundary verification
 - **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
-- **Color Coding**: Current plot (blue fill), overlapping plots (red fill)
+- **Color Coding**: Current plot (cyan fill), overlapping plots (red fill)
 - **Offline Maps**: Download satellite tiles for field use without internet connectivity
-- **Interactive**: Pinch to zoom, pan to navigate
+- **Interactive**: Pinch to zoom, pan to navigate, tap polygon to see plot name
+- **Google Maps Fallback**: Floating button to open location in Google Maps for fresher satellite imagery (visible when online)
+- **Imagery Disclaimer**: Banner warns users that satellite imagery may be outdated
+
+> **Note**: Mapbox satellite imagery may be several years old in some regions. Use the Google Maps button to check for more recent imagery when needed.
 
 ### Mapbox Setup
 

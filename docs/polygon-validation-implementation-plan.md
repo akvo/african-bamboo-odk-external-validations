@@ -184,21 +184,31 @@ sequenceDiagram
 flowchart TB
     subgraph MapScreen
         A[Mapbox MapView]
-        B[Current Plot - Blue polygon]
+        B[Current Plot - Cyan polygon]
         C[Overlapping Plots - Red polygons]
         D[Satellite Imagery Background]
+        E[Imagery Disclaimer Banner]
+        F[Google Maps FAB - online only]
     end
 
     A --> B
     A --> C
     A --> D
+    A --> E
+    A --> F
 
     subgraph Implementation
-        F[Uses SATELLITE_STREETS style]
-        G[Auto-zoom to fit polygons]
-        H[Offline TileStore support]
+        G[Uses SATELLITE_STREETS style]
+        H[Auto-zoom to fit polygons]
+        I[Offline TileStore support]
+        J[Network-aware FAB visibility]
     end
 ```
+
+**Features:**
+- Tap polygon to see plot name popup
+- Google Maps button opens fresher satellite imagery (visible when online)
+- Disclaimer banner warns users about potentially outdated imagery
 
 ---
 
@@ -240,9 +250,11 @@ flowchart TB
 
 ### Phase 4: Map Visualization (MVP Required)
 - [x] Integrate Mapbox Maps SDK 11.18.1 for satellite imagery
-- [x] Display current polygon (blue) + overlapping polygons (red)
+- [x] Display current polygon (cyan) + overlapping polygons (red)
 - [x] Use SATELLITE_STREETS style for field boundary verification
 - [x] Offline satellite tile downloads via MapboxOfflineManager
+- [x] Google Maps fallback button (network-aware, opens fresher imagery)
+- [x] Imagery disclaimer banner (warns about potentially outdated satellite data)
 
 ### Phase 5: Draft Sync
 - [ ] Match drafts to submissions by instanceName after sync
