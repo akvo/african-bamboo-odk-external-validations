@@ -25,7 +25,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 | Navigation | Navigation Compose 2.8.5 |
 | Database | Room 2.6.1 |
 | Geometry | JTS Topology Suite 1.19.0 |
-| Maps | OSMDroid 6.1.18 |
+| Maps | Mapbox Maps SDK 11.18.1 |
 | Serialization | Kotlinx Serialization 1.6.3 |
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 36 |
@@ -434,14 +434,34 @@ On successful validation, the plot is saved as a draft in the local database:
 
 ## Map Visualization
 
-The app includes map visualization for viewing plot overlaps on an interactive satellite map.
+The app includes map visualization for viewing plot overlaps on an interactive **satellite map** powered by Mapbox.
 
 ### Features
 
+- **Satellite Imagery**: High-resolution satellite view for accurate field boundary verification
 - **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
-- **Color Coding**: Current plot (blue), overlapping plots (red)
-- **Offline Maps**: Download map tiles for field use without internet connectivity
-- **Tap to Identify**: Tap any polygon to see the plot name
+- **Color Coding**: Current plot (blue fill), overlapping plots (red fill)
+- **Offline Maps**: Download satellite tiles for field use without internet connectivity
+- **Interactive**: Pinch to zoom, pan to navigate
+
+### Mapbox Setup
+
+The app uses Mapbox Maps SDK which requires authentication tokens:
+
+1. **Create Mapbox Account**: Sign up at [account.mapbox.com](https://account.mapbox.com/)
+
+2. **Configure Tokens** in `local.properties` (gitignored):
+   ```properties
+   # Secret token for downloading SDK (Downloads:Read scope)
+   MAPBOX_DOWNLOADS_TOKEN=sk.eyJ1...your_secret_token
+   ```
+
+3. **Public Token** in `app/src/main/res/values/mapbox_access_token.xml` (gitignored):
+   ```xml
+   <string name="mapbox_access_token">pk.eyJ1...your_public_token</string>
+   ```
+
+> **Free Tier**: Mapbox offers 25,000 monthly active users for free, sufficient for most deployments.
 
 ### Offline Map Downloads
 
@@ -463,22 +483,9 @@ Access offline maps via **Menu → Offline Maps** from the home screen.
 ```
 
 **Download Settings**:
+- Style: Satellite Streets (satellite imagery with road labels)
 - Zoom levels: 15-18 (suitable for plot-level detail)
-- Cache expiration: 1 year
-- Storage: App internal storage
-
-### Tile Source Policy
-
-> **Important for Production Use**
->
-> The default configuration uses OpenStreetMap tiles for development and testing. OSM's [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/) restricts bulk downloading.
->
-> **For production deployments, you should:**
-> 1. Use your own tile server (e.g., self-hosted OpenMapTiles)
-> 2. Use a commercial tile provider (e.g., Mapbox, MapTiler, Thunderforest)
-> 3. Or obtain explicit permission from OSM for bulk downloads
->
-> To change the tile source, modify `OFFLINE_TILE_SOURCE` in `OfflineMapScreen.kt`.
+- Storage: Mapbox TileStore (managed automatically)
 
 ### Adding Custom Regions
 
