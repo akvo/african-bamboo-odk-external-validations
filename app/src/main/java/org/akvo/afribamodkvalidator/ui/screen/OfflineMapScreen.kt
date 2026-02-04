@@ -45,16 +45,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.akvo.afribamodkvalidator.data.model.MapBoundingBox
 import org.akvo.afribamodkvalidator.data.model.OfflineRegion
 import org.akvo.afribamodkvalidator.data.repository.OfflineRegionRepository
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
-import org.akvo.afribamodkvalidator.validation.OfflineTileManager
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
-import org.osmdroid.tileprovider.tilesource.TileSourcePolicy
-import org.osmdroid.util.BoundingBox
-import org.osmdroid.util.MapTileIndex
-import org.osmdroid.views.MapView
+import org.akvo.afribamodkvalidator.validation.MapboxOfflineManager
 import javax.inject.Inject
 
 @HiltViewModel
@@ -86,9 +81,12 @@ fun OfflineMapScreen(
 
     var downloadingRegion by remember { mutableStateOf<String?>(null) }
     var downloadProgress by remember { mutableFloatStateOf(0f) }
-    var totalTiles by remember { mutableIntStateOf(0) }
-    var downloadedTiles by remember { mutableIntStateOf(0) }
-    var tileManager by remember { mutableStateOf<OfflineTileManager?>(null) }
+    var totalResources by remember { mutableIntStateOf(0) }
+    var downloadedResources by remember { mutableIntStateOf(0) }
+    var offlineManager by remember { mutableStateOf<MapboxOfflineManager?>(null) }
+
+    // Track download status per region
+    var downloadStatus by remember { mutableStateOf<Map<String, DownloadResult>>(emptyMap()) }
 
     // Calculate estimated sizes for regions
     var regionsWithEstimates by remember { mutableStateOf<List<OfflineRegion>>(emptyList()) }
@@ -102,7 +100,7 @@ fun OfflineMapScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Offline Maps") },
+                title = { Text("Offline Maps (Satellite)") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -119,7 +117,7 @@ fun OfflineMapScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Download map tiles for offline use",
+                text = "Download satellite map tiles for offline use",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -130,10 +128,10 @@ fun OfflineMapScreen(
                 DownloadProgressCard(
                     regionName = downloadingRegion!!,
                     progress = downloadProgress,
-                    downloadedTiles = downloadedTiles,
-                    totalTiles = totalTiles,
+                    downloadedResources = downloadedResources,
+                    totalResources = totalResources,
                     onCancel = {
-                        tileManager?.cancelDownload()
+                        offlineManager?.cancelDownload()
                         downloadingRegion = null
                     }
                 )
@@ -154,26 +152,39 @@ fun OfflineMapScreen(
                         RegionCard(
                             region = region,
                             isDownloading = downloadingRegion != null,
+                            downloadResult = downloadStatus[region.name],
                             onDownload = {
                                 downloadingRegion = region.name
                                 downloadProgress = 0f
-                                totalTiles = 0
-                                downloadedTiles = 0
+                                totalResources = 0
+                                downloadedResources = 0
 
-                                tileManager = startDownload(
+                                offlineManager = startMapboxDownload(
                                     context = context,
                                     region = region,
-                                    onProgress = { downloaded, total ->
-                                        downloadedTiles = downloaded
-                                        if (total > 0) totalTiles = total
-                                        downloadProgress = if (totalTiles > 0) {
-                                            downloaded.toFloat() / totalTiles
+                                    onProgress = { completed, total ->
+                                        downloadedResources = completed
+                                        totalResources = total
+                                        downloadProgress = if (total > 0) {
+                                            completed.toFloat() / total
                                         } else 0f
                                     },
                                     onComplete = {
+                                        downloadStatus = downloadStatus + (region.name to DownloadResult(
+                                            success = true,
+                                            downloadedTiles = downloadedResources,
+                                            totalTiles = totalResources
+                                        ))
                                         downloadingRegion = null
                                     },
-                                    onFailed = {
+                                    onFailed = { errorMessage ->
+                                        downloadStatus = downloadStatus + (region.name to DownloadResult(
+                                            success = false,
+                                            downloadedTiles = downloadedResources,
+                                            totalTiles = totalResources,
+                                            errorCount = 1,
+                                            errorMessage = errorMessage
+                                        ))
                                         downloadingRegion = null
                                     }
                                 )
@@ -190,8 +201,8 @@ fun OfflineMapScreen(
 private fun DownloadProgressCard(
     regionName: String,
     progress: Float,
-    downloadedTiles: Int,
-    totalTiles: Int,
+    downloadedResources: Int,
+    totalResources: Int,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -212,7 +223,7 @@ private fun DownloadProgressCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "$downloadedTiles / $totalTiles tiles",
+                    text = "$downloadedResources / $totalResources resources",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
@@ -232,6 +243,7 @@ private fun DownloadProgressCard(
 private fun RegionCard(
     region: OfflineRegion,
     isDownloading: Boolean,
+    downloadResult: DownloadResult?,
     onDownload: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -249,17 +261,36 @@ private fun RegionCard(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "${region.estimatedTiles} tiles (~${region.estimatedSizeMb} MB)",
+                    text = "~${region.estimatedSizeMb} MB (zoom ${MapboxOfflineManager.ZOOM_MIN}-${MapboxOfflineManager.ZOOM_MAX})",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                // Show download status if available
+                downloadResult?.let { result ->
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val statusText = when {
+                        result.success -> "✓ Downloaded successfully"
+                        result.errorMessage != null -> "✗ ${result.errorMessage}"
+                        else -> "✗ Download failed"
+                    }
+                    val statusColor = when {
+                        result.success -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.error
+                    }
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = statusColor
+                    )
+                }
             }
             Button(
                 onClick = onDownload,
                 enabled = !isDownloading
             ) {
                 Icon(Icons.Default.Download, contentDescription = null)
-                Text("Download", modifier = Modifier.padding(start = 4.dp))
+                val buttonText = if (downloadResult != null) "Re-download" else "Download"
+                Text(buttonText, modifier = Modifier.padding(start = 4.dp))
             }
         }
     }
@@ -267,114 +298,82 @@ private fun RegionCard(
 
 private fun calculateEstimates(regions: List<OfflineRegion>): List<OfflineRegion> {
     return regions.map { region ->
-        val tiles = estimateTileCount(
-            region.boundingBox,
-            OfflineTileManager.DEFAULT_ZOOM_MIN,
-            OfflineTileManager.DEFAULT_ZOOM_MAX
-        )
-        val sizeMb = (tiles * AVERAGE_TILE_SIZE_KB) / 1024
+        // Estimate based on area and zoom levels
+        // Satellite tiles are larger than street map tiles (~50KB avg vs 15KB)
+        val bbox = region.boundingBox
+        val latDiff = bbox.latNorth - bbox.latSouth
+        val lonDiff = bbox.lonEast - bbox.lonWest
+        val areaDegrees = latDiff * lonDiff
+
+        // Rough estimate: ~100 tiles per 0.01 square degrees at zoom 15-18
+        // Satellite tiles average ~50KB each
+        val estimatedTiles = (areaDegrees * 10000 * 4).toInt() // 4 zoom levels
+        val sizeMb = (estimatedTiles * AVERAGE_SATELLITE_TILE_SIZE_KB) / 1024
+
         region.copy(
-            estimatedTiles = tiles,
-            estimatedSizeMb = sizeMb
+            estimatedTiles = estimatedTiles,
+            estimatedSizeMb = sizeMb.coerceAtLeast(1)
         )
     }
 }
 
-private fun estimateTileCount(bbox: BoundingBox, zoomMin: Int, zoomMax: Int): Int {
-    var total = 0
-    for (zoom in zoomMin..zoomMax) {
-        val minTileX = lonToTileX(bbox.lonWest, zoom)
-        val maxTileX = lonToTileX(bbox.lonEast, zoom)
-        val minTileY = latToTileY(bbox.latNorth, zoom)
-        val maxTileY = latToTileY(bbox.latSouth, zoom)
-        total += (maxTileX - minTileX + 1) * (maxTileY - minTileY + 1)
-    }
-    return total
-}
-
-private fun lonToTileX(lon: Double, zoom: Int): Int {
-    return ((lon + 180.0) / 360.0 * (1 shl zoom)).toInt()
-}
-
-private fun latToTileY(lat: Double, zoom: Int): Int {
-    val latRad = Math.toRadians(lat)
-    return ((1.0 - kotlin.math.ln(kotlin.math.tan(latRad) + 1.0 / kotlin.math.cos(latRad)) / Math.PI) / 2.0 * (1 shl zoom)).toInt()
-}
-
-private fun startDownload(
+private fun startMapboxDownload(
     context: Context,
     region: OfflineRegion,
-    onProgress: (downloaded: Int, total: Int) -> Unit,
+    onProgress: (completed: Int, total: Int) -> Unit,
     onComplete: () -> Unit,
-    onFailed: () -> Unit
-): OfflineTileManager {
-    Configuration.getInstance().load(
-        context,
-        context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE)
-    )
+    onFailed: (error: String) -> Unit
+): MapboxOfflineManager {
+    val manager = MapboxOfflineManager(context)
 
-    val mapView = MapView(context).apply {
-        setTileSource(OFFLINE_TILE_SOURCE)
-    }
+    val bbox = region.boundingBox
+    val regionId = "region-${region.name.lowercase().replace(" ", "-")}"
 
-    val tileManager = OfflineTileManager(mapView)
-
-    tileManager.downloadRegion(
-        context = context,
-        boundingBox = region.boundingBox,
-        callback = object : OfflineTileManager.DownloadCallback {
+    manager.downloadRegion(
+        regionId = regionId,
+        north = bbox.latNorth,
+        south = bbox.latSouth,
+        east = bbox.lonEast,
+        west = bbox.lonWest,
+        callback = object : MapboxOfflineManager.DownloadCallback {
             override fun onStarted() {}
 
-            override fun onTotalTilesCalculated(total: Int) {
-                onProgress(0, total)
-            }
-
-            override fun onProgress(downloaded: Int, currentZoomLevel: Int) {
-                onProgress(downloaded, 0)
+            override fun onProgress(completed: Int, total: Int) {
+                onProgress(completed, total)
             }
 
             override fun onComplete() {
-                mapView.onDetach()
                 onComplete()
             }
 
-            override fun onFailed(errors: Int) {
-                mapView.onDetach()
-                onFailed()
+            override fun onFailed(error: String) {
+                onFailed(error)
+            }
+
+            override fun onCanceled() {
+                onFailed("Download canceled")
             }
         }
     )
 
-    return tileManager
+    return manager
 }
+
+private const val AVERAGE_SATELLITE_TILE_SIZE_KB = 50
 
 /**
- * Custom tile source that allows bulk downloads for offline use.
- * Uses OpenStreetMap tiles - respect usage policy for production use.
+ * Represents the result of a download operation.
  */
-private val OFFLINE_TILE_SOURCE = object : OnlineTileSourceBase(
-    "OSM_Offline",
-    0, 19,
-    256,
-    ".png",
-    arrayOf("https://a.tile.openstreetmap.org/", "https://b.tile.openstreetmap.org/", "https://c.tile.openstreetmap.org/"),
-    "© OpenStreetMap contributors",
-    TileSourcePolicy(
-        2,
-        TileSourcePolicy.FLAG_NO_PREVENTIVE or
-            TileSourcePolicy.FLAG_USER_AGENT_MEANINGFUL or
-            TileSourcePolicy.FLAG_USER_AGENT_NORMALIZED
-    )
+data class DownloadResult(
+    val success: Boolean,
+    val downloadedTiles: Int,
+    val totalTiles: Int,
+    val errorCount: Int = 0,
+    val errorMessage: String? = null
 ) {
-    override fun getTileURLString(pMapTileIndex: Long): String {
-        val zoom = MapTileIndex.getZoom(pMapTileIndex)
-        val x = MapTileIndex.getX(pMapTileIndex)
-        val y = MapTileIndex.getY(pMapTileIndex)
-        return "$baseUrl$zoom/$x/$y$mImageFilenameEnding"
-    }
+    val isPartialSuccess: Boolean
+        get() = !success && downloadedTiles > 0
 }
-
-private const val AVERAGE_TILE_SIZE_KB = 15
 
 @Preview(showBackground = true)
 @Composable
@@ -383,11 +382,58 @@ private fun RegionCardPreview() {
         RegionCard(
             region = OfflineRegion(
                 name = "Addis Ababa",
-                boundingBox = BoundingBox(9.1, 38.9, 8.8, 38.6),
+                boundingBox = MapBoundingBox(9.1, 38.9, 8.8, 38.6),
                 estimatedTiles = 3500,
-                estimatedSizeMb = 51
+                estimatedSizeMb = 175
             ),
             isDownloading = false,
+            downloadResult = null,
+            onDownload = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RegionCardDownloadedPreview() {
+    AfriBamODKValidatorTheme {
+        RegionCard(
+            region = OfflineRegion(
+                name = "Addis Ababa",
+                boundingBox = MapBoundingBox(9.1, 38.9, 8.8, 38.6),
+                estimatedTiles = 3500,
+                estimatedSizeMb = 175
+            ),
+            isDownloading = false,
+            downloadResult = DownloadResult(
+                success = true,
+                downloadedTiles = 3500,
+                totalTiles = 3500
+            ),
+            onDownload = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RegionCardFailedPreview() {
+    AfriBamODKValidatorTheme {
+        RegionCard(
+            region = OfflineRegion(
+                name = "Pasunggingan",
+                boundingBox = MapBoundingBox(-7.357, 109.514, -7.412, 109.429),
+                estimatedTiles = 1000,
+                estimatedSizeMb = 50
+            ),
+            isDownloading = false,
+            downloadResult = DownloadResult(
+                success = false,
+                downloadedTiles = 0,
+                totalTiles = 1000,
+                errorCount = 1,
+                errorMessage = "Network error"
+            ),
             onDownload = {}
         )
     }
@@ -400,8 +446,8 @@ private fun DownloadProgressCardPreview() {
         DownloadProgressCard(
             regionName = "Addis Ababa",
             progress = 0.45f,
-            downloadedTiles = 450,
-            totalTiles = 1000,
+            downloadedResources = 450,
+            totalResources = 1000,
             onCancel = {}
         )
     }
