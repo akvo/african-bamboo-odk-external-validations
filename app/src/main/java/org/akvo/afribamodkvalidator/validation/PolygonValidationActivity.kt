@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.color.MaterialColors
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -175,11 +176,11 @@ class PolygonValidationActivity : AppCompatActivity() {
     }
 
     private fun showErrorAndBlock(message: String, data: String?) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("Validation Failed")
             .setMessage(message)
             .setCancelable(false)
-            .setPositiveButton("OK") { dialog, _ ->
+            .setPositiveButton("OK") { dlg, _ ->
                 if (!data.isNullOrEmpty()) {
                     // Data available: set RESULT_OK with reset (null) value
                     val resultIntent = Intent().apply {
@@ -190,10 +191,18 @@ class PolygonValidationActivity : AppCompatActivity() {
                     // No data: set RESULT_CANCELED without intent data
                     setResult(RESULT_CANCELED)
                 }
-                dialog.dismiss()
+                dlg.dismiss()
                 finish()
             }
             .show()
+
+        // Apply Material 3 primaryContainer color to button
+        val primaryColor = MaterialColors.getColor(
+            this,
+            androidx.appcompat.R.attr.colorPrimary,
+            getColor(android.R.color.holo_blue_dark)
+        )
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
     }
 
     private fun showOverlapError(
@@ -202,16 +211,16 @@ class PolygonValidationActivity : AppCompatActivity() {
         currentPlotName: String,
         overlappingUuids: List<String>
     ) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("Validation Failed")
             .setMessage(message)
             .setCancelable(false)
-            .setPositiveButton("OK") { dialog, _ ->
+            .setPositiveButton("OK") { dlg, _ ->
                 val resultIntent = Intent().apply {
                     putExtra("value", null as String?)
                 }
                 setResult(RESULT_OK, resultIntent)
-                dialog.dismiss()
+                dlg.dismiss()
                 finish()
             }
             .setNeutralButton("View on Map") { _, _ ->
@@ -224,6 +233,15 @@ class PolygonValidationActivity : AppCompatActivity() {
                 startActivity(mapIntent)
             }
             .show()
+
+        // Apply Material 3 primaryContainer color to buttons
+        val primaryColor = MaterialColors.getColor(
+            this,
+            androidx.appcompat.R.attr.colorPrimary,
+            getColor(android.R.color.holo_blue_dark)
+        )
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(primaryColor)
     }
 
     private fun returnSuccess(data: String) {
