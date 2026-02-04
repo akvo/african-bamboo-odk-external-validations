@@ -35,6 +35,7 @@ class MapPreviewActivity : AppCompatActivity() {
         // Configure OSMDroid with extended cache for offline use
         val config = Configuration.getInstance()
         config.load(this, getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
+        config.userAgentValue = packageName  // Required by tile providers (e.g., OSM)
         config.osmdroidTileCache = filesDir  // Use app internal storage
         config.expirationOverrideDuration = CACHE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000L
 
@@ -185,6 +186,11 @@ class MapPreviewActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         mapView.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mapView.onDetach()
     }
 
     companion object {
