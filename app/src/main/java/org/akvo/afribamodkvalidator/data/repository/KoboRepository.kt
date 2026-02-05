@@ -1,6 +1,7 @@
 package org.akvo.afribamodkvalidator.data.repository
 
 import android.util.Log
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -40,12 +41,9 @@ class KoboRepository @Inject constructor(
      * @return Result containing the number of new/updated submissions fetched
      */
     suspend fun resync(assetUid: String): Result<Int> {
-        val lastSyncTimestamp = formMetadataDao.getLastSyncTimestamp(assetUid)
-
         // If no previous sync, do a full fetch
-        if (lastSyncTimestamp == null) {
-            return fetchSubmissions(assetUid)
-        }
+        val lastSyncTimestamp = formMetadataDao.getLastSyncTimestamp(assetUid)
+            ?: return fetchSubmissions(assetUid)
 
         return try {
             var totalFetched = 0
@@ -303,8 +301,8 @@ class KoboRepository @Inject constructor(
         }
 
         return if (systemFields.isNotEmpty()) {
-            kotlinx.serialization.json.Json.encodeToString(
-                kotlinx.serialization.json.JsonObject.serializer(),
+            Json.encodeToString(
+                JsonObject.serializer(),
                 JsonObject(systemFields.mapValues { (_, value) ->
                     when (value) {
                         is List<*> -> JsonArray(value.map {
