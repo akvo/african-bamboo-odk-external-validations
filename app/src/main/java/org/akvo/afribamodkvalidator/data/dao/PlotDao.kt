@@ -113,6 +113,14 @@ interface PlotDao {
     suspend fun findBySubmissionUuid(submissionUuid: String): PlotEntity?
 
     /**
+     * Find plots by multiple submissionUuids in a single batch query.
+     * Used for efficient plot extraction (avoids N individual queries).
+     * Returns only the submissionUuid field for memory efficiency.
+     */
+    @Query("SELECT submissionUuid FROM plots WHERE submissionUuid IN (:submissionUuids)")
+    suspend fun findExistingSubmissionUuids(submissionUuids: List<String>): List<String>
+
+    /**
      * Get multiple plots by their UUIDs.
      */
     @Query("SELECT * FROM plots WHERE uuid IN (:uuids)")

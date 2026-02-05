@@ -1,5 +1,6 @@
 package org.akvo.afribamodkvalidator.data.repository
 
+import android.util.Log
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -20,6 +21,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "KoboRepository"
 
 @Singleton
 class KoboRepository @Inject constructor(
@@ -152,51 +155,98 @@ class KoboRepository @Inject constructor(
     /**
      * Links draft plots to synced submissions by matching instanceName.
      *
-     * For each draft plot:
-     * - Finds a submission with matching instanceName
-     * - If found, updates the plot: isDraft=false, submissionUuid=submission._uuid
-     * - If no match, the draft remains unchanged
+     * Uses batch queries for efficiency:
+     * - Fetches all drafts and their instanceNames
+     * - Batch queries submissions matching those instanceNames
+     * - Updates matching drafts (individual updates, but no N+1 query problem)
+     *
+     * For large datasets, this reduces database queries from O(2N) to O(2 + M),
+     * where M is the number of matches found.
      */
     private suspend fun matchDraftsToSubmissions() {
+        val startTime = System.currentTimeMillis()
         val drafts = plotDao.getAllDrafts()
 
+        if (drafts.isEmpty()) {
+            Log.d(TAG, "matchDraftsToSubmissions: No drafts to match")
+            return
+        }
+
+        // Batch query: get all submissions with matching instanceNames
+        val instanceNames = drafts.map { it.instanceName }
+        val matchingSubmissions = submissionDao.findByInstanceNames(instanceNames)
+
+        // Create lookup map for O(1) access
+        val submissionByInstanceName = matchingSubmissions
+            .filter { it.instanceName != null }
+            .associateBy { it.instanceName!! }
+
+        // Update matching drafts
+        var matchedCount = 0
         for (draft in drafts) {
-            val submission = submissionDao.findByInstanceName(draft.instanceName)
+            val submission = submissionByInstanceName[draft.instanceName]
             if (submission != null) {
                 plotDao.updateDraftStatus(
                     instanceName = draft.instanceName,
                     submissionUuid = submission._uuid
                 )
+                matchedCount++
             }
-            // No match: draft remains a draft (no action needed)
         }
+
+        val elapsedMs = System.currentTimeMillis() - startTime
+        Log.d(TAG, "matchDraftsToSubmissions: Processed ${drafts.size} drafts, " +
+                "matched $matchedCount in ${elapsedMs}ms")
     }
 
     /**
      * Extracts plots from synced submissions that don't already have plots.
      *
-     * For each submission:
-     * - Checks if a plot already exists with this submissionUuid
-     * - If not, extracts plot data from rawData (polygon, farmer name, region)
-     * - Inserts as PlotEntity with isDraft=false
+     * Uses batch operations for efficiency:
+     * - Batch queries existing plot submissionUuids to filter already-processed submissions
+     * - Extracts plots from remaining submissions
+     * - Batch inserts all new plots
+     *
+     * For large datasets, this reduces database queries from O(2N) to O(3),
+     * regardless of dataset size.
      */
     private suspend fun extractPlotsFromSubmissions(assetUid: String) {
+        val startTime = System.currentTimeMillis()
         val submissions = submissionDao.getSubmissionsSync(assetUid)
 
-        for (submission in submissions) {
-            // Skip if plot already exists for this submission
-            val existingPlot = plotDao.findBySubmissionUuid(submission._uuid)
-            if (existingPlot != null) {
-                continue
-            }
-
-            // Try to extract plot from submission rawData
-            val plot = plotExtractor.extractPlot(submission)
-            if (plot != null) {
-                plotDao.insertOrUpdate(plot)
-            }
-            // No plot extracted: submission doesn't have polygon data (skip silently)
+        if (submissions.isEmpty()) {
+            Log.d(TAG, "extractPlotsFromSubmissions: No submissions for $assetUid")
+            return
         }
+
+        // Batch query: get all submissionUuids that already have plots
+        val submissionUuids = submissions.map { it._uuid }
+        val existingSubmissionUuids = plotDao.findExistingSubmissionUuids(submissionUuids).toSet()
+
+        // Filter to submissions that need plot extraction
+        val submissionsToProcess = submissions.filter { it._uuid !in existingSubmissionUuids }
+
+        if (submissionsToProcess.isEmpty()) {
+            val elapsedMs = System.currentTimeMillis() - startTime
+            Log.d(TAG, "extractPlotsFromSubmissions: All ${submissions.size} submissions " +
+                    "already have plots (${elapsedMs}ms)")
+            return
+        }
+
+        // Extract plots from submissions
+        val newPlots = submissionsToProcess.mapNotNull { submission ->
+            plotExtractor.extractPlot(submission)
+        }
+
+        // Batch insert all new plots
+        if (newPlots.isNotEmpty()) {
+            plotDao.insertOrUpdateAll(newPlots)
+        }
+
+        val elapsedMs = System.currentTimeMillis() - startTime
+        Log.d(TAG, "extractPlotsFromSubmissions: Processed ${submissionsToProcess.size} " +
+                "submissions, extracted ${newPlots.size} plots in ${elapsedMs}ms " +
+                "(skipped ${existingSubmissionUuids.size} existing)")
     }
 
     private fun transformToEntity(assetUid: String, jsonObject: JsonObject): SubmissionEntity? {
