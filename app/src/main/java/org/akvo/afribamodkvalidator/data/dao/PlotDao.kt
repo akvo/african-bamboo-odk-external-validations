@@ -83,6 +83,12 @@ interface PlotDao {
     suspend fun getAll(): List<PlotEntity>
 
     /**
+     * Get all draft plots for matching to synced submissions.
+     */
+    @Query("SELECT * FROM plots WHERE isDraft = 1")
+    suspend fun getAllDrafts(): List<PlotEntity>
+
+    /**
      * Get all plots as Flow for reactive UI updates.
      */
     @Query("SELECT * FROM plots ORDER BY createdAt DESC")
@@ -99,6 +105,20 @@ interface PlotDao {
      */
     @Query("SELECT * FROM plots WHERE uuid = :uuid")
     suspend fun getByUuid(uuid: String): PlotEntity?
+
+    /**
+     * Find a plot by submissionUuid (to check if already extracted).
+     */
+    @Query("SELECT * FROM plots WHERE submissionUuid = :submissionUuid LIMIT 1")
+    suspend fun findBySubmissionUuid(submissionUuid: String): PlotEntity?
+
+    /**
+     * Find plots by multiple submissionUuids in a single batch query.
+     * Used for efficient plot extraction (avoids N individual queries).
+     * Returns only the submissionUuid field for memory efficiency.
+     */
+    @Query("SELECT submissionUuid FROM plots WHERE submissionUuid IN (:submissionUuids)")
+    suspend fun findExistingSubmissionUuids(submissionUuids: List<String>): List<String>
 
     /**
      * Get multiple plots by their UUIDs.

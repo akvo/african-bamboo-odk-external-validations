@@ -1,5 +1,7 @@
 package org.akvo.afribamodkvalidator.data.repository
 
+import android.util.Log
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -8,6 +10,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
+import org.akvo.afribamodkvalidator.data.dao.PlotDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
@@ -20,11 +23,15 @@ import java.time.format.DateTimeParseException
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val TAG = "KoboRepository"
+
 @Singleton
 class KoboRepository @Inject constructor(
     private val apiService: KoboApiService,
     private val submissionDao: SubmissionDao,
-    private val formMetadataDao: FormMetadataDao
+    private val formMetadataDao: FormMetadataDao,
+    private val plotDao: PlotDao,
+    private val plotExtractor: PlotExtractor
 ) {
 
     /**
@@ -34,12 +41,9 @@ class KoboRepository @Inject constructor(
      * @return Result containing the number of new/updated submissions fetched
      */
     suspend fun resync(assetUid: String): Result<Int> {
-        val lastSyncTimestamp = formMetadataDao.getLastSyncTimestamp(assetUid)
-
         // If no previous sync, do a full fetch
-        if (lastSyncTimestamp == null) {
-            return fetchSubmissions(assetUid)
-        }
+        val lastSyncTimestamp = formMetadataDao.getLastSyncTimestamp(assetUid)
+            ?: return fetchSubmissions(assetUid)
 
         return try {
             var totalFetched = 0
@@ -81,6 +85,10 @@ class KoboRepository @Inject constructor(
                         )
                     )
                 }
+                // Match drafts to submissions after sync
+                matchDraftsToSubmissions()
+                // Extract plots from synced submissions
+                extractPlotsFromSubmissions(assetUid)
             }
 
             Result.success(totalFetched)
@@ -119,21 +127,124 @@ class KoboRepository @Inject constructor(
                 start += pageSize
             } while (response.next != null)
 
-            // Update sync timestamp
-            val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
-            if (latestSubmissionTime != null) {
-                formMetadataDao.insertOrUpdate(
-                    FormMetadataEntity(
-                        assetUid = assetUid,
-                        lastSyncTimestamp = latestSubmissionTime
+            // Update sync timestamp and match drafts if we fetched anything
+            if (totalFetched > 0) {
+                val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
+                if (latestSubmissionTime != null) {
+                    formMetadataDao.insertOrUpdate(
+                        FormMetadataEntity(
+                            assetUid = assetUid,
+                            lastSyncTimestamp = latestSubmissionTime
+                        )
                     )
-                )
+                }
+                // Match drafts to submissions after sync
+                matchDraftsToSubmissions()
+                // Extract plots from synced submissions
+                extractPlotsFromSubmissions(assetUid)
             }
 
             Result.success(totalFetched)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * Links draft plots to synced submissions by matching instanceName.
+     *
+     * Uses batch queries for efficiency:
+     * - Fetches all drafts and their instanceNames
+     * - Batch queries submissions matching those instanceNames
+     * - Updates matching drafts (individual updates, but no N+1 query problem)
+     *
+     * For large datasets, this reduces database queries from O(2N) to O(2 + M),
+     * where M is the number of matches found.
+     */
+    private suspend fun matchDraftsToSubmissions() {
+        val startTime = System.currentTimeMillis()
+        val drafts = plotDao.getAllDrafts()
+
+        if (drafts.isEmpty()) {
+            Log.d(TAG, "matchDraftsToSubmissions: No drafts to match")
+            return
+        }
+
+        // Batch query: get all submissions with matching instanceNames
+        val instanceNames = drafts.map { it.instanceName }
+        val matchingSubmissions = submissionDao.findByInstanceNames(instanceNames)
+
+        // Create lookup map for O(1) access
+        val submissionByInstanceName = matchingSubmissions
+            .filter { it.instanceName != null }
+            .associateBy { it.instanceName!! }
+
+        // Update matching drafts
+        var matchedCount = 0
+        for (draft in drafts) {
+            val submission = submissionByInstanceName[draft.instanceName]
+            if (submission != null) {
+                plotDao.updateDraftStatus(
+                    instanceName = draft.instanceName,
+                    submissionUuid = submission._uuid
+                )
+                matchedCount++
+            }
+        }
+
+        val elapsedMs = System.currentTimeMillis() - startTime
+        Log.d(TAG, "matchDraftsToSubmissions: Processed ${drafts.size} drafts, " +
+                "matched $matchedCount in ${elapsedMs}ms")
+    }
+
+    /**
+     * Extracts plots from synced submissions that don't already have plots.
+     *
+     * Uses batch operations for efficiency:
+     * - Batch queries existing plot submissionUuids to filter already-processed submissions
+     * - Extracts plots from remaining submissions
+     * - Batch inserts all new plots
+     *
+     * For large datasets, this reduces database queries from O(2N) to O(3),
+     * regardless of dataset size.
+     */
+    private suspend fun extractPlotsFromSubmissions(assetUid: String) {
+        val startTime = System.currentTimeMillis()
+        val submissions = submissionDao.getSubmissionsSync(assetUid)
+
+        if (submissions.isEmpty()) {
+            Log.d(TAG, "extractPlotsFromSubmissions: No submissions for $assetUid")
+            return
+        }
+
+        // Batch query: get all submissionUuids that already have plots
+        val submissionUuids = submissions.map { it._uuid }
+        val existingSubmissionUuids = plotDao.findExistingSubmissionUuids(submissionUuids).toSet()
+
+        // Filter to submissions that need plot extraction
+        val submissionsToProcess = submissions.filter { it._uuid !in existingSubmissionUuids }
+
+        if (submissionsToProcess.isEmpty()) {
+            val elapsedMs = System.currentTimeMillis() - startTime
+            Log.d(TAG, "extractPlotsFromSubmissions: All ${submissions.size} submissions " +
+                    "already have plots (${elapsedMs}ms)")
+            return
+        }
+
+        // Extract plots from submissions
+        val newPlots = submissionsToProcess.mapNotNull { submission ->
+            plotExtractor.extractPlot(submission)
+        }
+
+        // Batch insert all new plots
+        if (newPlots.isNotEmpty()) {
+            plotDao.insertOrUpdateAll(newPlots)
+        }
+
+        val elapsedMs = System.currentTimeMillis() - startTime
+        Log.d(TAG, "extractPlotsFromSubmissions: Processed ${submissionsToProcess.size} " +
+                "submissions, extracted ${newPlots.size} plots in ${elapsedMs}ms " +
+                "(skipped ${existingSubmissionUuids.size} existing)")
     }
 
     private fun transformToEntity(assetUid: String, jsonObject: JsonObject): SubmissionEntity? {
@@ -190,8 +301,8 @@ class KoboRepository @Inject constructor(
         }
 
         return if (systemFields.isNotEmpty()) {
-            kotlinx.serialization.json.Json.encodeToString(
-                kotlinx.serialization.json.JsonObject.serializer(),
+            Json.encodeToString(
+                JsonObject.serializer(),
                 JsonObject(systemFields.mapValues { (_, value) ->
                     when (value) {
                         is List<*> -> JsonArray(value.map {

@@ -1,25 +1,81 @@
 {
   "regions": [
     {
-      "name": "Oromia (Central)",
-      "north": 8.1,
-      "east": 39.5,
-      "south": 7.9,
-      "west": 39.3
+      "name": "Addis Ababa",
+      "north": 9.098195,
+      "east": 38.906594,
+      "south": 8.832733,
+      "west": 38.638442
     },
     {
-      "name": "Sidama",
-      "north": 6.85,
-      "east": 38.6,
-      "south": 6.6,
-      "west": 38.3
+      "name": "Afar",
+      "north": 14.49805,
+      "east": 42.354792,
+      "south": 8.840629,
+      "west": 39.649963
     },
     {
-      "name": "Pasunggingan",
-      "north": -7.357104,
-      "east": 109.514380,
-      "south": -7.412601,
-      "west": 109.429493
+      "name": "Amhara",
+      "north": 13.768309,
+      "east": 40.212438,
+      "south": 8.714813,
+      "west": 35.257107
+    },
+    {
+      "name": "Beneshangul Gumu",
+      "north": 11.984584,
+      "east": 36.692192,
+      "south": 8.95199,
+      "west": 34.100734
+    },
+    {
+      "name": "Dire Dawa",
+      "north": 9.783742,
+      "east": 42.340541,
+      "south": 9.471484,
+      "west": 41.728028
+    },
+    {
+      "name": "Gambela",
+      "north": 8.708837,
+      "east": 35.392298,
+      "south": 6.280913,
+      "west": 33.001536
+    },
+    {
+      "name": "Hareri",
+      "north": 9.388673,
+      "east": 42.272169,
+      "south": 9.185913,
+      "west": 42.058878
+    },
+    {
+      "name": "Oromia",
+      "north": 10.387393,
+      "east": 42.979847,
+      "south": 3.509539,
+      "west": 34.139498
+    },
+    {
+      "name": "SNNPR",
+      "north": 8.457067,
+      "east": 39.131815,
+      "south": 4.438514,
+      "west": 34.876609
+    },
+    {
+      "name": "Somali",
+      "north": 11.081277,
+      "east": 47.958228,
+      "south": 3.398548,
+      "west": 39.092866
+    },
+    {
+      "name": "Tigray",
+      "north": 14.845692,
+      "east": 39.991598,
+      "south": 12.254674,
+      "west": 36.450491
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "polygonFields": [
+    "boundary_mapping/Open_Area_GeoMapping",
+    "Open_Area_GeoMapping",
+    "manual_boundary",
+    "boundary_mapping/manual_boundary"
+  ],
+  "plotNameFields": [
+    "First_Name",
+    "Father_s_Name",
+    "Grandfather_s_Name"
+  ],
+  "regionField": "woreda",
+  "subRegionField": "kebele"
+}
