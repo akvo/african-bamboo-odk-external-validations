@@ -417,13 +417,17 @@ private fun rememberIsOnline(context: Context): Boolean {
     }
 
     DisposableEffect(connectivityManager) {
+        val availableNetworks = mutableSetOf<Network>()
+
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                availableNetworks.add(network)
                 isOnline = true
             }
 
             override fun onLost(network: Network) {
-                isOnline = false
+                availableNetworks.remove(network)
+                isOnline = availableNetworks.isNotEmpty()
             }
         }
         val request = NetworkRequest.Builder()
