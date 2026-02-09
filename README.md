@@ -531,6 +531,7 @@ The app includes map visualization for viewing plot overlaps on an interactive *
 - **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
 - **Color Coding**: Current plot (cyan fill), overlapping plots (red fill)
 - **Offline Maps**: Download satellite tiles for field use without internet connectivity
+- **Tile Preview**: Verify downloaded tiles by previewing regions on an interactive satellite map
 - **Interactive**: Pinch to zoom, pan to navigate, tap polygon to see plot name
 - **Google Maps Fallback**: Floating button to open location in Google Maps for fresher satellite imagery (visible when online)
 - **Imagery Disclaimer**: Banner warns users that satellite imagery may be outdated
@@ -560,6 +561,12 @@ The app uses Mapbox Maps SDK which requires authentication tokens:
 
 Access offline maps via **Menu → Offline Maps** from the home screen.
 
+**How it works:**
+1. Select a Woreda/region from the list (tap to highlight)
+2. Tap **Download** in the bottom footer to download satellite tiles
+3. After download completes, tap **Preview** to verify tiles on a satellite map
+4. The Download button is automatically disabled when the device is offline
+
 **Predefined Regions**: Configured in `assets/offline_regions.json`:
 ```json
 {
@@ -579,6 +586,8 @@ Access offline maps via **Menu → Offline Maps** from the home screen.
 - Style: Satellite Streets (satellite imagery with road labels)
 - Zoom levels: 15-18 (suitable for plot-level detail)
 - Storage: Mapbox TileStore (managed automatically)
+
+**Tile Preview**: After downloading, use the Preview button to open an interactive satellite map centered on the region. The Mapbox SDK automatically uses cached tiles, so if the map renders correctly offline, the download was successful.
 
 ### Adding Custom Regions
 
