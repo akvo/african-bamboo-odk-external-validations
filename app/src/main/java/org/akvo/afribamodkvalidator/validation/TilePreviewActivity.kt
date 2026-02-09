@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
@@ -39,6 +40,12 @@ class TilePreviewActivity : AppCompatActivity() {
         val south = intent.getDoubleExtra(EXTRA_SOUTH, 0.0)
         val east = intent.getDoubleExtra(EXTRA_EAST, 0.0)
         val west = intent.getDoubleExtra(EXTRA_WEST, 0.0)
+
+        if (north <= south || east <= west) {
+            Toast.makeText(this, "Invalid region bounds", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         val container = FrameLayout(this)
 
@@ -121,8 +128,8 @@ class TilePreviewActivity : AppCompatActivity() {
         mapView.mapboxMap.loadStyle(Style.SATELLITE_STREETS) {
             val centerLat = (north + south) / 2
             val centerLon = (east + west) / 2
-            val latDiff = north - south
-            val lonDiff = east - west
+            val latDiff = kotlin.math.abs(north - south)
+            val lonDiff = kotlin.math.abs(east - west)
             val maxDiff = maxOf(latDiff, lonDiff)
 
             val zoom = when {
