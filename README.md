@@ -374,6 +374,15 @@ The app detects overlapping plots to prevent duplicate land registrations. When 
 
 > **Note**: Region is stored as metadata only, not used for filtering. This ensures overlaps are detected even when the same plot is registered with a different region label (wrong selection, boundary plots, fraud prevention).
 
+### Fully Offline — No Sync Required Between Plots
+
+Overlap detection works entirely offline without syncing between form collections. Each time the validation app is launched, the validated polygon is immediately saved as a draft (`isDraft = true`) in the local Room database — **before** the form is submitted to the server. The next validation checks against all existing plots (both drafts and synced submissions).
+
+This means:
+- **Form 1** is validated → polygon saved as draft to local DB → returned to ODK Collect
+- **Form 2** is validated → overlap check queries the DB → **finds Form 1's draft** → blocks if overlap >= 5%
+- No internet or server sync is needed between collecting plots on the same device
+
 ### Intent Extras
 
 Pass these extras from XLSForm to enable overlap detection:
