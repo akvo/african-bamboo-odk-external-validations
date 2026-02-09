@@ -47,6 +47,11 @@
             android:name=".validation.MapPreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.AfriBamODKValidator.AppCompat" />
+
+        <activity
+            android:name=".validation.TilePreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AfriBamODKValidator.AppCompat" />
     </application>
 
 </manifest>
