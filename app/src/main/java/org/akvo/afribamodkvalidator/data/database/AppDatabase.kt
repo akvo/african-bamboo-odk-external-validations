@@ -6,8 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
+import org.akvo.afribamodkvalidator.data.dao.PlotDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
+import org.akvo.afribamodkvalidator.data.entity.PlotEntity
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 
 /**
@@ -23,9 +25,10 @@ import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 @Database(
     entities = [
         SubmissionEntity::class,
-        FormMetadataEntity::class
+        FormMetadataEntity::class,
+        PlotEntity::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -40,6 +43,11 @@ abstract class AppDatabase : RoomDatabase() {
      * DAO for form metadata access.
      */
     abstract fun formMetadataDao(): FormMetadataDao
+
+    /**
+     * DAO for plot data access.
+     */
+    abstract fun plotDao(): PlotDao
 
     companion object {
         private const val DATABASE_NAME = "external_odk_db"
