@@ -19,7 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -31,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -100,6 +103,9 @@ fun OfflineMapScreen(
     // Track download status per region
     var downloadStatus by remember { mutableStateOf<Map<String, DownloadResult>>(emptyMap()) }
 
+    // Search query
+    var searchQuery by remember { mutableStateOf("") }
+
     // Track selected region
     var selectedRegionName by remember { mutableStateOf<String?>(null) }
 
@@ -116,6 +122,16 @@ fun OfflineMapScreen(
     LaunchedEffect(regionsWithEstimates) {
         if (selectedRegionName == null && regionsWithEstimates.isNotEmpty()) {
             selectedRegionName = regionsWithEstimates.first().name
+        }
+    }
+
+    val filteredRegions = remember(regionsWithEstimates, searchQuery) {
+        if (searchQuery.isBlank()) {
+            regionsWithEstimates
+        } else {
+            regionsWithEstimates.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
         }
     }
 
@@ -205,7 +221,25 @@ fun OfflineMapScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search regions") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (downloadingRegion != null) {
                 DownloadProgressCard(
@@ -227,11 +261,17 @@ fun OfflineMapScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            } else if (filteredRegions.isEmpty()) {
+                Text(
+                    text = "No regions match \"$searchQuery\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(regionsWithEstimates) { region ->
+                    items(filteredRegions) { region ->
                         RegionCard(
                             region = region,
                             isSelected = region.name == selectedRegionName,
