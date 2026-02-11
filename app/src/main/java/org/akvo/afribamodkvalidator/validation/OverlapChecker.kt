@@ -131,6 +131,6 @@ class OverlapChecker(
 
     companion object {
         private const val TAG = "OverlapChecker"
-        const val DEFAULT_OVERLAP_THRESHOLD_PERCENT = 5.0
+        const val DEFAULT_OVERLAP_THRESHOLD_PERCENT = 20.0
     }
 }
