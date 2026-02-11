@@ -83,7 +83,8 @@ class OverlapChecker(
 
                 val candidateArea = candidatePolygon.area
                 val smallerArea = min(newPolygonArea, candidateArea)
-                val overlapPercentage = (intersectionArea / smallerArea) * 100
+                // if smallerArea is less or equal to zero, then overlapPercentage is 0 to avoid division by zero
+                val overlapPercentage = if (smallerArea <= 0.0) 0.0 else (intersectionArea / smallerArea) * 100
 
                 if (overlapPercentage >= overlapThresholdPercent) {
                     results.add(
