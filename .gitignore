@@ -15,3 +15,6 @@
 .cxx
 local.properties
 .kotlin/errors/
+
+# Mapbox access token (contains API key)
+app/src/main/res/values/mapbox_access_token.xml

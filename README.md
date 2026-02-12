@@ -12,6 +12,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
 - **Plot Overlap Detection**: Detect and block overlapping plots (>= 5% threshold)
+- **Map Visualization**: View overlapping plots on interactive map with offline tile support
 
 ## Tech Stack
 
@@ -24,6 +25,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 | Navigation | Navigation Compose 2.8.5 |
 | Database | Room 2.6.1 |
 | Geometry | JTS Topology Suite 1.19.0 |
+| Maps | Mapbox Maps SDK 11.18.1 |
 | Serialization | Kotlinx Serialization 1.6.3 |
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 36 |
@@ -429,6 +431,85 @@ On successful validation, the plot is saved as a draft in the local database:
 - Linked to form via `instanceName`
 - Used for overlap detection with subsequent plots
 - Can be matched to synced submissions later
+
+## Map Visualization
+
+The app includes map visualization for viewing plot overlaps on an interactive **satellite map** powered by Mapbox.
+
+### Features
+
+- **Satellite Imagery**: High-resolution satellite view for accurate field boundary verification
+- **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
+- **Color Coding**: Current plot (cyan fill), overlapping plots (red fill)
+- **Offline Maps**: Download satellite tiles for field use without internet connectivity
+- **Interactive**: Pinch to zoom, pan to navigate, tap polygon to see plot name
+- **Google Maps Fallback**: Floating button to open location in Google Maps for fresher satellite imagery (visible when online)
+- **Imagery Disclaimer**: Banner warns users that satellite imagery may be outdated
+
+> **Note**: Mapbox satellite imagery may be several years old in some regions. Use the Google Maps button to check for more recent imagery when needed.
+
+### Mapbox Setup
+
+The app uses Mapbox Maps SDK which requires authentication tokens:
+
+1. **Create Mapbox Account**: Sign up at [account.mapbox.com](https://account.mapbox.com/)
+
+2. **Configure Tokens** in `local.properties` (gitignored):
+   ```properties
+   # Secret token for downloading SDK (Downloads:Read scope)
+   MAPBOX_DOWNLOADS_TOKEN=sk.eyJ1...your_secret_token
+   ```
+
+3. **Public Token** in `app/src/main/res/values/mapbox_access_token.xml` (gitignored):
+   ```xml
+   <string name="mapbox_access_token">pk.eyJ1...your_public_token</string>
+   ```
+
+> **Free Tier**: Mapbox offers 25,000 monthly active users for free, sufficient for most deployments.
+
+### Offline Map Downloads
+
+Access offline maps via **Menu → Offline Maps** from the home screen.
+
+**Predefined Regions**: Configured in `assets/offline_regions.json`:
+```json
+{
+  "regions": [
+    {
+      "name": "Addis Ababa",
+      "north": 9.1,
+      "east": 38.9,
+      "south": 8.8,
+      "west": 38.6
+    }
+  ]
+}
+```
+
+**Download Settings**:
+- Style: Satellite Streets (satellite imagery with road labels)
+- Zoom levels: 15-18 (suitable for plot-level detail)
+- Storage: Mapbox TileStore (managed automatically)
+
+### Adding Custom Regions
+
+Edit `app/src/main/assets/offline_regions.json` to add regions for your deployment:
+
+```json
+{
+  "regions": [
+    {
+      "name": "Your Region Name",
+      "north": <max_latitude>,
+      "east": <max_longitude>,
+      "south": <min_latitude>,
+      "west": <min_longitude>
+    }
+  ]
+}
+```
+
+Use [bboxfinder.com](http://bboxfinder.com/) to find bounding box coordinates for your area.
 
 ## Contributing
 

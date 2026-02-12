@@ -32,3 +32,6 @@ data class SyncComplete(
     val updatedRecords: Int,
     val latestRecordTimestamp: String
 )
+
+@Serializable
+object OfflineMap

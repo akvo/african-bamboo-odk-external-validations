@@ -3,6 +3,14 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Required for Android 11+ to query apps that can handle map URLs -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
     <application
         android:name=".AfriBamODKValidatorApplication"
         android:allowBackup="true"
@@ -34,6 +42,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".validation.MapPreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AfriBamODKValidator.AppCompat" />
     </application>
 
 </manifest>

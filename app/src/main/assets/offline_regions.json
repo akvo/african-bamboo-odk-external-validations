@@ -1,0 +1,25 @@
+{
+  "regions": [
+    {
+      "name": "Oromia (Central)",
+      "north": 8.1,
+      "east": 39.5,
+      "south": 7.9,
+      "west": 39.3
+    },
+    {
+      "name": "Sidama",
+      "north": 6.85,
+      "east": 38.6,
+      "south": 6.6,
+      "west": 38.3
+    },
+    {
+      "name": "Pasunggingan",
+      "north": -7.357104,
+      "east": 109.514380,
+      "south": -7.412601,
+      "west": 109.429493
+    }
+  ]
+}

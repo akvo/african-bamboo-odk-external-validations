@@ -183,23 +183,32 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph MapScreen
-        A[OSMDroid Map View]
-        B[Current Plot - Blue polygon]
+        A[Mapbox MapView]
+        B[Current Plot - Cyan polygon]
         C[Overlapping Plots - Red polygons]
-        D[Toast notification on tap]
+        D[Satellite Imagery Background]
+        E[Imagery Disclaimer Banner]
+        F[Google Maps FAB - online only]
     end
 
     A --> B
     A --> C
-    C -->|tap| D
-    D --> E[Shows: plotName]
+    A --> D
+    A --> E
+    A --> F
 
     subgraph Implementation
-        F[Uses MAPNIK tile source]
-        G[Zoom 18 default]
-        H[Auto-centers on polygons]
+        G[Uses SATELLITE_STREETS style]
+        H[Auto-zoom to fit polygons]
+        I[Offline TileStore support]
+        J[Network-aware FAB visibility]
     end
 ```
+
+**Features:**
+- Tap polygon to see plot name popup
+- Google Maps button opens fresher satellite imagery (visible when online)
+- Disclaimer banner warns users about potentially outdated imagery
 
 ---
 
@@ -240,10 +249,12 @@ flowchart TB
 - [ ] Format error message with plotName
 
 ### Phase 4: Map Visualization (MVP Required)
-- [x] Integrate OSMDroid (replaced Mapbox for simplicity)
-- [x] Display current polygon (blue) + overlapping polygons (red)
-- [x] Toast notification with plotName on tap
-- [ ] Offline tile caching (future enhancement)
+- [x] Integrate Mapbox Maps SDK 11.18.1 for satellite imagery
+- [x] Display current polygon (cyan) + overlapping polygons (red)
+- [x] Use SATELLITE_STREETS style for field boundary verification
+- [x] Offline satellite tile downloads via MapboxOfflineManager
+- [x] Google Maps fallback button (network-aware, opens fresher imagery)
+- [x] Imagery disclaimer banner (warns about potentially outdated satellite data)
 
 ### Phase 5: Draft Sync
 - [ ] Match drafts to submissions by instanceName after sync
@@ -297,5 +308,10 @@ WHERE instanceName = :instanceName
 **Already have:**
 - `org.locationtech.jts:jts-core`
 
-**Need to add:**
-- `org.osmdroid:osmdroid-android:6.1.18` (for map visualization) ✅ Added
+**Added:**
+- `com.mapbox.maps:android:11.18.1` (for satellite map visualization) ✅
+
+**Mapbox Setup Required:**
+1. Add `MAPBOX_DOWNLOADS_TOKEN` to `local.properties` (secret token with Downloads:Read scope)
+2. Add public access token to `app/src/main/res/values/mapbox_access_token.xml`
+3. Both files are gitignored for security

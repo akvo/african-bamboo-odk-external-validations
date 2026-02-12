@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.color.MaterialColors
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.akvo.afribamodkvalidator.data.dao.PlotDao
@@ -108,14 +109,20 @@ class PolygonValidationActivity : AppCompatActivity() {
                 val overlaps = overlapChecker.checkOverlaps(polygon, candidates)
 
                 if (overlaps.isNotEmpty()) {
-                    // Found overlapping plots - show error with all conflicting plot names
+                    // Found overlapping plots - show error with map preview option
                     val overlappingNames = overlaps.joinToString(", ") { it.plotName }
                     val errorMessage = if (overlaps.size == 1) {
                         "New plot for $plotName overlaps with plot for $overlappingNames"
                     } else {
                         "New plot for $plotName overlaps with ${overlaps.size} plots: $overlappingNames"
                     }
-                    showErrorAndBlock(errorMessage, polygonData)
+                    val overlappingUuids = overlaps.map { it.uuid }
+                    showOverlapError(
+                        message = errorMessage,
+                        currentPolygonWkt = polygonWkt,
+                        currentPlotName = plotName,
+                        overlappingUuids = overlappingUuids
+                    )
                 } else {
                     // No significant overlap - save draft and return success
                     saveDraftPlot(
@@ -169,11 +176,11 @@ class PolygonValidationActivity : AppCompatActivity() {
     }
 
     private fun showErrorAndBlock(message: String, data: String?) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("Validation Failed")
             .setMessage(message)
             .setCancelable(false)
-            .setPositiveButton("OK") { dialog, _ ->
+            .setPositiveButton("OK") { dlg, _ ->
                 if (!data.isNullOrEmpty()) {
                     // Data available: set RESULT_OK with reset (null) value
                     val resultIntent = Intent().apply {
@@ -184,10 +191,57 @@ class PolygonValidationActivity : AppCompatActivity() {
                     // No data: set RESULT_CANCELED without intent data
                     setResult(RESULT_CANCELED)
                 }
-                dialog.dismiss()
+                dlg.dismiss()
                 finish()
             }
             .show()
+
+        // Apply Material 3 primaryContainer color to button
+        val primaryColor = MaterialColors.getColor(
+            this,
+            androidx.appcompat.R.attr.colorPrimary,
+            getColor(android.R.color.holo_blue_dark)
+        )
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
+    }
+
+    private fun showOverlapError(
+        message: String,
+        currentPolygonWkt: String,
+        currentPlotName: String,
+        overlappingUuids: List<String>
+    ) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Validation Failed")
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK") { dlg, _ ->
+                val resultIntent = Intent().apply {
+                    putExtra("value", null as String?)
+                }
+                setResult(RESULT_OK, resultIntent)
+                dlg.dismiss()
+                finish()
+            }
+            .setNeutralButton("View on Map") { _, _ ->
+                val mapIntent = MapPreviewActivity.createIntent(
+                    context = this,
+                    currentPolygonWkt = currentPolygonWkt,
+                    currentPlotName = currentPlotName,
+                    overlappingUuids = overlappingUuids
+                )
+                startActivity(mapIntent)
+            }
+            .show()
+
+        // Apply Material 3 primaryContainer color to buttons
+        val primaryColor = MaterialColors.getColor(
+            this,
+            androidx.appcompat.R.attr.colorPrimary,
+            getColor(android.R.color.holo_blue_dark)
+        )
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(primaryColor)
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(primaryColor)
     }
 
     private fun returnSuccess(data: String) {
