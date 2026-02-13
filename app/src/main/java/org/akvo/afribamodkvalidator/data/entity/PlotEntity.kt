@@ -17,6 +17,11 @@ import androidx.room.PrimaryKey
  * - Single-column bbox indexes allow SQLite query planner to choose the most
  *   selective index for range conditions on bounding box columns.
  * - Composite indexes are ineffective for range-only queries.
+ *
+ * Unique constraint on submissionUuid:
+ * - Ensures each synced submission maps to exactly one plot
+ * - SQLite allows multiple NULL values in unique indexes, so draft plots
+ *   (with null submissionUuid) are not affected by this constraint
  */
 @Entity(
     tableName = "plots",
@@ -26,7 +31,7 @@ import androidx.room.PrimaryKey
         Index(value = ["minLon"]),
         Index(value = ["maxLon"]),
         Index(value = ["instanceName"]),
-        Index(value = ["submissionUuid"])
+        Index(value = ["submissionUuid"], unique = true)
     ]
 )
 data class PlotEntity(

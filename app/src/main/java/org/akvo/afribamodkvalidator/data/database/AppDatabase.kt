@@ -28,7 +28,7 @@ import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
         FormMetadataEntity::class,
         PlotEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

@@ -103,6 +103,11 @@ git commit -m "..."   # Commit code
 git push              # Push to remote
 ```
 
+## Documentation Style
+
+- **Use Mermaid** for all visualizations in markdown files (flowcharts, sequence diagrams, ERDs)
+- Prefer diagrams over ASCII art for complex flows
+
 ## Key Directories
 
 - `app/src/main/java/com/akvo/externalodk/` - Main source code

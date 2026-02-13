@@ -24,8 +24,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Only include arm64 for faster debug builds (~60MB smaller)
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

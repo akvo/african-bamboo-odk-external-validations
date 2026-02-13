@@ -374,6 +374,15 @@ The app detects overlapping plots to prevent duplicate land registrations. When 
 
 > **Note**: Region is stored as metadata only, not used for filtering. This ensures overlaps are detected even when the same plot is registered with a different region label (wrong selection, boundary plots, fraud prevention).
 
+### Fully Offline — No Sync Required Between Plots
+
+Overlap detection works entirely offline without syncing between form collections. Each time the validation app is launched, the validated polygon is immediately saved as a draft (`isDraft = true`) in the local Room database — **before** the form is submitted to the server. The next validation checks against all existing plots (both drafts and synced submissions).
+
+This means:
+- **Form 1** is validated → polygon saved as draft to local DB → returned to ODK Collect
+- **Form 2** is validated → overlap check queries the DB → **finds Form 1's draft** → blocks if overlap >= 5%
+- No internet or server sync is needed between collecting plots on the same device
+
 ### Intent Extras
 
 Pass these extras from XLSForm to enable overlap detection:
@@ -430,7 +439,87 @@ On successful validation, the plot is saved as a draft in the local database:
 - Stored with `isDraft = true`
 - Linked to form via `instanceName`
 - Used for overlap detection with subsequent plots
-- Can be matched to synced submissions later
+
+### Sync Integration
+
+When submissions are synced from KoboToolbox, the app automatically:
+
+1. **Matches drafts to submissions**: Links local draft plots to their synced submissions by `instanceName`, updating `isDraft = false`
+
+2. **Extracts plots from synced data**: Creates `PlotEntity` records from synced submissions by parsing `rawData` JSON for polygon and farmer information
+
+This ensures overlap detection works against **all plots** (both local drafts and synced submissions from other users/devices).
+
+**Field Mapping Configuration**: Edit `assets/plot_extraction_config.json` to customize which fields are extracted:
+
+```json
+{
+  "polygonFields": ["boundary_mapping/Open_Area_GeoMapping", "manual_boundary"],
+  "plotNameFields": ["First_Name", "Father_s_Name", "Grandfather_s_Name"],
+  "regionField": "woreda",
+  "subRegionField": "kebele"
+}
+```
+
+### Sync Operational Considerations
+
+#### Draft Lifecycle
+
+Drafts persist indefinitely until matched to a synced submission. There is no automatic cleanup of orphaned drafts.
+
+| Draft State | Description |
+|-------------|-------------|
+| `isDraft=true, submissionUuid=null` | Newly created, awaiting sync |
+| `isDraft=false, submissionUuid=<uuid>` | Matched to synced submission |
+| `isDraft=true` (stuck) | Form never submitted to server, or `instanceName` mismatch |
+
+**Clearing orphaned drafts**: Logout (`Menu → Logout`) clears all local data including drafts.
+
+#### Conflict Resolution
+
+The app uses **last-write-wins** strategy with no merge logic:
+- When syncing, if a submission already exists locally, it is replaced with server data
+- Local modifications are overwritten without warning
+- No audit trail of changes
+
+**Implication**: If two users modify the same plot, the last synced version wins.
+
+#### Concurrency
+
+Sync operations are serialized through Android's ViewModelScope:
+- Only one sync can run at a time per app instance
+- No explicit database locks; Room handles SQLite transactions automatically
+- Safe for single-device use; concurrent syncs from multiple devices handled by last-write-wins
+
+#### Performance Considerations
+
+| Dataset Size | Sync Behavior |
+|--------------|---------------|
+| < 1,000 submissions | Fast, no issues |
+| 1,000 - 10,000 submissions | Acceptable; API pagination (300/page) limits memory |
+| > 10,000 submissions | May be slow; plot extraction uses O(n) queries |
+
+**Optimizations in use**:
+- Pagination: API fetches 300 submissions per request
+- Delta sync: Only fetches submissions newer than last sync timestamp
+- Bounding box indexes: Fast spatial queries for overlap detection
+
+#### Troubleshooting Plot Extraction
+
+Plot extraction failures are logged but not shown to users. Common issues:
+
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| Plots not appearing after sync | Field paths in config don't match form structure | Check `plot_extraction_config.json` field names against form JSON |
+| Some submissions missing plots | Invalid polygon data (self-intersection, too few points) | Review `adb logcat` for `PlotExtractor` errors |
+| Zero plots extracted | Polygon field path incorrect | Verify `polygonFields` array in config matches your form |
+
+**Viewing extraction logs**:
+```bash
+adb logcat -s PlotExtractor:E KoboRepository:E
+```
+
+**Verifying config fields**: Export a submission from KoboToolbox and compare JSON keys with `plot_extraction_config.json`.
 
 ## Map Visualization
 
@@ -442,6 +531,7 @@ The app includes map visualization for viewing plot overlaps on an interactive *
 - **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
 - **Color Coding**: Current plot (cyan fill), overlapping plots (red fill)
 - **Offline Maps**: Download satellite tiles for field use without internet connectivity
+- **Tile Preview**: Verify downloaded tiles by previewing regions on an interactive satellite map
 - **Interactive**: Pinch to zoom, pan to navigate, tap polygon to see plot name
 - **Google Maps Fallback**: Floating button to open location in Google Maps for fresher satellite imagery (visible when online)
 - **Imagery Disclaimer**: Banner warns users that satellite imagery may be outdated
@@ -471,6 +561,12 @@ The app uses Mapbox Maps SDK which requires authentication tokens:
 
 Access offline maps via **Menu → Offline Maps** from the home screen.
 
+**How it works:**
+1. Select a Woreda/region from the list (tap to highlight)
+2. Tap **Download** in the bottom footer to download satellite tiles
+3. After download completes, tap **Preview** to verify tiles on a satellite map
+4. The Download button is automatically disabled when the device is offline
+
 **Predefined Regions**: Configured in `assets/offline_regions.json`:
 ```json
 {
@@ -490,6 +586,8 @@ Access offline maps via **Menu → Offline Maps** from the home screen.
 - Style: Satellite Streets (satellite imagery with road labels)
 - Zoom levels: 15-18 (suitable for plot-level detail)
 - Storage: Mapbox TileStore (managed automatically)
+
+**Tile Preview**: After downloading, use the Preview button to open an interactive satellite map centered on the region. The Mapbox SDK automatically uses cached tiles, so if the map renders correctly offline, the download was successful.
 
 ### Adding Custom Regions
 
