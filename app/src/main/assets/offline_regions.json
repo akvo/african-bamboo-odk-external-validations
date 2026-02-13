@@ -1,32 +1,1572 @@
 {
   "regions": [
     {
-      "name": "Addis Ababa",
-      "north": 9.098195,
-      "east": 38.906594,
-      "south": 8.832733,
-      "west": 38.638442
+      "name": "Ab Ala",
+      "north": 13.475681,
+      "east": 40.201825,
+      "south": 13.199424,
+      "west": 39.718846
     },
     {
-      "name": "Afar",
-      "north": 14.49805,
-      "east": 42.354792,
+      "name": "Ababo",
+      "north": 10.046432,
+      "east": 37.674189,
+      "south": 9.586408,
+      "west": 37.345668
+    },
+    {
+      "name": "Abay Chomen",
+      "north": 10.007245,
+      "east": 37.432368,
+      "south": 9.529715,
+      "west": 37.204857
+    },
+    {
+      "name": "Abaya",
+      "north": 6.596071,
+      "east": 38.29666,
+      "south": 6.155113,
+      "west": 37.796704
+    },
+    {
+      "name": "Abe Dongoro",
+      "north": 9.794846,
+      "east": 37.071205,
+      "south": 9.419006,
+      "west": 36.649833
+    },
+    {
+      "name": "Abergele",
+      "north": 13.298719,
+      "east": 39.310596,
+      "south": 12.823533,
+      "west": 38.55011
+    },
+    {
+      "name": "Abeshege",
+      "north": 8.424954,
+      "east": 37.766536,
+      "south": 8.199824,
+      "west": 37.462573
+    },
+    {
+      "name": "Abichuna Gne'a",
+      "north": 9.765396,
+      "east": 39.388912,
+      "south": 9.483301,
+      "west": 38.998756
+    },
+    {
+      "name": "Abobo",
+      "north": 8.090199,
+      "east": 35.01099,
+      "south": 7.548112,
+      "west": 34.011765
+    },
+    {
+      "name": "Abuna G/Beret",
+      "north": 9.937825,
+      "east": 38.138551,
+      "south": 9.437244,
+      "west": 37.822195
+    },
+    {
+      "name": "Ada'a",
+      "north": 8.926062,
+      "east": 39.199745,
+      "south": 8.539711,
+      "west": 38.84008
+    },
+    {
+      "name": "Adaa'r",
+      "north": 11.522144,
+      "east": 40.703515,
+      "south": 11.117545,
+      "west": 40.102578
+    },
+    {
+      "name": "Adaba",
+      "north": 7.401601,
+      "east": 39.770653,
+      "south": 6.658501,
+      "west": 39.319762
+    },
+    {
+      "name": "Adadle",
+      "north": 6.090289,
+      "east": 43.722524,
+      "south": 5.637264,
+      "west": 42.72562
+    },
+    {
+      "name": "Adama",
+      "north": 8.725827,
+      "east": 39.428515,
+      "south": 8.221632,
+      "west": 39.074163
+    },
+    {
+      "name": "Adami Tulu Jido Kombolcha",
+      "north": 8.054013,
+      "east": 38.920682,
+      "south": 7.569853,
+      "west": 38.399898
+    },
+    {
+      "name": "Adda Berga",
+      "north": 9.606003,
+      "east": 38.608933,
+      "south": 9.193933,
+      "west": 38.306092
+    },
+    {
+      "name": "Addi Arekay",
+      "north": 13.631174,
+      "east": 38.261465,
+      "south": 13.198793,
+      "west": 37.690256
+    },
+    {
+      "name": "Addis Ketema",
+      "north": 9.0553,
+      "east": 38.744124,
+      "south": 9.017351,
+      "west": 38.713092
+    },
+    {
+      "name": "Adola",
+      "north": 6.21394,
+      "east": 39.114358,
+      "south": 5.728362,
+      "west": 38.745956
+    },
+    {
+      "name": "Adwa",
+      "north": 14.320425,
+      "east": 39.072243,
+      "south": 14.025049,
+      "west": 38.779929
+    },
+    {
+      "name": "Afambo",
+      "north": 11.54374,
+      "east": 41.776894,
+      "south": 10.962072,
+      "west": 41.478983
+    },
+    {
+      "name": "Afdem",
+      "north": 10.966313,
+      "east": 41.462237,
+      "south": 9.466875,
+      "west": 40.936556
+    },
+    {
+      "name": "Afder",
+      "north": 5.741935,
+      "east": 43.133492,
+      "south": 4.706355,
+      "west": 42.026718
+    },
+    {
+      "name": "Afdera",
+      "north": 13.789428,
+      "east": 41.495716,
+      "south": 12.942964,
+      "west": 40.180595
+    },
+    {
+      "name": "Afele Kola (Dima)",
+      "north": 6.351086,
+      "east": 38.636255,
+      "south": 6.133156,
+      "west": 38.366501
+    },
+    {
+      "name": "Agalometi",
+      "north": 10.080401,
+      "east": 35.950351,
+      "south": 9.517235,
+      "west": 35.365081
+    },
+    {
+      "name": "Agarfa",
+      "north": 7.476301,
+      "east": 40.099175,
+      "south": 7.15279,
+      "west": 39.521883
+    },
+    {
+      "name": "Ahferom",
+      "north": 14.637182,
+      "east": 39.285208,
+      "south": 14.110802,
+      "west": 38.936612
+    },
+    {
+      "name": "Akaki",
+      "north": 8.988042,
+      "east": 39.024784,
+      "south": 8.532362,
+      "west": 38.716952
+    },
+    {
+      "name": "Akaki - Kalit",
+      "north": 8.960135,
+      "east": 38.879447,
+      "south": 8.832733,
+      "west": 38.741257
+    },
+    {
+      "name": "Akobo",
+      "north": 8.233521,
+      "east": 33.503076,
+      "south": 7.706207,
+      "west": 33.001536
+    },
+    {
+      "name": "Alaba SP Woreda",
+      "north": 7.610281,
+      "east": 38.429117,
+      "south": 7.207095,
+      "west": 37.985068
+    },
+    {
+      "name": "Alaje",
+      "north": 13.097936,
+      "east": 39.622699,
+      "south": 12.803695,
+      "west": 39.258959
+    },
+    {
+      "name": "Alamata",
+      "north": 12.565267,
+      "east": 39.760397,
+      "south": 12.254674,
+      "west": 39.23992
+    },
+    {
+      "name": "Albuko",
+      "north": 11.010479,
+      "east": 39.731878,
+      "south": 10.638006,
+      "west": 39.494765
+    },
+    {
+      "name": "Ale",
+      "north": 8.252108,
+      "east": 35.679985,
+      "south": 8.003652,
+      "west": 35.402304
+    },
+    {
+      "name": "Aleltu",
+      "north": 9.349881,
+      "east": 39.282939,
+      "south": 9.102411,
+      "west": 39.004418
+    },
+    {
+      "name": "Alem Gena",
+      "north": 9.014253,
+      "east": 38.766683,
+      "south": 8.620123,
+      "west": 38.415531
+    },
+    {
+      "name": "Aleta Wendo",
+      "north": 6.674362,
+      "east": 38.529662,
+      "south": 6.516697,
+      "west": 38.347908
+    },
+    {
+      "name": "Alfa",
+      "north": 12.151504,
+      "east": 37.021647,
+      "south": 11.6399,
+      "west": 36.377296
+    },
+    {
+      "name": "Alge Sachi",
+      "north": 8.710088,
+      "east": 35.984678,
+      "south": 8.439518,
+      "west": 35.557146
+    },
+    {
+      "name": "Alicho Woriro",
+      "north": 8.098525,
+      "east": 38.26439,
+      "south": 7.847453,
+      "west": 38.066399
+    },
+    {
+      "name": "Alle",
+      "north": 5.726487,
+      "east": 37.360887,
+      "south": 5.334076,
+      "west": 37.008974
+    },
+    {
+      "name": "Amaro",
+      "north": 6.010277,
+      "east": 38.088463,
+      "south": 5.621552,
+      "west": 37.543863
+    },
+    {
+      "name": "Ambasel",
+      "north": 11.70909,
+      "east": 39.669348,
+      "south": 11.28365,
+      "west": 39.253308
+    },
+    {
+      "name": "Ambo Zuria",
+      "north": 9.468135,
+      "east": 38.03973,
+      "south": 8.787681,
+      "west": 37.643458
+    },
+    {
+      "name": "Ameya",
+      "north": 8.775814,
+      "east": 37.840828,
+      "south": 8.354645,
+      "west": 37.534466
+    },
+    {
+      "name": "Amibara",
+      "north": 9.945118,
+      "east": 40.777384,
+      "south": 8.967019,
+      "west": 40.09229
+    },
+    {
+      "name": "Amigna",
+      "north": 8.097169,
+      "east": 40.591609,
+      "south": 7.671393,
+      "west": 39.792645
+    },
+    {
+      "name": "Amuru",
+      "north": 10.342519,
+      "east": 37.205056,
+      "south": 9.887627,
+      "west": 36.833415
+    },
+    {
+      "name": "Analemmo",
+      "north": 7.702636,
+      "east": 38.044979,
+      "south": 7.52074,
+      "west": 37.880191
+    },
+    {
+      "name": "Anchar",
+      "north": 8.946419,
+      "east": 40.37584,
+      "south": 8.549319,
+      "west": 40.025178
+    },
+    {
+      "name": "Anderacha",
+      "north": 7.746842,
+      "east": 35.587476,
+      "south": 7.395001,
+      "west": 35.115511
+    },
+    {
+      "name": "Aneded",
+      "north": 10.421142,
+      "east": 37.967098,
+      "south": 9.907224,
+      "west": 37.729835
+    },
+    {
+      "name": "Anfilo",
+      "north": 8.78042,
+      "east": 34.729833,
+      "south": 8.376647,
+      "west": 34.312429
+    },
+    {
+      "name": "Angolelana Tera",
+      "north": 9.610608,
+      "east": 39.644744,
+      "south": 9.240423,
+      "west": 39.264416
+    },
+    {
+      "name": "Anigacha",
+      "north": 7.454943,
+      "east": 37.926964,
+      "south": 7.254009,
+      "west": 37.79167
+    },
+    {
+      "name": "Ankasha",
+      "north": 10.963748,
+      "east": 36.966251,
+      "south": 10.517972,
+      "west": 36.612688
+    },
+    {
+      "name": "Ankober",
+      "north": 9.76405,
+      "east": 39.884853,
+      "south": 9.369254,
+      "west": 39.64818
+    },
+    {
+      "name": "Antsokiya",
+      "north": 10.73516,
+      "east": 39.919304,
+      "south": 10.442888,
+      "west": 39.693451
+    },
+    {
+      "name": "Arada",
+      "north": 9.054044,
+      "east": 38.778887,
+      "south": 9.017173,
+      "west": 38.734062
+    },
+    {
+      "name": "Arba Minch Zuria",
+      "north": 6.176912,
+      "east": 37.805588,
+      "south": 5.699159,
+      "west": 37.310667
+    },
+    {
+      "name": "Arbe Gonna",
+      "north": 6.786915,
+      "east": 38.83884,
+      "south": 6.597231,
+      "west": 38.588542
+    },
+    {
+      "name": "Arero",
+      "north": 5.168199,
+      "east": 39.745899,
+      "south": 4.12537,
+      "west": 38.379396
+    },
+    {
+      "name": "Argoba",
+      "north": 11.05087,
+      "east": 40.112022,
+      "south": 10.818789,
+      "west": 39.865631
+    },
+    {
+      "name": "Argoba Special",
+      "north": 9.753959,
+      "east": 39.99032,
+      "south": 9.296391,
+      "west": 39.750708
+    },
+    {
+      "name": "Aroresa",
+      "north": 6.514491,
+      "east": 39.131815,
+      "south": 6.137439,
+      "west": 38.832813
+    },
+    {
+      "name": "Arsi Negele",
+      "north": 7.70579,
+      "east": 38.917002,
+      "south": 7.159732,
+      "west": 38.407924
+    },
+    {
+      "name": "Artuma",
+      "north": 10.699467,
+      "east": 40.398295,
+      "south": 10.470404,
+      "west": 40.11451
+    },
+    {
+      "name": "Artuma Fursi",
+      "north": 10.674676,
+      "east": 40.155292,
+      "south": 10.369227,
+      "west": 39.826199
+    },
+    {
+      "name": "Aseko",
+      "north": 8.655029,
+      "east": 40.225929,
+      "south": 8.391449,
+      "west": 39.969807
+    },
+    {
+      "name": "Asgede Tsimbila",
+      "north": 14.221363,
+      "east": 38.315648,
+      "south": 13.725014,
+      "west": 37.597593
+    },
+    {
+      "name": "Assagirt",
+      "north": 9.465746,
+      "east": 39.789662,
+      "south": 9.205938,
+      "west": 39.455868
+    },
+    {
+      "name": "Assosa",
+      "north": 10.319755,
+      "east": 34.891209,
+      "south": 9.647384,
+      "west": 34.144438
+    },
+    {
+      "name": "Atsbi Wenberta",
+      "north": 14.082017,
+      "east": 39.886663,
+      "south": 13.545682,
+      "west": 39.628268
+    },
+    {
+      "name": "Awabel",
+      "north": 10.576713,
+      "east": 38.101616,
+      "south": 9.943264,
+      "west": 37.883912
+    },
+    {
+      "name": "Aware",
+      "north": 9.036987,
+      "east": 44.393651,
+      "south": 8.066703,
+      "west": 43.705603
+    },
+    {
+      "name": "Awash Fentale",
+      "north": 9.300729,
+      "east": 40.1744,
       "south": 8.840629,
+      "west": 39.813013
+    },
+    {
+      "name": "Awra",
+      "north": 12.525602,
+      "east": 40.748964,
+      "south": 11.862535,
+      "west": 40.087029
+    },
+    {
+      "name": "Ayida",
+      "north": 6.247142,
+      "east": 36.906377,
+      "south": 6.112246,
+      "west": 36.7094
+    },
+    {
+      "name": "Ayira Guliso",
+      "north": 9.297959,
+      "east": 35.527256,
+      "south": 9.002629,
+      "west": 35.085964
+    },
+    {
+      "name": "Ayisha",
+      "north": 11.081277,
+      "east": 42.943418,
+      "south": 10.083919,
+      "west": 41.511431
+    },
+    {
+      "name": "Aysaita",
+      "north": 11.778701,
+      "east": 41.796996,
+      "south": 11.222052,
+      "west": 41.313703
+    },
+    {
+      "name": "Babile",
+      "north": 9.365982,
+      "east": 42.912369,
+      "south": 8.129673,
+      "west": 42.239667
+    },
+    {
+      "name": "Babo",
+      "north": 9.586919,
+      "east": 35.209546,
+      "south": 9.252169,
+      "west": 34.915683
+    },
+    {
+      "name": "Badele Zuria",
+      "north": 8.635928,
+      "east": 36.564491,
+      "south": 8.241047,
+      "west": 36.241669
+    },
+    {
+      "name": "Bahirdar Zuria",
+      "north": 11.849419,
+      "east": 37.654121,
+      "south": 11.281381,
+      "west": 37.070878
+    },
+    {
+      "name": "Bako Tibe",
+      "north": 9.235886,
+      "east": 37.283426,
+      "south": 8.915766,
+      "west": 37.027334
+    },
+    {
+      "name": "Bambasi",
+      "north": 10.063042,
+      "east": 34.90442,
+      "south": 9.545302,
+      "west": 34.422266
+    },
+    {
+      "name": "Banja",
+      "north": 11.044818,
+      "east": 37.131701,
+      "south": 10.87,
+      "west": 36.629077
+    },
+    {
+      "name": "Bare",
+      "north": 5.819142,
+      "east": 45.002635,
+      "south": 4.268295,
+      "west": 42.525879
+    },
+    {
+      "name": "Basketo SP Woreda",
+      "north": 6.385581,
+      "east": 36.690077,
+      "south": 6.141539,
+      "west": 36.398222
+    },
+    {
+      "name": "Baso Liben",
+      "north": 10.242671,
+      "east": 37.892721,
+      "south": 9.836364,
+      "west": 37.474519
+    },
+    {
+      "name": "Basona Worena",
+      "north": 10.008866,
+      "east": 39.740005,
+      "south": 9.458817,
+      "west": 39.258628
+    },
+    {
+      "name": "Bati",
+      "north": 11.426659,
+      "east": 40.212438,
+      "south": 10.871864,
+      "west": 39.846503
+    },
+    {
+      "name": "Becho",
+      "north": 8.750203,
+      "east": 38.404511,
+      "south": 8.031139,
+      "west": 35.593514
+    },
+    {
+      "name": "Bedeno",
+      "north": 9.312144,
+      "east": 41.753947,
+      "south": 8.806595,
+      "west": 41.454105
+    },
+    {
+      "name": "Begi",
+      "north": 9.63036,
+      "east": 34.704701,
+      "south": 9.11606,
+      "west": 34.340877
+    },
+    {
+      "name": "Bele Gesgar",
+      "north": 7.88413,
+      "east": 40.207338,
+      "south": 7.485167,
+      "west": 39.895564
+    },
+    {
+      "name": "Bena Tsemay",
+      "north": 5.695658,
+      "east": 37.063536,
+      "south": 5.006544,
+      "west": 36.203596
+    },
+    {
+      "name": "Bensa",
+      "north": 6.675197,
+      "east": 38.959848,
+      "south": 6.343202,
+      "west": 38.72606
+    },
+    {
+      "name": "Berahle",
+      "north": 14.363459,
+      "east": 41.168642,
+      "south": 13.435013,
+      "west": 39.719517
+    },
+    {
+      "name": "Berbere",
+      "north": 6.888569,
+      "east": 40.375065,
+      "south": 6.423499,
+      "west": 39.944123
+    },
+    {
+      "name": "Bereh",
+      "north": 9.313627,
+      "east": 39.153143,
+      "south": 8.911312,
+      "west": 38.841334
+    },
+    {
+      "name": "Berehet",
+      "north": 9.314907,
+      "east": 39.885989,
+      "south": 9.026283,
+      "west": 39.503022
+    },
+    {
+      "name": "Bero",
+      "north": 6.49896,
+      "east": 35.384002,
+      "south": 6.155659,
+      "west": 35.105807
+    },
+    {
+      "name": "Beyeda",
+      "north": 13.441004,
+      "east": 38.743445,
+      "south": 12.986434,
+      "west": 38.27931
+    },
+    {
+      "name": "Bibugn",
+      "north": 11.087812,
+      "east": 37.841134,
+      "south": 10.663825,
+      "west": 37.644632
+    },
+    {
+      "name": "Bidu",
+      "north": 13.467183,
+      "east": 41.89904,
+      "south": 12.709099,
+      "west": 41.077533
+    },
+    {
+      "name": "Bila Seyo",
+      "north": 9.525347,
+      "east": 37.155175,
+      "south": 9.185547,
+      "west": 36.647873
+    },
+    {
+      "name": "Bilidigilu",
+      "north": 10.483385,
+      "east": 35.349213,
+      "south": 9.884796,
+      "west": 34.820708
+    },
+    {
+      "name": "Bilo Nopha",
+      "north": 8.491198,
+      "east": 35.658546,
+      "south": 8.332942,
+      "west": 35.371175
+    },
+    {
+      "name": "Bio Jiganifado",
+      "north": 9.585701,
+      "east": 36.514911,
+      "south": 8.95199,
+      "west": 35.957004
+    },
+    {
+      "name": "Bita (Big)",
+      "north": 7.539624,
+      "east": 35.848344,
+      "south": 7.206115,
+      "west": 35.481178
+    },
+    {
+      "name": "Boh",
+      "north": 8.070349,
+      "east": 47.958228,
+      "south": 6.803252,
+      "west": 46.402513
+    },
+    {
+      "name": "Boji Chekorsa",
+      "north": 9.367642,
+      "east": 35.647111,
+      "south": 9.155368,
+      "west": 35.306995
+    },
+    {
+      "name": "Boji Dirmeji",
+      "north": 9.55331,
+      "east": 35.778415,
+      "south": 9.244408,
+      "west": 35.493134
+    },
+    {
+      "name": "Boke",
+      "north": 8.806238,
+      "east": 41.570063,
+      "south": 7.949206,
+      "west": 40.57177
+    },
+    {
+      "name": "Bole",
+      "north": 9.029422,
+      "east": 38.906594,
+      "south": 8.934332,
+      "west": 38.762737
+    },
+    {
+      "name": "Boloso Bombe",
+      "north": 7.187413,
+      "east": 37.657242,
+      "south": 7.022388,
+      "west": 37.433424
+    },
+    {
+      "name": "Boloso sore",
+      "north": 7.164728,
+      "east": 37.843737,
+      "south": 6.976857,
+      "west": 37.619727
+    },
+    {
+      "name": "Bona Zuria",
+      "north": 6.640641,
+      "east": 38.785303,
+      "south": 6.392452,
+      "west": 38.632729
+    },
+    {
+      "name": "Boneya Boshe",
+      "north": 9.014716,
+      "east": 37.187015,
+      "south": 8.780842,
+      "west": 36.912037
+    },
+    {
+      "name": "Bonke",
+      "north": 6.190503,
+      "east": 37.418685,
+      "south": 5.699423,
+      "west": 37.067941
+    },
+    {
+      "name": "Bora",
+      "north": 8.405022,
+      "east": 39.083603,
+      "south": 8.187005,
+      "west": 38.790612
+    },
+    {
+      "name": "Bore",
+      "north": 6.440456,
+      "east": 38.928995,
+      "south": 5.959739,
+      "west": 38.421896
+    },
+    {
+      "name": "Borecha",
+      "north": 8.556907,
+      "east": 36.819772,
+      "south": 8.093496,
+      "west": 36.546773
+    },
+    {
+      "name": "Boreda",
+      "north": 6.629573,
+      "east": 37.801289,
+      "south": 6.37209,
+      "west": 37.548662
+    },
+    {
+      "name": "Boricha",
+      "north": 7.028075,
+      "east": 38.393286,
+      "south": 6.75841,
+      "west": 38.076353
+    },
+    {
+      "name": "Boset",
+      "north": 8.82624,
+      "east": 39.858167,
+      "south": 8.412601,
+      "west": 39.308443
+    },
+    {
+      "name": "Bugna",
+      "north": 12.301418,
+      "east": 38.958029,
+      "south": 12.019137,
+      "west": 38.444415
+    },
+    {
+      "name": "Bule",
+      "north": 6.368727,
+      "east": 38.438547,
+      "south": 6.103316,
+      "west": 38.29202
+    },
+    {
+      "name": "Bule Hora",
+      "north": 5.875597,
+      "east": 38.428274,
+      "south": 5.444144,
+      "west": 37.999644
+    },
+    {
+      "name": "Bulen",
+      "north": 11.081144,
+      "east": 36.156642,
+      "south": 9.989238,
+      "west": 35.742444
+    },
+    {
+      "name": "Bure",
+      "north": 10.826309,
+      "east": 37.184486,
+      "south": 8.074315,
+      "west": 34.957212
+    },
+    {
+      "name": "Bure Mudaytu",
+      "north": 10.641226,
+      "east": 40.591925,
+      "south": 10.006837,
+      "west": 40.359173
+    },
+    {
+      "name": "Burji",
+      "north": 5.702329,
+      "east": 37.963735,
+      "south": 5.232667,
+      "west": 37.567732
+    },
+    {
+      "name": "Bursa",
+      "north": 6.72565,
+      "east": 38.668881,
+      "south": 6.525476,
+      "west": 38.509114
+    },
+    {
+      "name": "Chefa Gula",
+      "north": 10.899583,
+      "east": 40.027931,
+      "south": 10.58372,
+      "west": 39.665495
+    },
+    {
+      "name": "Cheha",
+      "north": 8.248608,
+      "east": 38.058813,
+      "south": 7.992595,
+      "west": 37.592121
+    },
+    {
+      "name": "Cheliya",
+      "north": 9.272973,
+      "east": 37.588137,
+      "south": 8.808406,
+      "west": 37.164285
+    },
+    {
+      "name": "Chena",
+      "north": 7.510179,
+      "east": 36.056368,
+      "south": 6.988616,
+      "west": 35.670676
+    },
+    {
+      "name": "Chencha",
+      "north": 6.402463,
+      "east": 37.649971,
+      "south": 6.127068,
+      "west": 37.462484
+    },
+    {
+      "name": "Chereti/Weyib",
+      "north": 5.811877,
+      "east": 42.047228,
+      "south": 4.698107,
+      "west": 41.161366
+    },
+    {
+      "name": "Cheta",
+      "north": 7.063885,
+      "east": 36.48067,
+      "south": 6.733662,
+      "west": 36.242195
+    },
+    {
+      "name": "Chifra",
+      "north": 11.943743,
+      "east": 40.744591,
+      "south": 11.316915,
+      "west": 39.992352
+    },
+    {
+      "name": "Chilga",
+      "north": 12.896116,
+      "east": 37.228408,
+      "south": 12.288475,
+      "west": 36.446908
+    },
+    {
+      "name": "Chinaksen",
+      "north": 9.776632,
+      "east": 42.979847,
+      "south": 9.372982,
+      "west": 42.37676
+    },
+    {
+      "name": "Chire",
+      "north": 6.611172,
+      "east": 39.126955,
+      "south": 6.270824,
+      "west": 38.904319
+    },
+    {
+      "name": "Chiro Zuria",
+      "north": 9.216397,
+      "east": 41.006894,
+      "south": 8.926597,
+      "west": 40.610402
+    },
+    {
+      "name": "Chole",
+      "north": 8.257994,
+      "east": 40.171117,
+      "south": 8.00442,
+      "west": 39.825916
+    },
+    {
+      "name": "Chora",
+      "north": 8.593726,
+      "east": 37.489833,
+      "south": 8.06545,
+      "west": 35.881157
+    },
+    {
+      "name": "Chuko",
+      "north": 6.664768,
+      "east": 38.415448,
+      "south": 6.460032,
+      "west": 38.213185
+    },
+    {
+      "name": "Chwaka",
+      "north": 9.080032,
+      "east": 36.24335,
+      "south": 8.784157,
+      "west": 36.005309
+    },
+    {
+      "name": "Dabat",
+      "north": 13.322817,
+      "east": 37.997444,
+      "south": 12.869537,
+      "west": 37.447557
+    },
+    {
+      "name": "Dabo Hana",
+      "north": 8.954086,
+      "east": 36.425489,
+      "south": 8.492958,
+      "west": 36.032959
+    },
+    {
+      "name": "Dale",
+      "north": 6.841207,
+      "east": 38.519651,
+      "south": 6.657419,
+      "west": 38.298634
+    },
+    {
+      "name": "Dale Sadi",
+      "north": 9.073789,
+      "east": 35.29579,
+      "south": 8.681389,
+      "west": 35.087264
+    },
+    {
+      "name": "Dale Wabera",
+      "north": 9.187687,
+      "east": 35.166844,
+      "south": 8.611839,
+      "west": 34.939442
+    },
+    {
+      "name": "Dalocha",
+      "north": 7.876845,
+      "east": 38.379918,
+      "south": 7.616652,
+      "west": 38.180896
+    },
+    {
+      "name": "Dalul",
+      "north": 14.49805,
+      "east": 40.44451,
+      "south": 13.971293,
       "west": 39.649963
     },
     {
-      "name": "Amhara",
-      "north": 13.768309,
-      "east": 40.212438,
-      "south": 8.714813,
-      "west": 35.257107
+      "name": "Damot Gale",
+      "north": 7.108366,
+      "east": 37.996555,
+      "south": 6.881886,
+      "west": 37.745429
     },
     {
-      "name": "Beneshangul Gumu",
-      "north": 11.984584,
-      "east": 36.692192,
-      "south": 8.95199,
-      "west": 34.100734
+      "name": "Damot Pulasa",
+      "north": 7.113517,
+      "east": 37.934792,
+      "south": 6.970922,
+      "west": 37.781686
+    },
+    {
+      "name": "Damot Sore",
+      "north": 7.04538,
+      "east": 37.734427,
+      "south": 6.851972,
+      "west": 37.582734
+    },
+    {
+      "name": "Damot Weydie",
+      "north": 6.965601,
+      "east": 38.090563,
+      "south": 6.67545,
+      "west": 37.838797
+    },
+    {
+      "name": "Dangila",
+      "north": 11.411385,
+      "east": 37.011281,
+      "south": 11.076608,
+      "west": 36.577427
+    },
+    {
+      "name": "Dangura",
+      "north": 11.803229,
+      "east": 36.44506,
+      "south": 10.971603,
+      "west": 35.572119
+    },
+    {
+      "name": "Daniboya",
+      "north": 7.425895,
+      "east": 38.058125,
+      "south": 7.258989,
+      "west": 37.873437
+    },
+    {
+      "name": "Dano",
+      "north": 8.918115,
+      "east": 37.436246,
+      "south": 8.557545,
+      "west": 37.136464
+    },
+    {
+      "name": "Danot",
+      "north": 8.442912,
+      "east": 46.735807,
+      "south": 7.199652,
+      "west": 44.902612
+    },
+    {
+      "name": "Dara",
+      "north": 6.528383,
+      "east": 38.502931,
+      "south": 6.344262,
+      "west": 38.251101
+    },
+    {
+      "name": "Daramalo",
+      "north": 6.381641,
+      "east": 37.368436,
+      "south": 6.126348,
+      "west": 37.177259
+    },
+    {
+      "name": "Darimu",
+      "north": 8.779428,
+      "east": 35.612316,
+      "south": 8.444698,
+      "west": 35.105343
+    },
+    {
+      "name": "Daro Lebu",
+      "north": 8.710179,
+      "east": 40.778283,
+      "south": 8.295204,
+      "west": 40.301539
+    },
+    {
+      "name": "Dasenech (Kuraz)",
+      "north": 4.985898,
+      "east": 36.397177,
+      "south": 4.439153,
+      "west": 35.786207
+    },
+    {
+      "name": "Dawe Kachen",
+      "north": 6.953488,
+      "east": 41.071208,
+      "south": 6.346215,
+      "west": 40.603892
+    },
+    {
+      "name": "Dawo",
+      "north": 8.919224,
+      "east": 38.25985,
+      "south": 8.667224,
+      "west": 38.017749
+    },
+    {
+      "name": "Dawunt",
+      "north": 11.610466,
+      "east": 39.008734,
+      "south": 11.344425,
+      "west": 38.668644
+    },
+    {
+      "name": "Debark",
+      "north": 13.473979,
+      "east": 38.194342,
+      "south": 12.85353,
+      "west": 37.534829
+    },
+    {
+      "name": "Debay Telatgen",
+      "north": 10.719445,
+      "east": 38.140622,
+      "south": 10.333064,
+      "west": 37.818537
+    },
+    {
+      "name": "Debeweyin",
+      "north": 6.472701,
+      "east": 44.891917,
+      "south": 5.77847,
+      "west": 43.768795
+    },
+    {
+      "name": "Debre Elias",
+      "north": 10.396405,
+      "east": 37.527483,
+      "south": 10.004305,
+      "west": 37.044976
+    },
+    {
+      "name": "Debre Libanos",
+      "north": 9.728782,
+      "east": 38.957931,
+      "south": 9.577796,
+      "west": 38.753444
+    },
+    {
+      "name": "Debresina",
+      "north": 10.88585,
+      "east": 38.920706,
+      "south": 10.565907,
+      "west": 38.4612
+    },
+    {
+      "name": "Debub Achefer",
+      "north": 11.641023,
+      "east": 37.061809,
+      "south": 11.248954,
+      "west": 36.508549
+    },
+    {
+      "name": "Debub Bench",
+      "north": 7.021242,
+      "east": 35.691928,
+      "south": 6.736177,
+      "west": 35.36726
+    },
+    {
+      "name": "Decha",
+      "north": 7.26596,
+      "east": 36.380189,
+      "south": 6.239077,
+      "west": 35.91994
+    },
+    {
+      "name": "Deder",
+      "north": 9.389375,
+      "east": 41.533896,
+      "south": 9.089475,
+      "west": 41.266475
+    },
+    {
+      "name": "Dedesa",
+      "north": 8.178077,
+      "east": 36.761701,
+      "south": 7.986336,
+      "west": 36.392709
+    },
+    {
+      "name": "Dedo",
+      "north": 7.633126,
+      "east": 37.200842,
+      "south": 7.225105,
+      "west": 36.72015
+    },
+    {
+      "name": "Dega",
+      "north": 8.711485,
+      "east": 36.242999,
+      "south": 8.488337,
+      "west": 35.948661
+    },
+    {
+      "name": "Dega Damot",
+      "north": 11.062141,
+      "east": 37.776691,
+      "south": 10.678598,
+      "west": 37.451576
+    },
+    {
+      "name": "Degehabur",
+      "north": 9.107018,
+      "east": 44.056261,
+      "south": 7.049103,
+      "west": 42.851345
+    },
+    {
+      "name": "Degehamedo",
+      "north": 8.786691,
+      "east": 43.233279,
+      "south": 7.698212,
+      "west": 42.678517
+    },
+    {
+      "name": "Degeluna Tijo",
+      "north": 7.879841,
+      "east": 39.414204,
+      "south": 7.587451,
+      "west": 38.998991
+    },
+    {
+      "name": "Degem",
+      "north": 10.008442,
+      "east": 38.756095,
+      "south": 9.553653,
+      "west": 38.477413
+    },
+    {
+      "name": "Degua Temben",
+      "north": 13.79717,
+      "east": 39.42196,
+      "south": 13.460864,
+      "west": 38.997994
+    },
+    {
+      "name": "Dehana",
+      "north": 12.631896,
+      "east": 38.939146,
+      "south": 12.262568,
+      "west": 38.416644
+    },
+    {
+      "name": "Dehas",
+      "north": 4.552647,
+      "east": 39.37934,
+      "south": 3.880403,
+      "west": 38.397521
+    },
+    {
+      "name": "Dejen",
+      "north": 10.347554,
+      "east": 38.308157,
+      "south": 10.014742,
+      "west": 38.045863
+    },
+    {
+      "name": "Delanta",
+      "north": 11.840296,
+      "east": 39.461929,
+      "south": 11.392945,
+      "west": 38.974253
+    },
+    {
+      "name": "Dembecha",
+      "north": 10.716522,
+      "east": 37.650863,
+      "south": 10.316494,
+      "west": 37.099085
+    },
+    {
+      "name": "Dembel",
+      "north": 10.17238,
+      "east": 42.758724,
+      "south": 9.710112,
+      "west": 42.12237
+    },
+    {
+      "name": "Dembia",
+      "north": 12.634487,
+      "east": 37.483935,
+      "south": 12.188111,
+      "west": 37.063503
+    },
+    {
+      "name": "Denan",
+      "north": 7.327132,
+      "east": 43.768795,
+      "south": 6.205084,
+      "west": 42.858354
+    },
+    {
+      "name": "Dendi",
+      "north": 9.153763,
+      "east": 38.341971,
+      "south": 8.715084,
+      "west": 37.913568
+    },
+    {
+      "name": "Denibu Gofa",
+      "north": 6.665526,
+      "east": 37.197488,
+      "south": 6.171236,
+      "west": 36.826828
+    },
+    {
+      "name": "Dera",
+      "north": 11.89636,
+      "east": 38.861008,
+      "south": 10.040622,
+      "west": 37.422487
+    },
+    {
+      "name": "Derashe",
+      "north": 5.793898,
+      "east": 37.569862,
+      "south": 5.456077,
+      "west": 37.148621
+    },
+    {
+      "name": "Dessie Zuria",
+      "north": 11.266241,
+      "east": 39.831699,
+      "south": 10.861582,
+      "west": 39.304299
+    },
+    {
+      "name": "Dewa Harewa",
+      "north": 10.897407,
+      "east": 40.180502,
+      "south": 10.614226,
+      "west": 39.925625
+    },
+    {
+      "name": "Dewe",
+      "north": 10.968206,
+      "east": 40.465846,
+      "south": 10.610146,
+      "west": 40.102546
+    },
+    {
+      "name": "Dibat",
+      "north": 10.912034,
+      "east": 36.429084,
+      "south": 10.098261,
+      "west": 35.981538
+    },
+    {
+      "name": "Didu",
+      "north": 8.112408,
+      "east": 35.799922,
+      "south": 7.809218,
+      "west": 35.338194
+    },
+    {
+      "name": "Diga",
+      "north": 9.277947,
+      "east": 36.546601,
+      "south": 8.944342,
+      "west": 36.131429
+    },
+    {
+      "name": "Diguna Fango",
+      "north": 7.072633,
+      "east": 38.130232,
+      "south": 6.811773,
+      "west": 37.959814
+    },
+    {
+      "name": "Dihun",
+      "north": 7.411254,
+      "east": 42.958686,
+      "south": 7.043404,
+      "west": 42.198513
+    },
+    {
+      "name": "Diksis",
+      "north": 8.200892,
+      "east": 39.673293,
+      "south": 7.892411,
+      "west": 39.427944
+    },
+    {
+      "name": "Dila Zuria",
+      "north": 6.417379,
+      "east": 38.400631,
+      "south": 6.251899,
+      "west": 38.289163
+    },
+    {
+      "name": "Dillo",
+      "north": 4.547652,
+      "east": 38.322533,
+      "south": 3.60472,
+      "west": 37.508632
+    },
+    {
+      "name": "Dima",
+      "north": 7.544844,
+      "east": 35.199456,
+      "south": 6.280913,
+      "west": 34.010272
+    },
+    {
+      "name": "Dinsho",
+      "north": 7.192101,
+      "east": 39.935223,
+      "south": 6.883101,
+      "west": 39.611073
+    },
+    {
+      "name": "Dire",
+      "north": 4.568382,
+      "east": 38.600868,
+      "south": 3.600859,
+      "west": 37.784612
     },
     {
       "name": "Dire Dawa",
@@ -36,46 +1576,3119 @@
       "west": 41.728028
     },
     {
-      "name": "Gambela",
-      "north": 8.708837,
-      "east": 35.392298,
-      "south": 6.280913,
-      "west": 33.001536
+      "name": "Dire Dawa/Town",
+      "north": 9.668842,
+      "east": 41.969733,
+      "south": 9.57427,
+      "west": 41.855184
     },
     {
-      "name": "Hareri",
+      "name": "Dita",
+      "north": 6.386261,
+      "east": 37.549752,
+      "south": 6.113156,
+      "west": 37.341146
+    },
+    {
+      "name": "Doba",
+      "north": 9.481155,
+      "east": 41.266045,
+      "south": 9.131796,
+      "west": 40.908793
+    },
+    {
+      "name": "Dodola",
+      "north": 7.109351,
+      "east": 39.386711,
+      "south": 6.692241,
+      "west": 38.853889
+    },
+    {
+      "name": "Dodota",
+      "north": 8.414422,
+      "east": 39.447642,
+      "south": 8.154372,
+      "west": 39.054403
+    },
+    {
+      "name": "Dolo Odo",
+      "north": 4.836688,
+      "east": 42.064626,
+      "south": 3.955706,
+      "west": 40.691772
+    },
+    {
+      "name": "Dolobay",
+      "north": 4.977856,
+      "east": 42.777028,
+      "south": 4.118396,
+      "west": 41.630726
+    },
+    {
+      "name": "Dorani",
+      "north": 8.531957,
+      "east": 35.91514,
+      "south": 8.362134,
+      "west": 35.648708
+    },
+    {
+      "name": "Doya Gena",
+      "north": 7.473796,
+      "east": 37.887946,
+      "south": 7.282257,
+      "west": 37.736869
+    },
+    {
+      "name": "Dubti",
+      "north": 12.321281,
+      "east": 41.489833,
+      "south": 10.957853,
+      "west": 40.687421
+    },
+    {
+      "name": "Dugda",
+      "north": 8.403013,
+      "east": 38.984975,
+      "south": 8.016242,
+      "west": 38.54248
+    },
+    {
+      "name": "Dugda Dawa",
+      "north": 5.649949,
+      "east": 38.839939,
+      "south": 5.057663,
+      "west": 37.896793
+    },
+    {
+      "name": "Dulecha",
+      "north": 9.730539,
+      "east": 40.281872,
+      "south": 9.265789,
+      "west": 39.897809
+    },
+    {
+      "name": "Dune",
+      "north": 7.398403,
+      "east": 37.771098,
+      "south": 7.257459,
+      "west": 37.547318
+    },
+    {
+      "name": "East Belesa",
+      "north": 12.758935,
+      "east": 38.478914,
+      "south": 12.286855,
+      "west": 37.888885
+    },
+    {
+      "name": "East Esite",
+      "north": 11.736221,
+      "east": 38.263479,
+      "south": 11.153268,
+      "west": 37.822713
+    },
+    {
+      "name": "East Imi",
+      "north": 7.204245,
+      "east": 43.13916,
+      "south": 6.089834,
+      "west": 41.999181
+    },
+    {
+      "name": "Ebenat",
+      "north": 12.549431,
+      "east": 38.488293,
+      "south": 11.885253,
+      "west": 37.93053
+    },
+    {
+      "name": "Eferatana Gidem",
+      "north": 10.508203,
+      "east": 39.988951,
+      "south": 10.084464,
+      "west": 39.788274
+    },
+    {
+      "name": "Ejere (Addis Alem)",
+      "north": 9.238333,
+      "east": 38.471822,
+      "south": 8.846013,
+      "west": 38.252371
+    },
+    {
+      "name": "Ela (Konta) SP Woreda",
+      "north": 7.329089,
+      "east": 36.965389,
+      "south": 6.451637,
+      "west": 36.320894
+    },
+    {
+      "name": "Elidar",
+      "north": 13.083203,
+      "east": 42.354792,
+      "south": 11.64572,
+      "west": 41.108967
+    },
+    {
+      "name": "Enarj Enawga",
+      "north": 10.81952,
+      "east": 38.476329,
+      "south": 10.537996,
+      "west": 37.935485
+    },
+    {
+      "name": "Enbise Sar Midir",
+      "north": 11.082725,
+      "east": 38.531155,
+      "south": 10.631404,
+      "west": 38.227543
+    },
+    {
+      "name": "Endamehoni",
+      "north": 12.867724,
+      "east": 39.60581,
+      "south": 12.634683,
+      "west": 39.267387
+    },
+    {
+      "name": "Enderta",
+      "north": 13.641948,
+      "east": 39.799102,
+      "south": 13.214421,
+      "west": 39.276372
+    },
+    {
+      "name": "Endiguagn",
+      "north": 7.924805,
+      "east": 37.937326,
+      "south": 7.751983,
+      "west": 37.762157
+    },
+    {
+      "name": "Enemay",
+      "north": 10.693739,
+      "east": 38.366432,
+      "south": 10.29417,
+      "west": 37.977528
+    },
+    {
+      "name": "Enemorina Eaner",
+      "north": 8.124137,
+      "east": 37.918086,
+      "south": 7.833942,
+      "west": 37.591801
+    },
+    {
+      "name": "Ensaro",
+      "north": 9.961211,
+      "east": 39.014783,
+      "south": 9.707112,
+      "west": 38.790565
+    },
+    {
+      "name": "Erebti",
+      "north": 13.407102,
+      "east": 40.756747,
+      "south": 12.870633,
+      "west": 40.150924
+    },
+    {
+      "name": "Erer",
+      "north": 10.991211,
+      "east": 41.816533,
+      "south": 9.457425,
+      "west": 41.259879
+    },
+    {
+      "name": "Erob",
+      "north": 14.679527,
+      "east": 39.991598,
+      "south": 14.360412,
+      "west": 39.476839
+    },
+    {
+      "name": "Esira",
+      "north": 7.022833,
+      "east": 37.11164,
+      "south": 6.669796,
+      "west": 36.679507
+    },
+    {
+      "name": "Etang",
+      "north": 8.708837,
+      "east": 34.451294,
+      "south": 8.020169,
+      "west": 33.995629
+    },
+    {
+      "name": "Ewa",
+      "north": 12.121455,
+      "east": 40.324859,
+      "south": 11.664481,
+      "west": 39.873049
+    },
+    {
+      "name": "Ezha",
+      "north": 8.255926,
+      "east": 38.263987,
+      "south": 8.022048,
+      "west": 37.824027
+    },
+    {
+      "name": "Fagta Lakoma",
+      "north": 11.187134,
+      "east": 37.086934,
+      "south": 10.954694,
+      "west": 36.663703
+    },
+    {
+      "name": "Farta",
+      "north": 12.046139,
+      "east": 38.293484,
+      "south": 11.683958,
+      "west": 37.843537
+    },
+    {
+      "name": "Fedis",
+      "north": 9.230743,
+      "east": 42.303168,
+      "south": 8.820019,
+      "west": 42.005078
+    },
+    {
+      "name": "Fentale",
+      "north": 9.14473,
+      "east": 40.066389,
+      "south": 8.68541,
+      "west": 39.731333
+    },
+    {
+      "name": "Ferfer",
+      "north": 5.77847,
+      "east": 45.668228,
+      "south": 5.01108,
+      "west": 44.889727
+    },
+    {
+      "name": "Fik",
+      "north": 8.429138,
+      "east": 42.735227,
+      "south": 7.784645,
+      "west": 42.001322
+    },
+    {
+      "name": "Filtu",
+      "north": 5.691838,
+      "east": 41.572366,
+      "south": 4.498548,
+      "west": 40.262048
+    },
+    {
+      "name": "Fogera",
+      "north": 12.042622,
+      "east": 37.979927,
+      "south": 11.676388,
+      "west": 37.497857
+    },
+    {
+      "name": "Fursi",
+      "north": 10.630066,
+      "east": 40.454126,
+      "south": 10.059907,
+      "west": 40.128994
+    },
+    {
+      "name": "Gaji",
+      "north": 9.110978,
+      "east": 35.695267,
+      "south": 8.948838,
+      "west": 35.467796
+    },
+    {
+      "name": "Gambela Zuria",
+      "north": 8.475545,
+      "east": 35.157659,
+      "south": 7.762466,
+      "west": 34.34728
+    },
+    {
+      "name": "Gambella Wild Life Reserve",
+      "north": 8.255287,
+      "east": 34.134348,
+      "south": 8.021607,
+      "west": 33.849557
+    },
+    {
+      "name": "Ganta Afeshum",
+      "north": 14.370168,
+      "east": 39.552638,
+      "south": 14.095081,
+      "west": 39.216802
+    },
+    {
+      "name": "Gasera",
+      "north": 7.524221,
+      "east": 40.404911,
+      "south": 7.178199,
+      "west": 39.839194
+    },
+    {
+      "name": "Gawo Kebe",
+      "north": 9.367659,
+      "east": 35.124414,
+      "south": 8.833849,
+      "west": 34.754872
+    },
+    {
+      "name": "Gaz Gibla",
+      "north": 12.516797,
+      "east": 39.262776,
+      "south": 12.11581,
+      "west": 38.866178
+    },
+    {
+      "name": "Gechi",
+      "north": 8.465817,
+      "east": 36.606652,
+      "south": 8.148967,
+      "west": 36.332789
+    },
+    {
+      "name": "Gedeb Asasa",
+      "north": 7.347802,
+      "east": 39.394052,
+      "south": 7.021572,
+      "west": 38.9558
+    },
+    {
+      "name": "Geladin",
+      "north": 7.199652,
+      "east": 46.803553,
+      "south": 6.153446,
+      "west": 46.07395
+    },
+    {
+      "name": "Gelana",
+      "north": 6.299901,
+      "east": 38.214811,
+      "south": 5.755985,
+      "west": 37.775113
+    },
+    {
+      "name": "Gelila (Semen Ari)",
+      "north": 6.227517,
+      "east": 36.735287,
+      "south": 6.084313,
+      "west": 36.529224
+    },
+    {
+      "name": "Gembora",
+      "north": 7.683661,
+      "east": 37.784707,
+      "south": 7.497384,
+      "west": 37.450084
+    },
+    {
+      "name": "Gemechis",
+      "north": 9.118153,
+      "east": 41.185223,
+      "south": 8.701567,
+      "west": 40.840377
+    },
+    {
+      "name": "Gena Bosa",
+      "north": 7.342937,
+      "east": 37.535543,
+      "south": 6.943541,
+      "west": 37.111549
+    },
+    {
+      "name": "Gera",
+      "north": 7.914157,
+      "east": 36.453439,
+      "south": 7.463687,
+      "west": 35.985227
+    },
+    {
+      "name": "Gerar Jarso",
+      "north": 9.983022,
+      "east": 38.873605,
+      "south": 9.647832,
+      "west": 38.609684
+    },
+    {
+      "name": "Gerbo",
+      "north": 7.776023,
+      "east": 43.150927,
+      "south": 7.290643,
+      "west": 42.754936
+    },
+    {
+      "name": "Gesha (Deka)",
+      "north": 7.820212,
+      "east": 35.875999,
+      "south": 7.47658,
+      "west": 35.529554
+    },
+    {
+      "name": "Geta",
+      "north": 8.004746,
+      "east": 38.043904,
+      "south": 7.817297,
+      "west": 37.891676
+    },
+    {
+      "name": "Getawa",
+      "north": 7.76927,
+      "east": 36.216045,
+      "south": 7.348119,
+      "west": 35.784123
+    },
+    {
+      "name": "Gewane",
+      "north": 11.198124,
+      "east": 41.16643,
+      "south": 9.690026,
+      "west": 40.319953
+    },
+    {
+      "name": "Geze Gofa",
+      "north": 6.510158,
+      "east": 36.921256,
+      "south": 6.209763,
+      "west": 36.674888
+    },
+    {
+      "name": "Gibe",
+      "north": 7.849224,
+      "east": 37.762722,
+      "south": 7.606064,
+      "west": 37.542695
+    },
+    {
+      "name": "Gida Kiremu",
+      "north": 10.368201,
+      "east": 36.916455,
+      "south": 9.439217,
+      "west": 36.528859
+    },
+    {
+      "name": "Gidami",
+      "north": 9.16335,
+      "east": 34.654982,
+      "south": 8.651183,
+      "west": 34.139498
+    },
+    {
+      "name": "Gidan",
+      "north": 12.335517,
+      "east": 39.530576,
+      "south": 11.875331,
+      "west": 39.102201
+    },
+    {
+      "name": "Gimbi",
+      "north": 9.324972,
+      "east": 36.053611,
+      "south": 8.942618,
+      "west": 35.650757
+    },
+    {
+      "name": "Gimbichu",
+      "north": 9.149269,
+      "east": 39.357012,
+      "south": 8.798931,
+      "west": 39.024634
+    },
+    {
+      "name": "Gimbo",
+      "north": 7.490383,
+      "east": 36.470481,
+      "south": 7.224256,
+      "west": 36.002909
+    },
+    {
+      "name": "Ginde Beret",
+      "north": 9.873113,
+      "east": 37.963728,
+      "south": 9.452288,
+      "west": 37.618479
+    },
+    {
+      "name": "Ginir",
+      "north": 7.415378,
+      "east": 41.076018,
+      "south": 6.687898,
+      "west": 40.280226
+    },
+    {
+      "name": "Girawa",
+      "north": 9.237954,
+      "east": 42.024336,
+      "south": 8.693044,
+      "west": 41.714726
+    },
+    {
+      "name": "Girja (Harenfema)",
+      "north": 6.336502,
+      "east": 39.380591,
+      "south": 5.968518,
+      "west": 39.045034
+    },
+    {
+      "name": "Gishe Rabel",
+      "north": 10.744517,
+      "east": 39.747332,
+      "south": 10.432891,
+      "west": 39.458421
+    },
+    {
+      "name": "Gnangatom",
+      "north": 5.670486,
+      "east": 36.21117,
+      "south": 4.854633,
+      "west": 35.735801
+    },
+    {
+      "name": "Goba",
+      "north": 7.08323,
+      "east": 40.194745,
+      "south": 6.593491,
+      "west": 39.625402
+    },
+    {
+      "name": "Goba Koricha",
+      "north": 9.061648,
+      "east": 40.721262,
+      "south": 8.770894,
+      "west": 40.350208
+    },
+    {
+      "name": "Gobu Seyo",
+      "north": 9.337584,
+      "east": 37.065884,
+      "south": 8.988776,
+      "west": 36.873184
+    },
+    {
+      "name": "Gode",
+      "north": 6.404422,
+      "east": 43.909385,
+      "south": 5.769972,
+      "west": 43.003645
+    },
+    {
+      "name": "Godere",
+      "north": 7.480045,
+      "east": 35.392298,
+      "south": 7.100231,
+      "west": 35.054172
+    },
+    {
+      "name": "Goge",
+      "north": 7.884266,
+      "east": 34.86853,
+      "south": 7.336492,
+      "west": 33.928809
+    },
+    {
+      "name": "Golo Oda",
+      "north": 8.898095,
+      "east": 41.774964,
+      "south": 7.743904,
+      "west": 41.258663
+    },
+    {
+      "name": "Gololcha Arsi",
+      "north": 8.612679,
+      "east": 40.405069,
+      "south": 8.007159,
+      "west": 40.002687
+    },
+    {
+      "name": "Gololcha Bale",
+      "north": 7.854778,
+      "east": 40.87964,
+      "south": 7.264379,
+      "west": 40.279555
+    },
+    {
+      "name": "Goma",
+      "north": 8.058406,
+      "east": 36.747621,
+      "south": 7.668206,
+      "west": 36.404281
+    },
+    {
+      "name": "Goncha Siso Enese",
+      "north": 11.15943,
+      "east": 38.391098,
+      "south": 10.769769,
+      "west": 37.997983
+    },
+    {
+      "name": "Gonder Zuria",
+      "north": 12.701402,
+      "east": 37.757684,
+      "south": 12.120783,
+      "west": 37.351037
+    },
+    {
+      "name": "Gonje",
+      "north": 11.148301,
+      "east": 37.796678,
+      "south": 11.001325,
+      "west": 37.520988
+    },
+    {
+      "name": "Gorche",
+      "north": 6.910008,
+      "east": 38.667875,
+      "south": 6.73126,
+      "west": 38.507325
+    },
+    {
+      "name": "Goro",
+      "north": 8.536475,
+      "east": 40.776403,
+      "south": 6.748486,
+      "west": 37.683926
+    },
+    {
+      "name": "Goro Baqaqsa",
+      "north": 6.160622,
+      "east": 41.679718,
+      "south": 5.538048,
+      "west": 40.866236
+    },
+    {
+      "name": "Goro Gutu",
+      "north": 9.503075,
+      "east": 41.508336,
+      "south": 9.319945,
+      "west": 41.211626
+    },
+    {
+      "name": "Guagusa Shikudad",
+      "north": 10.943619,
+      "east": 37.127117,
+      "south": 10.703014,
+      "west": 36.924565
+    },
+    {
+      "name": "Guangua",
+      "north": 11.115296,
+      "east": 36.711864,
+      "south": 10.452197,
+      "west": 36.279841
+    },
+    {
+      "name": "Guba",
+      "north": 11.984584,
+      "east": 36.125528,
+      "south": 10.899588,
+      "west": 34.925713
+    },
+    {
+      "name": "Guba Lafto",
+      "north": 11.987595,
+      "east": 39.801123,
+      "south": 11.584948,
+      "west": 39.204198
+    },
+    {
+      "name": "Gudetu Kondole",
+      "north": 9.564661,
+      "east": 34.945024,
+      "south": 9.18484,
+      "west": 34.589926
+    },
+    {
+      "name": "Guduru",
+      "north": 9.639848,
+      "east": 37.660518,
+      "south": 9.246995,
+      "west": 37.156486
+    },
+    {
+      "name": "Gulele",
+      "north": 9.098195,
+      "east": 38.790627,
+      "south": 9.042999,
+      "west": 38.705464
+    },
+    {
+      "name": "Gulina",
+      "north": 12.337915,
+      "east": 40.19797,
+      "south": 11.926591,
+      "west": 39.799861
+    },
+    {
+      "name": "Gulomekeda",
+      "north": 14.538762,
+      "east": 39.607528,
+      "south": 14.282459,
+      "west": 39.230583
+    },
+    {
+      "name": "Gumay",
+      "north": 8.060257,
+      "east": 36.627279,
+      "south": 7.814882,
+      "west": 36.292184
+    },
+    {
+      "name": "Gumer",
+      "north": 8.052844,
+      "east": 38.167393,
+      "south": 7.862424,
+      "west": 37.969145
+    },
+    {
+      "name": "Guna",
+      "north": 8.452604,
+      "east": 40.108648,
+      "south": 8.174997,
+      "west": 39.760399
+    },
+    {
+      "name": "Gunagado",
+      "north": 8.132508,
+      "east": 44.526041,
+      "south": 7.650728,
+      "west": 43.966251
+    },
+    {
+      "name": "Gura Damole",
+      "north": 6.874449,
+      "east": 40.922295,
+      "south": 5.683378,
+      "west": 40.265374
+    },
+    {
+      "name": "Guradamole",
+      "north": 6.694328,
+      "east": 41.683929,
+      "south": 6.136009,
+      "west": 40.856746
+    },
+    {
+      "name": "Gurafereda",
+      "north": 7.233908,
+      "east": 35.430369,
+      "south": 6.486469,
+      "west": 34.876609
+    },
+    {
+      "name": "Gursum",
+      "north": 9.491951,
+      "east": 42.723921,
+      "south": 9.072981,
+      "west": 42.261269
+    },
+    {
+      "name": "Guto Gida",
+      "north": 9.522767,
+      "east": 36.749085,
+      "south": 8.969099,
+      "west": 36.460211
+    },
+    {
+      "name": "Guzamn",
+      "north": 10.452222,
+      "east": 37.83212,
+      "south": 10.011922,
+      "west": 37.388211
+    },
+    {
+      "name": "Habro",
+      "north": 8.896558,
+      "east": 40.694781,
+      "south": 8.561878,
+      "west": 40.36992
+    },
+    {
+      "name": "Habru",
+      "north": 11.916167,
+      "east": 40.015286,
+      "south": 11.466046,
+      "west": 39.53557
+    },
+    {
+      "name": "Hadero Tubito",
+      "north": 7.302904,
+      "east": 37.723952,
+      "south": 7.151903,
+      "west": 37.54873
+    },
+    {
+      "name": "Hagere Mariam",
+      "north": 9.318533,
+      "east": 39.535702,
+      "south": 9.032786,
+      "west": 39.177744
+    },
+    {
+      "name": "Halu (Huka)",
+      "north": 8.286779,
+      "east": 35.420094,
+      "south": 8.025098,
+      "west": 35.280822
+    },
+    {
+      "name": "Hambela Wamena",
+      "north": 6.061463,
+      "east": 38.675899,
+      "south": 5.803721,
+      "west": 38.271835
+    },
+    {
+      "name": "Hamer",
+      "north": 5.456274,
+      "east": 36.867262,
+      "south": 4.438514,
+      "west": 36.13864
+    },
+    {
+      "name": "Hamero",
+      "north": 7.857283,
+      "east": 42.756556,
+      "south": 7.291925,
+      "west": 42.016447
+    },
+    {
+      "name": "Harar",
       "north": 9.388673,
       "east": 42.272169,
       "south": 9.185913,
       "west": 42.058878
     },
     {
-      "name": "Oromia",
-      "north": 10.387393,
-      "east": 42.979847,
-      "south": 3.509539,
-      "west": 34.139498
+      "name": "Harena Buluk",
+      "north": 6.729061,
+      "east": 39.740332,
+      "south": 6.139791,
+      "west": 39.25338
     },
     {
-      "name": "SNNPR",
-      "north": 8.457067,
-      "east": 39.131815,
-      "south": 4.438514,
-      "west": 34.876609
+      "name": "Hareshen",
+      "north": 9.408078,
+      "east": 43.975514,
+      "south": 8.954468,
+      "west": 43.473793
     },
     {
-      "name": "Somali",
-      "north": 11.081277,
-      "east": 47.958228,
-      "south": 3.398548,
-      "west": 39.092866
+      "name": "Hargele",
+      "north": 5.709717,
+      "east": 42.692944,
+      "south": 5.255744,
+      "west": 42.020289
     },
     {
-      "name": "Tigray",
-      "north": 14.845692,
-      "east": 39.991598,
-      "south": 12.254674,
+      "name": "Haro Limu",
+      "north": 10.088489,
+      "east": 36.396222,
+      "south": 9.555515,
+      "west": 36.105287
+    },
+    {
+      "name": "Haro Maya",
+      "north": 9.508833,
+      "east": 42.108709,
+      "south": 9.120083,
+      "west": 41.877958
+    },
+    {
+      "name": "Haru",
+      "north": 9.083408,
+      "east": 36.018199,
+      "south": 8.858308,
+      "west": 35.673147
+    },
+    {
+      "name": "Hawa Galan",
+      "north": 8.755061,
+      "east": 35.190154,
+      "south": 8.444569,
+      "west": 34.785872
+    },
+    {
+      "name": "Hawasa Town",
+      "north": 7.126548,
+      "east": 38.549957,
+      "south": 6.907228,
+      "west": 38.385325
+    },
+    {
+      "name": "Hawassa Zuria",
+      "north": 7.163841,
+      "east": 38.42331,
+      "south": 6.940678,
+      "west": 38.241478
+    },
+    {
+      "name": "Hawi Gudina\n",
+      "north": 8.387331,
+      "east": 41.150901,
+      "south": 7.877969,
+      "west": 40.351414
+    },
+    {
+      "name": "Hawzen",
+      "north": 14.166678,
+      "east": 39.576643,
+      "south": 13.790299,
+      "west": 39.191262
+    },
+    {
+      "name": "Hidabu Abote",
+      "north": 10.078862,
+      "east": 38.697755,
+      "south": 9.824933,
+      "west": 38.434904
+    },
+    {
+      "name": "Hintalo Wejirat",
+      "north": 13.441862,
+      "east": 39.875337,
+      "south": 12.880422,
+      "west": 39.277483
+    },
+    {
+      "name": "Hitosa",
+      "north": 8.240792,
+      "east": 39.431427,
+      "south": 7.872441,
+      "west": 39.119393
+    },
+    {
+      "name": "Homosha",
+      "north": 10.464985,
+      "east": 34.725087,
+      "south": 10.167483,
+      "west": 34.434056
+    },
+    {
+      "name": "Horo",
+      "north": 9.860415,
+      "east": 37.307497,
+      "south": 9.503227,
+      "west": 36.984185
+    },
+    {
+      "name": "Hudet",
+      "north": 5.405726,
+      "east": 40.501166,
+      "south": 4.711999,
+      "west": 39.743559
+    },
+    {
+      "name": "Hulet Ej Enese",
+      "north": 11.234219,
+      "east": 38.115744,
+      "south": 10.697021,
+      "west": 37.689126
+    },
+    {
+      "name": "Hulla",
+      "north": 6.607756,
+      "east": 38.694963,
+      "south": 6.414494,
+      "west": 38.442484
+    },
+    {
+      "name": "Humbo",
+      "north": 6.787987,
+      "east": 38.033944,
+      "south": 6.508152,
+      "west": 37.591842
+    },
+    {
+      "name": "Hurumu",
+      "north": 8.442677,
+      "east": 35.957216,
+      "south": 8.065678,
+      "west": 35.634586
+    },
+    {
+      "name": "Ibantu",
+      "north": 10.261072,
+      "east": 36.574324,
+      "south": 9.904757,
+      "west": 36.267883
+    },
+    {
+      "name": "Ifata",
+      "north": 9.286584,
+      "east": 38.117447,
+      "south": 9.105341,
+      "west": 37.788679
+    },
+    {
+      "name": "Ilu",
+      "north": 8.935693,
+      "east": 38.453131,
+      "south": 8.717534,
+      "west": 38.21254
+    },
+    {
+      "name": "Inkolo Wabe",
+      "north": 7.494172,
+      "east": 39.640248,
+      "south": 7.308187,
+      "west": 39.344925
+    },
+    {
+      "name": "Jabi Tehnan",
+      "north": 10.933691,
+      "east": 37.505698,
+      "south": 10.404809,
+      "west": 37.069868
+    },
+    {
+      "name": "Jama",
+      "north": 10.594249,
+      "east": 39.419293,
+      "south": 10.156653,
+      "west": 39.054893
+    },
+    {
+      "name": "Janamora",
+      "north": 13.366225,
+      "east": 38.392322,
+      "south": 12.727463,
+      "west": 37.990622
+    },
+    {
+      "name": "Jarso",
+      "north": 9.721361,
+      "east": 42.473611,
+      "south": 9.260169,
+      "west": 35.198216
+    },
+    {
+      "name": "Jarte Jardega",
+      "north": 10.09683,
+      "east": 37.346778,
+      "south": 9.701056,
+      "west": 36.905125
+    },
+    {
+      "name": "Jawi",
+      "north": 12.052045,
+      "east": 36.767289,
+      "south": 11.110772,
+      "west": 35.960795
+    },
+    {
+      "name": "Jeju",
+      "north": 8.59099,
+      "east": 39.7901,
+      "south": 8.168573,
+      "west": 39.554535
+    },
+    {
+      "name": "Jeldu",
+      "north": 9.485634,
+      "east": 38.280741,
+      "south": 9.127164,
+      "west": 37.729069
+    },
+    {
+      "name": "Jibat",
+      "north": 8.877335,
+      "east": 37.631017,
+      "south": 8.613648,
+      "west": 37.350065
+    },
+    {
+      "name": "Jida",
+      "north": 9.585383,
+      "east": 39.141916,
+      "south": 9.290102,
+      "west": 38.939725
+    },
+    {
+      "name": "Jijiga",
+      "north": 9.586592,
+      "east": 43.191823,
+      "south": 9.08067,
+      "west": 42.537453
+    },
+    {
+      "name": "Jikawo",
+      "north": 8.471006,
+      "east": 33.886338,
+      "south": 8.12931,
+      "west": 33.46353
+    },
+    {
+      "name": "Jille Timuga",
+      "north": 10.439435,
+      "east": 40.16364,
+      "south": 10.071094,
+      "west": 39.911755
+    },
+    {
+      "name": "Jimma Arjo",
+      "north": 8.908097,
+      "east": 36.740993,
+      "south": 8.511037,
+      "west": 36.35269
+    },
+    {
+      "name": "Jimma Genete",
+      "north": 9.557664,
+      "east": 37.285967,
+      "south": 9.213376,
+      "west": 37.04337
+    },
+    {
+      "name": "Jimma Horo",
+      "north": 9.18972,
+      "east": 34.829072,
+      "south": 8.771139,
+      "west": 34.628137
+    },
+    {
+      "name": "Jimma Rare",
+      "north": 9.326895,
+      "east": 37.474237,
+      "south": 9.156885,
+      "west": 37.217446
+    },
+    {
+      "name": "Jore",
+      "north": 8.2887,
+      "east": 34.075752,
+      "south": 7.503473,
+      "west": 33.439715
+    },
+    {
+      "name": "Kacha Bira",
+      "north": 7.340617,
+      "east": 37.854607,
+      "south": 7.142219,
+      "west": 37.687452
+    },
+    {
+      "name": "Kafta Humera",
+      "north": 14.444857,
+      "east": 37.544566,
+      "south": 13.666285,
       "west": 36.450491
+    },
+    {
+      "name": "Kalu",
+      "north": 11.314272,
+      "east": 39.997913,
+      "south": 10.84883,
+      "west": 39.668396
+    },
+    {
+      "name": "Kamashi",
+      "north": 9.80765,
+      "east": 36.131763,
+      "south": 9.119437,
+      "west": 35.665411
+    },
+    {
+      "name": "Kebena",
+      "north": 8.389771,
+      "east": 38.124602,
+      "south": 8.22616,
+      "west": 37.72979
+    },
+    {
+      "name": "Kebribeyah",
+      "north": 9.476858,
+      "east": 43.556513,
+      "south": 8.629231,
+      "west": 42.67312
+    },
+    {
+      "name": "Kebridehar",
+      "north": 7.478671,
+      "east": 44.962229,
+      "south": 6.35516,
+      "west": 43.333716
+    },
+    {
+      "name": "Kediada Gambela",
+      "north": 7.301493,
+      "east": 38.051776,
+      "south": 7.185512,
+      "west": 37.849727
+    },
+    {
+      "name": "Kelafo",
+      "north": 6.069772,
+      "east": 44.509455,
+      "south": 5.345371,
+      "west": 43.825634
+    },
+    {
+      "name": "Kelela",
+      "north": 10.783799,
+      "east": 39.244884,
+      "south": 10.329344,
+      "west": 38.731473
+    },
+    {
+      "name": "Kelete Awelallo",
+      "north": 13.95679,
+      "east": 39.693231,
+      "south": 13.557967,
+      "west": 39.301107
+    },
+    {
+      "name": "Kemba",
+      "north": 6.271426,
+      "east": 37.315887,
+      "south": 5.614798,
+      "west": 36.980692
+    },
+    {
+      "name": "Kembibit",
+      "north": 9.512891,
+      "east": 39.454627,
+      "south": 9.303821,
+      "west": 39.066585
+    },
+    {
+      "name": "Kercha",
+      "north": 5.91317,
+      "east": 38.669052,
+      "south": 5.628272,
+      "west": 38.310392
+    },
+    {
+      "name": "Kersa",
+      "north": 9.491054,
+      "east": 41.928048,
+      "south": 7.576206,
+      "west": 36.802261
+    },
+    {
+      "name": "Kersana Malima",
+      "north": 8.717573,
+      "east": 38.763012,
+      "south": 8.526633,
+      "west": 38.438561
+    },
+    {
+      "name": "Kewet",
+      "north": 10.194563,
+      "east": 40.088843,
+      "south": 9.763605,
+      "west": 39.736648
+    },
+    {
+      "name": "Kiltu Kara",
+      "north": 9.948402,
+      "east": 35.419629,
+      "south": 9.538539,
+      "west": 35.147089
+    },
+    {
+      "name": "Kindo Dida",
+      "north": 6.86505,
+      "east": 37.489382,
+      "south": 6.667846,
+      "west": 37.224138
+    },
+    {
+      "name": "Kindo Koysha",
+      "north": 7.069243,
+      "east": 37.631749,
+      "south": 6.793908,
+      "west": 37.395635
+    },
+    {
+      "name": "Kirkos",
+      "north": 9.026354,
+      "east": 38.778844,
+      "south": 8.97817,
+      "west": 38.736785
+    },
+    {
+      "name": "Kobo",
+      "north": 12.332852,
+      "east": 39.8871,
+      "south": 11.864952,
+      "west": 39.37164
+    },
+    {
+      "name": "Kochere",
+      "north": 6.121437,
+      "east": 38.268086,
+      "south": 5.928266,
+      "west": 38.096283
+    },
+    {
+      "name": "Kochere Gedeb",
+      "north": 6.122737,
+      "east": 38.396478,
+      "south": 5.838612,
+      "west": 38.198331
+    },
+    {
+      "name": "Kofele",
+      "north": 7.159581,
+      "east": 39.02805,
+      "south": 6.860783,
+      "west": 38.637379
+    },
+    {
+      "name": "Kokir Gedbano",
+      "north": 8.409172,
+      "east": 38.334079,
+      "south": 8.181392,
+      "west": 37.982665
+    },
+    {
+      "name": "Kokosa",
+      "north": 6.952772,
+      "east": 38.971439,
+      "south": 6.656402,
+      "west": 38.636098
+    },
+    {
+      "name": "Kola Temben",
+      "north": 13.890928,
+      "east": 39.226233,
+      "south": 13.528407,
+      "west": 38.591529
+    },
+    {
+      "name": "Kolfe - Keran",
+      "north": 9.084462,
+      "east": 38.717909,
+      "south": 8.951178,
+      "west": 38.638442
+    },
+    {
+      "name": "Kombolcha",
+      "north": 9.656642,
+      "east": 42.26834,
+      "south": 9.361682,
+      "west": 42.072739
+    },
+    {
+      "name": "Kondaltiti",
+      "north": 8.578029,
+      "east": 38.657799,
+      "south": 8.366803,
+      "west": 38.33686
+    },
+    {
+      "name": "Koneba",
+      "north": 14.034012,
+      "east": 40.101407,
+      "south": 13.74758,
+      "west": 39.801658
+    },
+    {
+      "name": "Konso",
+      "north": 5.657265,
+      "east": 37.69865,
+      "south": 5.1551,
+      "west": 37.005412
+    },
+    {
+      "name": "Kore",
+      "north": 7.362732,
+      "east": 39.150991,
+      "south": 7.057281,
+      "west": 38.79902
+    },
+    {
+      "name": "Kucha",
+      "north": 6.700379,
+      "east": 37.591842,
+      "south": 6.325366,
+      "west": 37.12914
+    },
+    {
+      "name": "Kuni",
+      "north": 8.971437,
+      "east": 41.274633,
+      "south": 8.438326,
+      "west": 40.683432
+    },
+    {
+      "name": "Kurfa Chele",
+      "north": 9.325304,
+      "east": 41.979748,
+      "south": 9.131923,
+      "west": 41.738167
+    },
+    {
+      "name": "Kurmuk",
+      "north": 10.844455,
+      "east": 34.655853,
+      "south": 10.293506,
+      "west": 34.279505
+    },
+    {
+      "name": "Kurri",
+      "north": 12.997323,
+      "east": 41.301298,
+      "south": 11.964797,
+      "west": 40.612954
+    },
+    {
+      "name": "Kutaber",
+      "north": 11.435759,
+      "east": 39.621439,
+      "south": 11.11603,
+      "west": 39.312557
+    },
+    {
+      "name": "Kuyu",
+      "north": 9.878053,
+      "east": 38.550244,
+      "south": 9.588163,
+      "west": 38.053391
+    },
+    {
+      "name": "Laelay Adiyabo",
+      "north": 14.689592,
+      "east": 38.45753,
+      "south": 14.099112,
+      "west": 37.897463
+    },
+    {
+      "name": "Laelay Maychew",
+      "north": 14.273691,
+      "east": 38.914609,
+      "south": 13.929248,
+      "west": 38.616572
+    },
+    {
+      "name": "Lagahida",
+      "north": 8.323025,
+      "east": 42.100451,
+      "south": 7.774785,
+      "west": 41.912404
+    },
+    {
+      "name": "Lalo Asabi",
+      "north": 9.324324,
+      "east": 35.797192,
+      "south": 9.068888,
+      "west": 35.515586
+    },
+    {
+      "name": "Lalo Kile",
+      "north": 9.044033,
+      "east": 35.430125,
+      "south": 8.709319,
+      "west": 35.230483
+    },
+    {
+      "name": "Lanfero",
+      "north": 7.901017,
+      "east": 38.514056,
+      "south": 7.574108,
+      "west": 38.231871
+    },
+    {
+      "name": "Lare",
+      "north": 8.517732,
+      "east": 34.082186,
+      "south": 8.172337,
+      "west": 33.776949
+    },
+    {
+      "name": "Lasta (Ayna)",
+      "north": 12.275798,
+      "east": 39.209419,
+      "south": 11.886652,
+      "west": 38.812117
+    },
+    {
+      "name": "Lay Armacho",
+      "north": 13.003967,
+      "east": 37.562017,
+      "south": 12.579784,
+      "west": 37.173075
+    },
+    {
+      "name": "Lay Gayint",
+      "north": 12.16697,
+      "east": 38.640468,
+      "south": 11.551738,
+      "west": 38.219051
+    },
+    {
+      "name": "Legambo",
+      "north": 10.997718,
+      "east": 39.431973,
+      "south": 10.693845,
+      "west": 38.895977
+    },
+    {
+      "name": "Lege Hida",
+      "north": 8.147437,
+      "east": 42.070743,
+      "south": 7.313146,
+      "west": 40.702769
+    },
+    {
+      "name": "Legehida",
+      "north": 10.830186,
+      "east": 39.387172,
+      "south": 10.570233,
+      "west": 39.192529
+    },
+    {
+      "name": "Leka Dulecha",
+      "north": 8.974913,
+      "east": 36.683942,
+      "south": 8.760007,
+      "west": 36.252856
+    },
+    {
+      "name": "Liben",
+      "north": 5.804376,
+      "east": 40.033681,
+      "south": 4.65551,
+      "west": 39.101847
+    },
+    {
+      "name": "Liben Chukala",
+      "north": 8.627472,
+      "east": 39.063812,
+      "south": 8.368342,
+      "west": 38.753362
+    },
+    {
+      "name": "Libo Kemkem",
+      "north": 12.365443,
+      "east": 37.969372,
+      "south": 11.963702,
+      "west": 37.577268
+    },
+    {
+      "name": "Lideta",
+      "north": 9.03011,
+      "east": 38.754028,
+      "south": 8.992484,
+      "west": 38.707468
+    },
+    {
+      "name": "Limu",
+      "north": 9.989167,
+      "east": 37.965997,
+      "south": 7.389471,
+      "west": 36.301025
+    },
+    {
+      "name": "Limu Bilbilo",
+      "north": 7.629752,
+      "east": 39.493168,
+      "south": 7.153151,
+      "west": 39.083221
+    },
+    {
+      "name": "Limu Kosa",
+      "north": 8.340261,
+      "east": 37.196249,
+      "south": 7.834546,
+      "west": 36.726851
+    },
+    {
+      "name": "Limu Seka",
+      "north": 8.872106,
+      "east": 37.226125,
+      "south": 8.097946,
+      "west": 36.660402
+    },
+    {
+      "name": "Loka-Abaya",
+      "north": 6.818016,
+      "east": 38.347931,
+      "south": 6.439256,
+      "west": 37.904183
+    },
+    {
+      "name": "Loma Bosa",
+      "north": 7.105612,
+      "east": 37.425964,
+      "south": 6.589859,
+      "west": 36.926473
+    },
+    {
+      "name": "Lome",
+      "north": 8.827681,
+      "east": 39.285815,
+      "south": 8.382652,
+      "west": 39.031163
+    },
+    {
+      "name": "Lude Hitosa",
+      "north": 8.227351,
+      "east": 39.550835,
+      "south": 7.909843,
+      "west": 39.286497
+    },
+    {
+      "name": "Maji",
+      "north": 6.452829,
+      "east": 35.995949,
+      "south": 5.369686,
+      "west": 35.36608
+    },
+    {
+      "name": "Male",
+      "north": 6.007497,
+      "east": 37.027632,
+      "south": 5.479942,
+      "west": 36.671346
+    },
+    {
+      "name": "Malga",
+      "north": 7.013538,
+      "east": 38.713952,
+      "south": 6.830281,
+      "west": 38.515714
+    },
+    {
+      "name": "Malka Balo",
+      "north": 9.230965,
+      "east": 41.533646,
+      "south": 8.504326,
+      "west": 41.174573
+    },
+    {
+      "name": "Mana Sibu",
+      "north": 9.996767,
+      "east": 35.232246,
+      "south": 9.466369,
+      "west": 34.782643
+    },
+    {
+      "name": "Mandura",
+      "north": 11.263655,
+      "east": 36.578027,
+      "south": 10.820167,
+      "west": 36.027908
+    },
+    {
+      "name": "Maokomo Special",
+      "north": 9.73902,
+      "east": 34.548433,
+      "south": 8.962228,
+      "west": 34.100734
+    },
+    {
+      "name": "Mareka",
+      "north": 7.225072,
+      "east": 37.251387,
+      "south": 6.897707,
+      "west": 37.020271
+    },
+    {
+      "name": "Mareko",
+      "north": 8.106743,
+      "east": 38.627734,
+      "south": 7.858433,
+      "west": 38.424229
+    },
+    {
+      "name": "Masha",
+      "north": 7.895476,
+      "east": 35.614665,
+      "south": 7.551169,
+      "west": 35.283911
+    },
+    {
+      "name": "Mecha",
+      "north": 11.628235,
+      "east": 37.371806,
+      "south": 11.092786,
+      "west": 36.971467
+    },
+    {
+      "name": "Meda Welabu",
+      "north": 6.341221,
+      "east": 40.922295,
+      "south": 5.353379,
+      "west": 39.2176
+    },
+    {
+      "name": "Medebay Zana",
+      "north": 14.330595,
+      "east": 38.575389,
+      "south": 13.681704,
+      "west": 38.306641
+    },
+    {
+      "name": "Megale",
+      "north": 13.228044,
+      "east": 40.195703,
+      "south": 12.774254,
+      "west": 39.803163
+    },
+    {
+      "name": "Mehal Sayint",
+      "north": 11.060606,
+      "east": 38.838548,
+      "south": 10.800035,
+      "west": 38.49698
+    },
+    {
+      "name": "Mekdela",
+      "north": 11.419414,
+      "east": 39.169014,
+      "south": 10.967845,
+      "west": 38.608041
+    },
+    {
+      "name": "Meket",
+      "north": 12.036799,
+      "east": 39.265586,
+      "south": 11.589857,
+      "west": 38.54345
+    },
+    {
+      "name": "Meko",
+      "north": 8.896738,
+      "east": 36.130242,
+      "south": 8.623583,
+      "west": 35.859048
+    },
+    {
+      "name": "Melekoza",
+      "north": 6.71079,
+      "east": 36.995282,
+      "south": 6.281251,
+      "west": 36.371253
+    },
+    {
+      "name": "Melka Soda",
+      "north": 5.736188,
+      "east": 38.842219,
+      "south": 5.167158,
+      "west": 38.328046
+    },
+    {
+      "name": "Mena",
+      "north": 7.906716,
+      "east": 40.464164,
+      "south": 5.85288,
+      "west": 36.6002
+    },
+    {
+      "name": "Menge",
+      "north": 10.530893,
+      "east": 35.050584,
+      "south": 10.092402,
+      "west": 34.568072
+    },
+    {
+      "name": "Mengesh",
+      "north": 7.747974,
+      "east": 35.338246,
+      "south": 7.184265,
+      "west": 34.836522
+    },
+    {
+      "name": "Menit Goldiye",
+      "north": 7.119216,
+      "east": 36.096234,
+      "south": 6.570093,
+      "west": 35.529346
+    },
+    {
+      "name": "Menit Shasha",
+      "north": 6.749552,
+      "east": 36.133637,
+      "south": 6.127067,
+      "west": 35.245742
+    },
+    {
+      "name": "Menjiwo",
+      "north": 7.416033,
+      "east": 36.783955,
+      "south": 7.113416,
+      "west": 36.303343
+    },
+    {
+      "name": "Menz Gera Midir",
+      "north": 10.558208,
+      "east": 39.821735,
+      "south": 10.19228,
+      "west": 39.396658
+    },
+    {
+      "name": "Menz Keya Gabriel",
+      "north": 10.331055,
+      "east": 39.495377,
+      "south": 9.996557,
+      "west": 39.226893
+    },
+    {
+      "name": "Menz Lalo Midir",
+      "north": 10.227972,
+      "east": 39.700227,
+      "south": 9.984465,
+      "west": 39.316494
+    },
+    {
+      "name": "Menz Mama Midir",
+      "north": 10.265271,
+      "east": 39.836378,
+      "south": 9.952812,
+      "west": 39.34016
+    },
+    {
+      "name": "Merahbete",
+      "north": 10.185136,
+      "east": 39.275905,
+      "south": 9.899593,
+      "west": 38.657165
+    },
+    {
+      "name": "Mereb Leke",
+      "north": 14.531835,
+      "east": 39.028787,
+      "south": 14.224722,
+      "west": 38.427516
+    },
+    {
+      "name": "Merti",
+      "north": 8.862969,
+      "east": 40.096199,
+      "south": 8.289482,
+      "west": 39.696786
+    },
+    {
+      "name": "Mesela",
+      "north": 9.165206,
+      "east": 41.312495,
+      "south": 8.766676,
+      "west": 41.075473
+    },
+    {
+      "name": "Meskan",
+      "north": 8.26767,
+      "east": 38.57503,
+      "south": 7.988672,
+      "west": 38.25912
+    },
+    {
+      "name": "Meta",
+      "north": 9.515144,
+      "east": 41.733688,
+      "south": 9.132435,
+      "west": 41.490967
+    },
+    {
+      "name": "Meta Robi",
+      "north": 9.679663,
+      "east": 38.399813,
+      "south": 9.218463,
+      "west": 38.113021
+    },
+    {
+      "name": "Metema",
+      "north": 13.103619,
+      "east": 36.778347,
+      "south": 12.291505,
+      "west": 35.999609
+    },
+    {
+      "name": "Metu Zuria",
+      "north": 8.488349,
+      "east": 35.639888,
+      "south": 8.171451,
+      "west": 35.166594
+    },
+    {
+      "name": "Meyu",
+      "north": 8.863425,
+      "east": 42.098296,
+      "south": 7.514946,
+      "west": 41.5956
+    },
+    {
+      "name": "Meyumuluka",
+      "north": 8.639883,
+      "east": 42.534486,
+      "south": 8.213873,
+      "west": 42.026006
+    },
+    {
+      "name": "Michakel",
+      "north": 10.681041,
+      "east": 37.716876,
+      "south": 10.328657,
+      "west": 37.271465
+    },
+    {
+      "name": "Mida Kegn",
+      "north": 9.369885,
+      "east": 37.726188,
+      "south": 9.043221,
+      "west": 37.43807
+    },
+    {
+      "name": "Midega Tola",
+      "north": 8.888424,
+      "east": 42.297591,
+      "south": 8.516924,
+      "west": 42.010837
+    },
+    {
+      "name": "Mierab Azenet Berbere",
+      "north": 7.864099,
+      "east": 37.992482,
+      "south": 7.670382,
+      "west": 37.864338
+    },
+    {
+      "name": "Mierab Badawacho",
+      "north": 7.208555,
+      "east": 37.914882,
+      "south": 7.092625,
+      "west": 37.70767
+    },
+    {
+      "name": "Mieso",
+      "north": 9.463587,
+      "east": 40.977774,
+      "south": 8.817319,
+      "west": 40.160469
+    },
+    {
+      "name": "Miesso",
+      "north": 9.981385,
+      "east": 41.290857,
+      "south": 9.304797,
+      "west": 40.692203
+    },
+    {
+      "name": "Mile",
+      "north": 11.608683,
+      "east": 41.268161,
+      "south": 10.779714,
+      "west": 40.462285
+    },
+    {
+      "name": "Mimo Weremo",
+      "north": 10.37776,
+      "east": 39.247078,
+      "south": 10.108522,
+      "west": 38.83263
+    },
+    {
+      "name": "Minjar Shenkora",
+      "north": 9.10832,
+      "east": 39.748294,
+      "south": 8.714813,
+      "west": 39.237491
+    },
+    {
+      "name": "Mirab Abaya",
+      "north": 6.56044,
+      "east": 37.851737,
+      "south": 6.113136,
+      "west": 37.612811
+    },
+    {
+      "name": "Mirab Armacho",
+      "north": 13.768309,
+      "east": 36.832987,
+      "south": 12.889491,
+      "west": 36.179733
+    },
+    {
+      "name": "Misha",
+      "north": 7.915868,
+      "east": 37.880409,
+      "south": 7.575268,
+      "west": 37.587423
+    },
+    {
+      "name": "Misrak Azenet Berbere",
+      "north": 7.894366,
+      "east": 38.096622,
+      "south": 7.695864,
+      "west": 37.95745
+    },
+    {
+      "name": "Misrak Badawacho",
+      "north": 7.295637,
+      "east": 38.100213,
+      "south": 7.061522,
+      "west": 37.889538
+    },
+    {
+      "name": "Misrak Gashamo",
+      "north": 9.036987,
+      "east": 45.620826,
+      "south": 7.596047,
+      "west": 43.975514
+    },
+    {
+      "name": "Miyo",
+      "north": 4.139167,
+      "east": 39.06445,
+      "south": 3.551729,
+      "west": 38.448753
+    },
+    {
+      "name": "Mojan Wedera",
+      "north": 10.00931,
+      "east": 39.743611,
+      "south": 9.832984,
+      "west": 39.293073
+    },
+    {
+      "name": "Moretna Jiru",
+      "north": 10.097789,
+      "east": 39.317713,
+      "south": 9.811205,
+      "west": 38.92542
+    },
+    {
+      "name": "Moyale",
+      "north": 4.850439,
+      "east": 40.775182,
+      "south": 3.398548,
+      "west": 38.773532
+    },
+    {
+      "name": "Muhur Na Aklil",
+      "north": 8.304333,
+      "east": 38.295839,
+      "south": 8.097566,
+      "west": 37.886615
+    },
+    {
+      "name": "Mulo",
+      "north": 9.495453,
+      "east": 38.71646,
+      "south": 9.172563,
+      "west": 38.514722
+    },
+    {
+      "name": "Munessa",
+      "north": 7.796202,
+      "east": 39.144232,
+      "south": 7.317542,
+      "west": 38.846914
+    },
+    {
+      "name": "Mustahil",
+      "north": 5.864641,
+      "east": 45.080115,
+      "south": 4.93269,
+      "west": 44.434726
+    },
+    {
+      "name": "Naeder Adet",
+      "north": 14.038992,
+      "east": 38.896721,
+      "south": 13.647919,
+      "west": 38.49056
+    },
+    {
+      "name": "Nefas Silk",
+      "north": 8.999666,
+      "east": 38.776118,
+      "south": 8.900512,
+      "west": 38.678634
+    },
+    {
+      "name": "Nejo",
+      "north": 9.721576,
+      "east": 35.656683,
+      "south": 9.336609,
+      "west": 35.207145
+    },
+    {
+      "name": "Nenesebo (Wereka)",
+      "north": 6.794982,
+      "east": 39.504622,
+      "south": 6.290841,
+      "west": 38.933509
+    },
+    {
+      "name": "Nole Kaba",
+      "north": 8.965323,
+      "east": 35.733732,
+      "south": 8.660828,
+      "west": 35.417485
+    },
+    {
+      "name": "Nono",
+      "north": 8.664677,
+      "east": 37.609956,
+      "south": 8.312186,
+      "west": 37.280745
+    },
+    {
+      "name": "Nunu Kumba",
+      "north": 8.853246,
+      "east": 36.868353,
+      "south": 8.513827,
+      "west": 36.568481
+    },
+    {
+      "name": "Odo Shakiso",
+      "north": 5.976549,
+      "east": 39.252649,
+      "south": 5.044791,
+      "west": 38.557619
+    },
+    {
+      "name": "Ofa",
+      "north": 6.82074,
+      "east": 37.67706,
+      "south": 6.611941,
+      "west": 37.405564
+    },
+    {
+      "name": "Ofla",
+      "north": 12.70437,
+      "east": 39.569707,
+      "south": 12.36007,
+      "west": 39.173612
+    },
+    {
+      "name": "Omo Nada",
+      "north": 7.804685,
+      "east": 37.445104,
+      "south": 7.282565,
+      "west": 36.998902
+    },
+    {
+      "name": "Pawe Special",
+      "north": 11.458277,
+      "east": 36.564317,
+      "south": 11.154298,
+      "west": 36.265216
+    },
+    {
+      "name": "Quara",
+      "north": 12.714206,
+      "east": 36.49933,
+      "south": 11.718011,
+      "west": 35.257107
+    },
+    {
+      "name": "Quarit",
+      "north": 11.126794,
+      "east": 37.562958,
+      "south": 10.747924,
+      "west": 37.305497
+    },
+    {
+      "name": "Raya Azebo",
+      "north": 12.942191,
+      "east": 39.979441,
+      "south": 12.303252,
+      "west": 39.552308
+    },
+    {
+      "name": "Rayitu",
+      "north": 7.245307,
+      "east": 41.891111,
+      "south": 6.361717,
+      "west": 40.915398
+    },
+    {
+      "name": "Robe",
+      "north": 7.948571,
+      "east": 40.208996,
+      "south": 7.43716,
+      "west": 39.423034
+    },
+    {
+      "name": "Saesie Tsaedaemba",
+      "north": 14.387704,
+      "east": 39.849238,
+      "south": 13.895165,
+      "west": 39.470908
+    },
+    {
+      "name": "Saharti Samre",
+      "north": 13.495298,
+      "east": 39.383244,
+      "south": 12.913373,
+      "west": 38.976279
+    },
+    {
+      "name": "Sahla",
+      "north": 13.189607,
+      "east": 38.687212,
+      "south": 12.737172,
+      "west": 38.330389
+    },
+    {
+      "name": "Sale Nono",
+      "north": 8.142853,
+      "east": 35.429084,
+      "south": 7.645841,
+      "west": 34.931978
+    },
+    {
+      "name": "Sankura",
+      "north": 7.621402,
+      "east": 38.246712,
+      "south": 7.404523,
+      "west": 38.088983
+    },
+    {
+      "name": "Sasiga",
+      "north": 9.367868,
+      "east": 36.558202,
+      "south": 9.064257,
+      "west": 36.194597
+    },
+    {
+      "name": "Sayilem",
+      "north": 8.081852,
+      "east": 35.951747,
+      "south": 7.69051,
+      "west": 35.627856
+    },
+    {
+      "name": "Sayint",
+      "north": 11.269965,
+      "east": 39.12596,
+      "south": 10.874735,
+      "west": 38.466003
+    },
+    {
+      "name": "Sayo",
+      "north": 8.697469,
+      "east": 34.991823,
+      "south": 8.247347,
+      "west": 34.652061
+    },
+    {
+      "name": "Sayo Nole",
+      "north": 8.946858,
+      "east": 35.945388,
+      "south": 8.664218,
+      "west": 35.676784
+    },
+    {
+      "name": "Seden Sodo",
+      "north": 8.586594,
+      "east": 38.448088,
+      "south": 8.254803,
+      "west": 38.158269
+    },
+    {
+      "name": "Segeg",
+      "north": 7.776023,
+      "east": 42.958686,
+      "south": 7.290643,
+      "west": 42.374574
+    },
+    {
+      "name": "Seka Chekorsa",
+      "north": 7.758436,
+      "east": 36.842291,
+      "south": 7.509518,
+      "west": 36.485605
+    },
+    {
+      "name": "Sekela",
+      "north": 11.145743,
+      "east": 37.375743,
+      "south": 10.778757,
+      "west": 37.068815
+    },
+    {
+      "name": "Sekoru",
+      "north": 8.251783,
+      "east": 37.623111,
+      "south": 7.630515,
+      "west": 37.265273
+    },
+    {
+      "name": "Sekota",
+      "north": 12.902893,
+      "east": 39.309143,
+      "south": 12.344743,
+      "west": 38.774569
+    },
+    {
+      "name": "Selahad",
+      "north": 7.784655,
+      "east": 42.199707,
+      "south": 7.290955,
+      "west": 41.867103
+    },
+    {
+      "name": "Selamgo",
+      "north": 6.458507,
+      "east": 36.471501,
+      "south": 5.320764,
+      "west": 35.908811
+    },
+    {
+      "name": "Selti",
+      "north": 8.04768,
+      "east": 38.528156,
+      "south": 7.820377,
+      "west": 38.172217
+    },
+    {
+      "name": "Semen Achefer",
+      "north": 11.904907,
+      "east": 37.213378,
+      "south": 11.503871,
+      "west": 36.655575
+    },
+    {
+      "name": "Semen Bench",
+      "north": 7.208134,
+      "east": 35.728513,
+      "south": 6.915776,
+      "west": 35.524763
+    },
+    {
+      "name": "Senan",
+      "north": 10.682311,
+      "east": 37.916065,
+      "south": 10.318298,
+      "west": 37.627493
+    },
+    {
+      "name": "Serer/Elkere",
+      "north": 6.597626,
+      "east": 42.732691,
+      "south": 5.615845,
+      "west": 41.513368
+    },
+    {
+      "name": "Seru",
+      "north": 7.901709,
+      "east": 40.716299,
+      "south": 7.47419,
+      "west": 40.043919
+    },
+    {
+      "name": "Setema",
+      "north": 8.243017,
+      "east": 36.42528,
+      "south": 7.836807,
+      "west": 36.049428
+    },
+    {
+      "name": "Seweyna",
+      "north": 7.728408,
+      "east": 42.209853,
+      "south": 6.534856,
+      "west": 40.766738
+    },
+    {
+      "name": "Shalla",
+      "north": 7.503566,
+      "east": 38.607479,
+      "south": 7.122083,
+      "west": 38.192887
+    },
+    {
+      "name": "Shashemene Zuria",
+      "north": 7.365623,
+      "east": 38.814779,
+      "south": 7.088453,
+      "west": 38.407218
+    },
+    {
+      "name": "Shashogo",
+      "north": 7.641961,
+      "east": 38.121033,
+      "south": 7.409373,
+      "west": 37.893361
+    },
+    {
+      "name": "Shay Bench",
+      "north": 7.075178,
+      "east": 35.856412,
+      "south": 6.738374,
+      "west": 35.598636
+    },
+    {
+      "name": "Shebe Dino",
+      "north": 6.987484,
+      "east": 38.554454,
+      "south": 6.793464,
+      "west": 38.345055
+    },
+    {
+      "name": "Shebe Sambo",
+      "north": 7.680247,
+      "east": 36.74107,
+      "south": 7.298906,
+      "west": 36.274758
+    },
+    {
+      "name": "Shebel Bereta",
+      "north": 10.557697,
+      "east": 38.493009,
+      "south": 10.086883,
+      "west": 38.220648
+    },
+    {
+      "name": "Sheka",
+      "north": 7.187862,
+      "east": 35.609295,
+      "south": 6.969272,
+      "west": 35.299629
+    },
+    {
+      "name": "Shekosh",
+      "north": 7.705809,
+      "east": 44.68264,
+      "south": 7.213999,
+      "west": 43.599138
+    },
+    {
+      "name": "Sherkole",
+      "north": 10.900836,
+      "east": 35.081691,
+      "south": 10.448243,
+      "west": 34.501501
+    },
+    {
+      "name": "Shilabo",
+      "north": 6.812518,
+      "east": 45.945319,
+      "south": 5.622328,
+      "west": 44.536317
+    },
+    {
+      "name": "Shinile",
+      "north": 10.809922,
+      "east": 42.507284,
+      "south": 9.617923,
+      "west": 41.500111
+    },
+    {
+      "name": "Shirka",
+      "north": 7.701931,
+      "east": 39.903715,
+      "south": 7.440361,
+      "west": 39.338122
+    },
+    {
+      "name": "Sibu Sire",
+      "north": 9.375826,
+      "east": 36.957474,
+      "south": 8.917556,
+      "west": 36.600863
+    },
+    {
+      "name": "Sigmo",
+      "north": 8.167077,
+      "east": 36.176988,
+      "south": 7.755837,
+      "west": 35.849016
+    },
+    {
+      "name": "Simada",
+      "north": 11.605046,
+      "east": 38.643346,
+      "south": 11.036064,
+      "west": 38.102174
+    },
+    {
+      "name": "Simurobi Gele'alo",
+      "north": 10.145818,
+      "east": 40.363974,
+      "south": 9.679518,
+      "west": 39.92274
+    },
+    {
+      "name": "Sinana",
+      "north": 7.29519,
+      "east": 40.382336,
+      "south": 6.87364,
+      "west": 39.845202
+    },
+    {
+      "name": "Siraro",
+      "north": 7.266143,
+      "east": 38.321389,
+      "south": 6.974184,
+      "west": 38.063426
+    },
+    {
+      "name": "Sirba Abay",
+      "north": 11.229304,
+      "east": 35.496923,
+      "south": 9.785145,
+      "west": 34.956582
+    },
+    {
+      "name": "Sire",
+      "north": 8.518231,
+      "east": 39.595145,
+      "south": 8.146115,
+      "west": 39.395967
+    },
+    {
+      "name": "Siya Debirna Wayu",
+      "north": 9.882862,
+      "east": 39.376913,
+      "south": 9.683992,
+      "west": 39.000032
+    },
+    {
+      "name": "Sodo",
+      "north": 8.457067,
+      "east": 38.716432,
+      "south": 8.080583,
+      "west": 38.374378
+    },
+    {
+      "name": "Sodo Daci",
+      "north": 8.569131,
+      "east": 38.761762,
+      "south": 8.327333,
+      "west": 38.574959
+    },
+    {
+      "name": "Sodo Zuria",
+      "north": 6.986795,
+      "east": 37.875747,
+      "south": 6.714091,
+      "west": 37.608441
+    },
+    {
+      "name": "Soro",
+      "north": 7.566747,
+      "east": 37.775341,
+      "south": 7.310664,
+      "west": 37.330626
+    },
+    {
+      "name": "South Ari (Bako Gazer)",
+      "north": 6.182202,
+      "east": 36.731312,
+      "south": 5.577358,
+      "west": 36.232585
+    },
+    {
+      "name": "Sude",
+      "north": 8.24707,
+      "east": 40.094017,
+      "south": 7.86048,
+      "west": 39.581264
+    },
+    {
+      "name": "Sululta",
+      "north": 9.498022,
+      "east": 38.997465,
+      "south": 9.075889,
+      "west": 38.666207
+    },
+    {
+      "name": "Surma",
+      "north": 6.381006,
+      "east": 35.595086,
+      "south": 5.328965,
+      "west": 34.948967
+    },
+    {
+      "name": "Tach Armacho",
+      "north": 13.266022,
+      "east": 37.534848,
+      "south": 12.802945,
+      "west": 36.681486
+    },
+    {
+      "name": "Tach Gayint",
+      "north": 11.72332,
+      "east": 38.719102,
+      "south": 11.363277,
+      "west": 38.321865
+    },
+    {
+      "name": "Tahtay Adiyabo",
+      "north": 14.845692,
+      "east": 38.170192,
+      "south": 14.049356,
+      "west": 37.343221
+    },
+    {
+      "name": "Tahtay Koraro",
+      "north": 14.266856,
+      "east": 38.447488,
+      "south": 13.895799,
+      "west": 38.065858
+    },
+    {
+      "name": "Tahtay Maychew",
+      "north": 14.344641,
+      "east": 38.68361,
+      "south": 13.89101,
+      "west": 38.485798
+    },
+    {
+      "name": "Takusa",
+      "north": 12.396421,
+      "east": 37.118922,
+      "south": 12.011644,
+      "west": 36.402238
+    },
+    {
+      "name": "Tanqua Abergele",
+      "north": 13.614017,
+      "east": 39.099015,
+      "south": 13.168341,
+      "west": 38.631886
+    },
+    {
+      "name": "Tarema Ber",
+      "north": 10.066623,
+      "east": 40.014709,
+      "south": 9.721112,
+      "west": 39.64642
+    },
+    {
+      "name": "Teferi Ber",
+      "north": 10.186438,
+      "east": 43.415464,
+      "south": 9.341139,
+      "west": 42.662182
+    },
+    {
+      "name": "Telalak",
+      "north": 11.248966,
+      "east": 40.648198,
+      "south": 10.915161,
+      "west": 40.123772
+    },
+    {
+      "name": "Teltele",
+      "north": 5.307643,
+      "east": 37.920402,
+      "south": 4.04674,
+      "west": 36.646838
+    },
+    {
+      "name": "Tembaro",
+      "north": 7.325466,
+      "east": 37.59751,
+      "south": 7.176383,
+      "west": 37.347196
+    },
+    {
+      "name": "Tena",
+      "north": 7.889671,
+      "east": 39.645184,
+      "south": 7.647941,
+      "west": 39.389443
+    },
+    {
+      "name": "Tenta",
+      "north": 11.488216,
+      "east": 39.365067,
+      "south": 10.911252,
+      "west": 39.037227
+    },
+    {
+      "name": "Teru",
+      "north": 13.012312,
+      "east": 40.681134,
+      "south": 12.287545,
+      "west": 40.06417
+    },
+    {
+      "name": "Thehulederie",
+      "north": 11.475682,
+      "east": 39.774005,
+      "south": 11.12266,
+      "west": 39.594625
+    },
+    {
+      "name": "Tikur Enchini",
+      "north": 8.935685,
+      "east": 37.814368,
+      "south": 8.680345,
+      "west": 37.471046
+    },
+    {
+      "name": "Tiro Afeta",
+      "north": 8.158885,
+      "east": 37.409724,
+      "south": 7.792755,
+      "west": 37.084263
+    },
+    {
+      "name": "Tiyo",
+      "north": 8.030742,
+      "east": 39.306513,
+      "south": 7.765982,
+      "west": 38.939011
+    },
+    {
+      "name": "Tocha",
+      "north": 7.239408,
+      "east": 37.137099,
+      "south": 6.968658,
+      "west": 36.786359
+    },
+    {
+      "name": "Toke Kutaye",
+      "north": 9.086829,
+      "east": 37.838428,
+      "south": 8.782164,
+      "west": 37.540277
+    },
+    {
+      "name": "Tole",
+      "north": 8.780293,
+      "east": 38.498121,
+      "south": 8.469193,
+      "west": 38.29295
+    },
+    {
+      "name": "Tsegede",
+      "north": 13.720861,
+      "east": 37.747819,
+      "south": 13.074882,
+      "west": 36.47554
+    },
+    {
+      "name": "Tselemt",
+      "north": 13.587006,
+      "east": 38.674519,
+      "south": 13.312445,
+      "west": 38.22851
+    },
+    {
+      "name": "Tselemti",
+      "north": 13.883596,
+      "east": 38.720933,
+      "south": 13.388879,
+      "west": 37.760819
+    },
+    {
+      "name": "Tulo",
+      "north": 9.324475,
+      "east": 41.297995,
+      "south": 6.978298,
+      "west": 36.310337
+    },
+    {
+      "name": "Ubadebretsehay",
+      "north": 6.207509,
+      "east": 37.050438,
+      "south": 5.903287,
+      "west": 36.683127
+    },
+    {
+      "name": "Uraga",
+      "north": 6.23555,
+      "east": 38.716681,
+      "south": 5.88271,
+      "west": 38.328499
+    },
+    {
+      "name": "Wadera",
+      "north": 6.110105,
+      "east": 39.468825,
+      "south": 5.695268,
+      "west": 39.082328
+    },
+    {
+      "name": "Wadla",
+      "north": 11.826305,
+      "east": 39.250459,
+      "south": 11.520823,
+      "west": 38.744907
+    },
+    {
+      "name": "Waliso",
+      "north": 8.720534,
+      "east": 38.206529,
+      "south": 8.376524,
+      "west": 37.913328
+    },
+    {
+      "name": "Walmara",
+      "north": 9.247963,
+      "east": 38.709203,
+      "south": 8.863453,
+      "west": 38.396561
+    },
+    {
+      "name": "Wama Hagalo",
+      "north": 8.959931,
+      "east": 37.031601,
+      "south": 8.651096,
+      "west": 36.779423
+    },
+    {
+      "name": "Wantawo",
+      "north": 8.459919,
+      "east": 33.512981,
+      "south": 8.133099,
+      "west": 33.165653
+    },
+    {
+      "name": "Wara Jarso",
+      "north": 10.158983,
+      "east": 38.462284,
+      "south": 9.797294,
+      "west": 37.931152
+    },
+    {
+      "name": "Warder",
+      "north": 7.661008,
+      "east": 46.402513,
+      "south": 5.909717,
+      "west": 44.516891
+    },
+    {
+      "name": "Wayu Tuka",
+      "north": 9.171647,
+      "east": 36.791423,
+      "south": 8.843206,
+      "west": 36.551098
+    },
+    {
+      "name": "Wegde",
+      "north": 10.773205,
+      "east": 38.944092,
+      "south": 10.36288,
+      "west": 38.462834
+    },
+    {
+      "name": "Wegera",
+      "north": 12.992208,
+      "east": 38.195886,
+      "south": 12.576458,
+      "west": 37.435858
+    },
+    {
+      "name": "Welkait",
+      "north": 14.109478,
+      "east": 37.808752,
+      "south": 13.511565,
+      "west": 36.845162
+    },
+    {
+      "name": "Wemberma",
+      "north": 10.723769,
+      "east": 37.009441,
+      "south": 10.313809,
+      "west": 36.520435
+    },
+    {
+      "name": "Wenago",
+      "north": 6.362118,
+      "east": 38.326109,
+      "south": 6.216716,
+      "west": 38.204981
+    },
+    {
+      "name": "Wenbera",
+      "north": 11.130359,
+      "east": 35.926905,
+      "south": 9.94354,
+      "west": 35.151512
+    },
+    {
+      "name": "Wenchi",
+      "north": 8.803224,
+      "east": 38.015349,
+      "south": 8.501934,
+      "west": 37.810208
+    },
+    {
+      "name": "Were Ilu",
+      "north": 10.945276,
+      "east": 39.599278,
+      "south": 10.330882,
+      "west": 39.331771
+    },
+    {
+      "name": "Werei Leke",
+      "north": 14.171029,
+      "east": 39.342468,
+      "south": 13.770842,
+      "west": 38.813342
+    },
+    {
+      "name": "West Belesa",
+      "north": 12.68359,
+      "east": 38.055065,
+      "south": 12.217321,
+      "west": 37.617315
+    },
+    {
+      "name": "West Esite",
+      "north": 11.609174,
+      "east": 38.066535,
+      "south": 11.190316,
+      "west": 37.755372
+    },
+    {
+      "name": "West Imi",
+      "north": 6.568736,
+      "east": 43.003645,
+      "south": 5.756091,
+      "west": 42.05034
+    },
+    {
+      "name": "Wilbareg",
+      "north": 7.921254,
+      "east": 38.213973,
+      "south": 7.611041,
+      "west": 38.030301
+    },
+    {
+      "name": "Wondo-Genet",
+      "north": 7.125678,
+      "east": 38.684333,
+      "south": 6.944166,
+      "west": 38.515742
+    },
+    {
+      "name": "Wonosho",
+      "north": 6.801412,
+      "east": 38.594145,
+      "south": 6.654497,
+      "west": 38.413422
+    },
+    {
+      "name": "Worebabu",
+      "north": 11.61314,
+      "east": 40.067292,
+      "south": 11.25311,
+      "west": 39.723391
+    },
+    {
+      "name": "Wuchale",
+      "north": 9.762101,
+      "east": 39.077486,
+      "south": 9.447672,
+      "west": 38.733734
+    },
+    {
+      "name": "Yabelo",
+      "north": 5.341232,
+      "east": 38.728869,
+      "south": 4.467701,
+      "west": 37.785124
+    },
+    {
+      "name": "Yalo",
+      "north": 12.841944,
+      "east": 40.198802,
+      "south": 12.303195,
+      "west": 39.806266
+    },
+    {
+      "name": "Yama Logi Welel",
+      "north": 8.855719,
+      "east": 35.031983,
+      "south": 8.672419,
+      "west": 34.690991
+    },
+    {
+      "name": "Yaso",
+      "north": 10.483597,
+      "east": 36.692192,
+      "south": 9.492175,
+      "west": 35.674693
+    },
+    {
+      "name": "Yaya Gulele",
+      "north": 9.684172,
+      "east": 38.767184,
+      "south": 9.475112,
+      "west": 38.528853
+    },
+    {
+      "name": "Yayu",
+      "north": 8.417998,
+      "east": 36.095808,
+      "south": 8.158077,
+      "west": 35.759454
+    },
+    {
+      "name": "Yeka",
+      "north": 9.084908,
+      "east": 38.896844,
+      "south": 9.011759,
+      "west": 38.761133
+    },
+    {
+      "name": "Yeki",
+      "north": 7.426024,
+      "east": 35.666774,
+      "south": 7.117876,
+      "west": 35.333921
+    },
+    {
+      "name": "Yem SP Woreda",
+      "north": 8.016487,
+      "east": 37.606851,
+      "south": 7.564317,
+      "west": 37.387735
+    },
+    {
+      "name": "Yilmana Densa",
+      "north": 11.420732,
+      "east": 37.855237,
+      "south": 11.074398,
+      "west": 37.290099
+    },
+    {
+      "name": "Yirgachefe",
+      "north": 6.323836,
+      "east": 38.319869,
+      "south": 6.084924,
+      "west": 38.079863
+    },
+    {
+      "name": "Yubdo",
+      "north": 9.056269,
+      "east": 35.568134,
+      "south": 8.850748,
+      "west": 35.311495
+    },
+    {
+      "name": "Zala",
+      "north": 6.489599,
+      "east": 37.210066,
+      "south": 6.06781,
+      "west": 36.936325
+    },
+    {
+      "name": "Ziquala",
+      "north": 13.143305,
+      "east": 38.94638,
+      "south": 12.549402,
+      "west": 38.447455
+    },
+    {
+      "name": "Ziway Dugda",
+      "north": 8.306722,
+      "east": 39.151453,
+      "south": 7.685383,
+      "west": 38.68693
+    },
+    {
+      "name": "Pasunggingan",
+      "north": -7.357104,
+      "east": 109.514380,
+      "south": -7.412601,
+      "west": 109.429493
     }
   ]
 }

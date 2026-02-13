@@ -1,6 +1,12 @@
 package org.akvo.afribamodkvalidator.ui.screen
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,19 +19,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -33,7 +47,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +63,7 @@ import org.akvo.afribamodkvalidator.data.model.OfflineRegion
 import org.akvo.afribamodkvalidator.data.repository.OfflineRegionRepository
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 import org.akvo.afribamodkvalidator.validation.MapboxOfflineManager
+import org.akvo.afribamodkvalidator.validation.TilePreviewActivity
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,6 +92,7 @@ fun OfflineMapScreen(
 ) {
     val context = LocalContext.current
     val regions by viewModel.regions.collectAsStateWithLifecycle()
+    val isOnline = rememberIsOnline(context)
 
     var downloadingRegion by remember { mutableStateOf<String?>(null) }
     var downloadProgress by remember { mutableFloatStateOf(0f) }
@@ -88,6 +103,12 @@ fun OfflineMapScreen(
     // Track download status per region
     var downloadStatus by remember { mutableStateOf<Map<String, DownloadResult>>(emptyMap()) }
 
+    // Search query
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Track selected region
+    var selectedRegionName by remember { mutableStateOf<String?>(null) }
+
     // Calculate estimated sizes for regions
     var regionsWithEstimates by remember { mutableStateOf<List<OfflineRegion>>(emptyList()) }
 
@@ -96,6 +117,25 @@ fun OfflineMapScreen(
             regionsWithEstimates = calculateEstimates(regions)
         }
     }
+
+    // Auto-select first region if none selected
+    LaunchedEffect(regionsWithEstimates) {
+        if (selectedRegionName == null && regionsWithEstimates.isNotEmpty()) {
+            selectedRegionName = regionsWithEstimates.first().name
+        }
+    }
+
+    val filteredRegions = remember(regionsWithEstimates, searchQuery) {
+        if (searchQuery.isBlank()) {
+            regionsWithEstimates
+        } else {
+            regionsWithEstimates.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
+    val selectedRegion = regionsWithEstimates.find { it.name == selectedRegionName }
 
     Scaffold(
         topBar = {
@@ -107,6 +147,65 @@ fun OfflineMapScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            if (selectedRegion != null) {
+                FooterActions(
+                    region = selectedRegion,
+                    isDownloading = downloadingRegion != null,
+                    isOnline = isOnline,
+                    downloadResult = downloadStatus[selectedRegion.name],
+                    onPreview = {
+                        val bbox = selectedRegion.boundingBox
+                        context.startActivity(
+                            TilePreviewActivity.createIntent(
+                                context = context,
+                                regionName = selectedRegion.name,
+                                north = bbox.latNorth,
+                                south = bbox.latSouth,
+                                east = bbox.lonEast,
+                                west = bbox.lonWest
+                            )
+                        )
+                    },
+                    onDownload = {
+                        downloadingRegion = selectedRegion.name
+                        downloadProgress = 0f
+                        totalResources = 0
+                        downloadedResources = 0
+
+                        offlineManager = startMapboxDownload(
+                            context = context,
+                            region = selectedRegion,
+                            onProgress = { completed, total ->
+                                downloadedResources = completed
+                                totalResources = total
+                                downloadProgress = if (total > 0) {
+                                    completed.toFloat() / total
+                                } else 0f
+                            },
+                            onComplete = {
+                                downloadStatus = downloadStatus + (selectedRegion.name to DownloadResult(
+                                    success = true,
+                                    downloadedTiles = downloadedResources,
+                                    totalTiles = totalResources
+                                ))
+                                downloadingRegion = null
+                            },
+                            onFailed = { errorMessage ->
+                                downloadStatus = downloadStatus + (selectedRegion.name to DownloadResult(
+                                    success = false,
+                                    downloadedTiles = downloadedResources,
+                                    totalTiles = totalResources,
+                                    errorCount = 1,
+                                    errorMessage = errorMessage
+                                ))
+                                downloadingRegion = null
+                            }
+                        )
+                    }
+                )
+            }
         },
         modifier = modifier
     ) { paddingValues ->
@@ -122,7 +221,25 @@ fun OfflineMapScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search regions") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (downloadingRegion != null) {
                 DownloadProgressCard(
@@ -144,51 +261,22 @@ fun OfflineMapScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            } else if (filteredRegions.isEmpty()) {
+                Text(
+                    text = "No regions match \"$searchQuery\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(regionsWithEstimates) { region ->
+                    items(filteredRegions) { region ->
                         RegionCard(
                             region = region,
-                            isDownloading = downloadingRegion != null,
+                            isSelected = region.name == selectedRegionName,
                             downloadResult = downloadStatus[region.name],
-                            onDownload = {
-                                downloadingRegion = region.name
-                                downloadProgress = 0f
-                                totalResources = 0
-                                downloadedResources = 0
-
-                                offlineManager = startMapboxDownload(
-                                    context = context,
-                                    region = region,
-                                    onProgress = { completed, total ->
-                                        downloadedResources = completed
-                                        totalResources = total
-                                        downloadProgress = if (total > 0) {
-                                            completed.toFloat() / total
-                                        } else 0f
-                                    },
-                                    onComplete = {
-                                        downloadStatus = downloadStatus + (region.name to DownloadResult(
-                                            success = true,
-                                            downloadedTiles = downloadedResources,
-                                            totalTiles = totalResources
-                                        ))
-                                        downloadingRegion = null
-                                    },
-                                    onFailed = { errorMessage ->
-                                        downloadStatus = downloadStatus + (region.name to DownloadResult(
-                                            success = false,
-                                            downloadedTiles = downloadedResources,
-                                            totalTiles = totalResources,
-                                            errorCount = 1,
-                                            errorMessage = errorMessage
-                                        ))
-                                        downloadingRegion = null
-                                    }
-                                )
-                            }
+                            onClick = { selectedRegionName = region.name }
                         )
                     }
                 }
@@ -242,58 +330,157 @@ private fun DownloadProgressCard(
 @Composable
 private fun RegionCard(
     region: OfflineRegion,
-    isDownloading: Boolean,
+    isSelected: Boolean,
     downloadResult: DownloadResult?,
-    onDownload: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
-        Row(
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        border = if (isSelected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null,
+        colors = if (isSelected) {
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            )
+        } else {
+            CardDefaults.cardColors()
+        }
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = region.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "~${region.estimatedSizeMb} MB (zoom ${MapboxOfflineManager.ZOOM_MIN}-${MapboxOfflineManager.ZOOM_MAX})",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                // Show download status if available
-                downloadResult?.let { result ->
-                    Spacer(modifier = Modifier.height(4.dp))
-                    val statusText = when {
-                        result.success -> "✓ Downloaded successfully"
-                        result.errorMessage != null -> "✗ ${result.errorMessage}"
-                        else -> "✗ Download failed"
-                    }
-                    val statusColor = when {
-                        result.success -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.error
-                    }
-                    Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = statusColor
-                    )
+            Text(
+                text = region.name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "~${region.estimatedSizeMb} MB (zoom ${MapboxOfflineManager.ZOOM_MIN}-${MapboxOfflineManager.ZOOM_MAX})",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            downloadResult?.let { result ->
+                Spacer(modifier = Modifier.height(4.dp))
+                val statusText = when {
+                    result.success -> "Downloaded successfully"
+                    result.errorMessage != null -> result.errorMessage
+                    else -> "Download failed"
                 }
-            }
-            Button(
-                onClick = onDownload,
-                enabled = !isDownloading
-            ) {
-                Icon(Icons.Default.Download, contentDescription = null)
-                val buttonText = if (downloadResult != null) "Re-download" else "Download"
-                Text(buttonText, modifier = Modifier.padding(start = 4.dp))
+                val statusColor = when {
+                    result.success -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.error
+                }
+                Text(
+                    text = statusText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusColor
+                )
             }
         }
     }
+}
+
+@Composable
+private fun FooterActions(
+    region: OfflineRegion,
+    isDownloading: Boolean,
+    isOnline: Boolean,
+    downloadResult: DownloadResult?,
+    onPreview: () -> Unit,
+    onDownload: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shadowElevation = 8.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = region.name,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onDownload,
+                    enabled = isOnline && !isDownloading,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = null)
+                    val buttonText = if (downloadResult != null) "Re-download" else "Download"
+                    Text(buttonText, modifier = Modifier.padding(start = 4.dp))
+                }
+                if (downloadResult?.success == true) {
+                    OutlinedButton(
+                        onClick = onPreview,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Visibility, contentDescription = null)
+                        Text("Preview", modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+            }
+            if (!isOnline) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Offline - download requires internet",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun rememberIsOnline(context: Context): Boolean {
+    val connectivityManager = remember {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
+
+    var isOnline by remember {
+        val network = connectivityManager.activeNetwork
+        val capabilities = network?.let { connectivityManager.getNetworkCapabilities(it) }
+        mutableStateOf(
+            capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        )
+    }
+
+    DisposableEffect(connectivityManager) {
+        val availableNetworks = mutableSetOf<Network>()
+
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                availableNetworks.add(network)
+                isOnline = true
+            }
+
+            override fun onLost(network: Network) {
+                availableNetworks.remove(network)
+                isOnline = availableNetworks.isNotEmpty()
+            }
+        }
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        connectivityManager.registerNetworkCallback(request, callback)
+
+        onDispose {
+            connectivityManager.unregisterNetworkCallback(callback)
+        }
+    }
+
+    return isOnline
 }
 
 private fun calculateEstimates(regions: List<OfflineRegion>): List<OfflineRegion> {
@@ -386,16 +573,16 @@ private fun RegionCardPreview() {
                 estimatedTiles = 3500,
                 estimatedSizeMb = 175
             ),
-            isDownloading = false,
+            isSelected = false,
             downloadResult = null,
-            onDownload = {}
+            onClick = {}
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun RegionCardDownloadedPreview() {
+private fun RegionCardSelectedPreview() {
     AfriBamODKValidatorTheme {
         RegionCard(
             region = OfflineRegion(
@@ -404,13 +591,13 @@ private fun RegionCardDownloadedPreview() {
                 estimatedTiles = 3500,
                 estimatedSizeMb = 175
             ),
-            isDownloading = false,
+            isSelected = true,
             downloadResult = DownloadResult(
                 success = true,
                 downloadedTiles = 3500,
                 totalTiles = 3500
             ),
-            onDownload = {}
+            onClick = {}
         )
     }
 }
@@ -426,7 +613,7 @@ private fun RegionCardFailedPreview() {
                 estimatedTiles = 1000,
                 estimatedSizeMb = 50
             ),
-            isDownloading = false,
+            isSelected = false,
             downloadResult = DownloadResult(
                 success = false,
                 downloadedTiles = 0,
@@ -434,6 +621,50 @@ private fun RegionCardFailedPreview() {
                 errorCount = 1,
                 errorMessage = "Network error"
             ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FooterActionsPreview() {
+    AfriBamODKValidatorTheme {
+        FooterActions(
+            region = OfflineRegion(
+                name = "Addis Ababa",
+                boundingBox = MapBoundingBox(9.1, 38.9, 8.8, 38.6),
+                estimatedTiles = 3500,
+                estimatedSizeMb = 175
+            ),
+            isDownloading = false,
+            isOnline = true,
+            downloadResult = DownloadResult(
+                success = true,
+                downloadedTiles = 3500,
+                totalTiles = 3500
+            ),
+            onPreview = {},
+            onDownload = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FooterActionsOfflinePreview() {
+    AfriBamODKValidatorTheme {
+        FooterActions(
+            region = OfflineRegion(
+                name = "Sidama",
+                boundingBox = MapBoundingBox(7.1, 38.5, 6.7, 38.1),
+                estimatedTiles = 2000,
+                estimatedSizeMb = 100
+            ),
+            isDownloading = false,
+            isOnline = false,
+            downloadResult = null,
+            onPreview = {},
             onDownload = {}
         )
     }
