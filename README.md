@@ -76,7 +76,7 @@ Before you begin, ensure you have the following installed:
 # Build debug APK
 ./gradlew assembleDebug
 
-# Build release APK
+# Build release APK (signed)
 ./gradlew assembleRelease
 
 # Clean and build
@@ -85,16 +85,26 @@ Before you begin, ensure you have the following installed:
 
 The generated APK files will be located at:
 - Debug: `app/build/outputs/apk/debug/app-debug.apk`
-- Release: `app/build/outputs/apk/release/app-release-unsigned.apk`
+- Release: `app/build/outputs/apk/release/app-release.apk`
 
-### Using Android Studio
+### Release Signing Setup
 
-1. **Debug APK**
-   - Build → Build Bundle(s) / APK(s) → Build APK(s)
+Release builds require a signing keystore. Create a `keystore.properties` file in the project root (gitignored):
 
-2. **Release APK**
-   - Build → Generate Signed Bundle / APK
-   - Follow the signing wizard
+```properties
+storeFile=../release-keystore.jks
+storePassword=your_store_password
+keyAlias=release
+keyPassword=your_key_password
+```
+
+To generate a new keystore:
+```bash
+keytool -genkey -v \
+  -keystore release-keystore.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias release
+```
 
 ### Install on Device
 
@@ -104,6 +114,57 @@ The generated APK files will be located at:
 
 # Or use adb directly
 adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+## Releasing
+
+The `release.sh` script automates the full release process: version bump, build, sign, tag, push, and publish to GitHub Releases.
+
+### Prerequisites
+
+- [GitHub CLI](https://cli.github.com) (`gh`) installed and authenticated
+- `keystore.properties` configured (see [Release Signing Setup](#release-signing-setup))
+
+### Usage
+
+```bash
+# Bump minor version (default): 1.1 → 1.2
+./release.sh
+
+# Bump minor version (explicit): 1.1 → 1.2
+./release.sh minor
+
+# Bump major version: 1.1 → 2.0
+./release.sh major
+
+# Bump patch version: 1.1 → 1.1.1
+./release.sh patch
+
+# Set exact version
+./release.sh 2.5
+
+# Replace APK on existing release (no version bump)
+./release.sh --update
+```
+
+### What It Does
+
+1. Reads current version from `app/build.gradle.kts`
+2. Bumps `versionCode` and `versionName`
+3. Builds a signed release APK (`./gradlew clean assembleRelease`)
+4. Verifies the APK signature
+5. Generates release notes from git commits since the last tag
+6. Shows a preview and asks for confirmation
+7. Commits the version bump, creates a git tag, and pushes
+8. Creates a GitHub Release with the APK attached
+
+### Update Mode
+
+Use `--update` to rebuild and replace the APK on an existing release without changing the version. This is useful for hotfixes:
+
+```bash
+# Fix code, commit, then:
+./release.sh --update
 ```
 
 ## Running Tests
