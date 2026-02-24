@@ -89,6 +89,8 @@ The generated APK files will be located at:
 
 ### Release Signing Setup
 
+> **Important**: Android requires all APKs to be digitally signed before installation. An unsigned APK (`app-release-unsigned.apk`) **cannot be installed** on any Android device — this applies to all versions from Android 7.0 (minSdk 24) through Android 15+. If users report "app not installed" errors, verify the APK is signed (the filename should be `app-release.apk`, not `app-release-unsigned.apk`).
+
 Release builds require a signing keystore. Create a `keystore.properties` file in the project root (gitignored):
 
 ```properties
@@ -167,6 +169,73 @@ Use `--update` to rebuild and replace the APK on an existing release without cha
 ./release.sh --update
 ```
 
+## ODK External App: Polygon Validation
+
+ExternalODK functions as an ODK external app that validates polygon/geoshape data before submission. It checks geometry validity (vertex count, area, self-intersection) and optionally detects plot overlaps.
+
+### XLSForm Configuration
+
+All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only `shape` for geometry-only validation, or include additional extras to enable overlap detection.
+
+> **Important**: The validation app will **not** be triggered unless the XLSForm `appearance` column contains the correct package name: `ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(...)`. A typo or missing package name means ODK Collect will not launch the validation app, and polygon data will be accepted without any checks.
+
+**Geometry-only validation (survey sheet):**
+
+| type | name | label | appearance | required |
+|------|------|-------|------------|----------|
+| geoshape | manual_boundary | Draw boundary | | yes |
+| text | validate_trigger | Tap to validate | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${manual_boundary}) | yes |
+
+**With overlap detection (survey sheet):**
+
+| type | name | label | appearance | required |
+|------|------|-------|------------|----------|
+| geoshape | plot_boundary | Draw plot boundary | | yes |
+| text | first_name | First Name | | yes |
+| text | father_name | Father's Name | | yes |
+| text | grandfather_name | Grandfather's Name | | yes |
+| select_one regions | region | Select Region | | yes |
+| select_one sub_regions | sub_region | Select Sub-Region | | |
+| calculate | full_name | | | |
+| calculate | instance_id | | | |
+| text | validate_plot | Validate Plot | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${plot_boundary},plot_name=${full_name},region=${region},sub_region=${sub_region},instance_name=${instance_id}) | yes |
+
+**calculations sheet (for overlap detection):**
+
+| name | calculation |
+|------|-------------|
+| full_name | concat(${first_name}, ' ', ${father_name}, ' ', ${grandfather_name}) |
+| instance_id | concat(${enumerator_id}, '-', ${region}, '-', today()) |
+
+> **Note**: `instance_id` duplicates the logic from `instance_name` in the settings sheet because settings fields cannot be referenced directly in survey expressions.
+
+### Installation
+
+1. Build the APK: `./gradlew assembleDebug`
+2. Install on the same device as ODK Collect: `./gradlew installDebug`
+3. Configure your XLSForm with the external app appearance
+4. Deploy the form to your device
+
+For validation checks, blocking mechanics, supported formats, and intent extras, see [docs/polygon-validation.md](docs/polygon-validation.md).
+
+## Plot Overlap Detection
+
+The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 5% or more of the smaller polygon's area, validation fails. Overlap detection works fully offline — draft plots are stored locally and checked immediately without server sync.
+
+For the full detection pipeline, threshold details, error messages, and draft storage, see [docs/plot-overlap-detection.md](docs/plot-overlap-detection.md).
+
+## Sync Integration
+
+When submissions are synced from KoboToolbox, the app matches local draft plots to synced submissions and extracts plot data from synced records. This ensures overlap detection works against all plots across devices.
+
+For field mapping configuration, draft lifecycle, conflict resolution, and troubleshooting, see [docs/sync-integration.md](docs/sync-integration.md).
+
+## Map Visualization
+
+Interactive satellite map powered by Mapbox for viewing plot overlaps with color-coded polygons, offline tile downloads, and Google Maps fallback for fresher imagery.
+
+For Mapbox setup, offline downloads, and custom regions, see [docs/map-visualization.md](docs/map-visualization.md).
+
 ## Running Tests
 
 ### Quick Start
@@ -185,171 +254,7 @@ Use `--update` to rebuild and replace the APK on an existing release without cha
 ./gradlew test jacocoTestReport
 ```
 
-### Test Categories
-
-#### 1. Unit Tests (No Emulator Required)
-
-**Database Tests** - Room DAO operations with in-memory database:
-```bash
-# All database tests
-./gradlew test --tests "org.akvo.afribamodkvalidator.data.*"
-
-# Specific DAO tests
-./gradlew test --tests "org.akvo.afribamodkvalidator.data.dao.SubmissionDaoTest"
-./gradlew test --tests "org.akvo.afribamodkvalidator.data.dao.FormMetadataDaoTest"
-
-# TypeConverter tests
-./gradlew test --tests "org.akvo.afribamodkvalidator.data.database.ConvertersTest"
-```
-
-#### 2. Instrumented Tests (Requires Device/Emulator)
-
-```bash
-# Connect device or start emulator first
-adb devices
-
-# Run all instrumented tests
-./gradlew connectedAndroidTest
-
-# Run specific instrumented test
-./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=org.akvo.afribamodkvalidator.ExampleInstrumentedTest
-```
-
-### Test Structure
-
-```
-app/src/test/                          # Unit tests (JVM, fast)
-├── java/org/akvo/afribamodkvalidator/
-│   ├── data/
-│   │   ├── dao/
-│   │   │   ├── SubmissionDaoTest.kt   # 11 tests: CRUD, Flow, pagination
-│   │   │   └── FormMetadataDaoTest.kt # 7 tests: metadata operations
-│   │   └── database/
-│   │       ├── DatabaseTest.kt        # Base test class
-│   │       └── ConvertersTest.kt      # 11 tests: JSON serialization
-│   └── ExampleUnitTest.kt
-└── resources/
-    └── fixtures/                       # Test data fixtures
-        ├── assets-123-data-list.json  # Form 123 sample data
-        └── assets-456-data-list.json  # Form 456 sample data
-
-app/src/androidTest/                   # Instrumented tests (device)
-└── java/org/akvo/afribamodkvalidator/
-    └── ExampleInstrumentedTest.kt
-```
-
-### Test Technologies
-
-| Tool | Purpose | Version |
-|------|---------|--------|
-| **JUnit 4** | Test framework | 4.13.2 |
-| **Robolectric** | Android unit tests on JVM | 4.10.3 |
-| **Room Testing** | In-memory database | 2.6.1 |
-| **MockK** | Kotlin mocking | 1.13.12 |
-| **Turbine** | Flow testing | 1.1.0 |
-| **Coroutines Test** | Async testing | 1.7.3 |
-
-### Lint and Code Quality
-
-```bash
-# Run lint checks
-./gradlew lint
-
-# View lint report
-open app/build/reports/lint-results-debug.html
-
-# Run with strict mode (fail on warnings)
-./gradlew lintDebug -Pandroid.lintOptions.abortOnError=true
-```
-
-### Continuous Integration
-
-**CI Pipeline Commands:**
-```bash
-# Full CI check
-./gradlew clean test lint build
-
-# With coverage report
-./gradlew clean test jacocoTestReport lint build
-```
-
-### Test Reports
-
-After running tests, view reports at:
-- **Unit Test Results:** `app/build/reports/tests/testDebugUnitTest/index.html`
-- **Instrumented Test Results:** `app/build/reports/androidTests/connected/index.html`
-- **Lint Report:** `app/build/reports/lint-results-debug.html`
-- **Coverage Report:** `app/build/reports/jacoco/jacocoTestReport/html/index.html`
-
-### Troubleshooting
-
-**Issue: Tests fail with "No such file or directory"**
-```bash
-# Clean build directory
-./gradlew clean
-
-# Sync Gradle
-./gradlew --refresh-dependencies
-```
-
-**Issue: Robolectric tests slow**
-```bash
-# Run with parallel execution
-./gradlew test --parallel --max-workers=4
-```
-
-**Issue: Database tests fail**
-```bash
-# Ensure fixtures are in correct location
-ls -la app/src/test/resources/fixtures/
-
-# Should see:
-# assets-123-data-list.json
-# assets-456-data-list.json
-```
-
-### Writing New Tests
-
-**Database Test Template:**
-```kotlin
-class MyDaoTest : DatabaseTest() {
-    private val dao: MyDao by lazy { database.myDao() }
-    
-    @Test
-    fun `test description`() = runTest {
-        // Given
-        val entity = MyEntity(id = 1, name = "test")
-        
-        // When
-        dao.insert(entity)
-        
-        // Then
-        val result = dao.getById(1)
-        assertEquals(entity, result)
-    }
-}
-```
-
-**Flow Test Template:**
-```kotlin
-@Test
-fun `test Flow emissions`() = runTest {
-    dao.getData().test {
-        // Initial emission
-        val first = awaitItem()
-        assertTrue(first.isEmpty())
-        
-        // Trigger change
-        dao.insert(testData)
-        
-        // New emission
-        val second = awaitItem()
-        assertEquals(1, second.size)
-        
-        ensureAllEventsConsumed()
-    }
-}
-```
+For test categories, structure, CI commands, troubleshooting, and test templates, see [docs/testing.md](docs/testing.md).
 
 ## Project Structure
 
@@ -377,299 +282,6 @@ Login → Download Loading → Download Complete → Home/Dashboard
                               Sync Complete ← Resync Loading
 ```
 
-## ODK External App: Polygon Validation
-
-ExternalODK functions as an ODK external app that validates polygon/geoshape data before submission.
-
-### Validation Checks
-
-| Check | Description | Error Message |
-|-------|-------------|---------------|
-| Vertex Count | Polygon must have at least 3 distinct points | "Polygon has too few vertices" |
-| Minimum Area | Polygon must be larger than 10 sq meters | "Polygon area is too small" |
-| Self-Intersection | Polygon edges cannot cross each other | "Polygon lines intersect or cross each other" |
-
-### XLSForm Configuration
-
-Use explicit value passing when you want to validate a field from a separate trigger (e.g., a button or another field):
-
-**survey sheet:**
-
-| type | name | label | appearance | required |
-|------|------|-------|------------|----------|
-| geoshape | manual_boundary | Draw boundary | | yes |
-| text | validate_trigger | Tap to validate | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${manual_boundary}) | |
-
-### How Blocking Works
-
-The blocking is handled by the **return code** from the app, not by an XLSForm constraint:
-
-1. **Validation fails**: App returns `RESULT_CANCELED` and shows an error AlertDialog. ODK Collect does NOT update the field value - the user stays on the question and must fix the polygon.
-
-2. **Validation passes**: App returns `RESULT_OK` with the data. ODK Collect accepts the value and allows the user to proceed.
-
-The `required=yes` column ensures the user can't skip the field entirely. The external app's `RESULT_CANCELED` ensures invalid polygons are rejected.
-
-### Supported Input Formats
-
-- **ODK Geoshape**: `lat lng alt acc; lat lng alt acc; ...` (semicolon-separated points)
-- **WKT**: `POLYGON ((x1 y1, x2 y2, x3 y3, x1 y1))`
-
-### Installation
-
-1. Build the APK: `./gradlew assembleDebug`
-2. Install on the same device as ODK Collect: `./gradlew installDebug`
-3. Configure your XLSForm with the external app appearance
-4. Deploy the form to your device
-
-## Plot Overlap Detection
-
-The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 5% or more of the smaller polygon's area, validation fails.
-
-### How It Works
-
-1. **Single-polygon validation** runs first (vertex count, area, self-intersection)
-2. **Bounding box pre-filter** queries nearby plots from the database using indexed bbox columns
-3. **JTS geometry check** computes precise intersection area
-4. **Threshold check**: overlap >= 5% of smaller polygon → blocked
-
-> **Note**: Region is stored as metadata only, not used for filtering. This ensures overlaps are detected even when the same plot is registered with a different region label (wrong selection, boundary plots, fraud prevention).
-
-### Fully Offline — No Sync Required Between Plots
-
-Overlap detection works entirely offline without syncing between form collections. Each time the validation app is launched, the validated polygon is immediately saved as a draft (`isDraft = true`) in the local Room database — **before** the form is submitted to the server. The next validation checks against all existing plots (both drafts and synced submissions).
-
-This means:
-- **Form 1** is validated → polygon saved as draft to local DB → returned to ODK Collect
-- **Form 2** is validated → overlap check queries the DB → **finds Form 1's draft** → blocks if overlap >= 5%
-- No internet or server sync is needed between collecting plots on the same device
-
-### Intent Extras
-
-Pass these extras from XLSForm to enable overlap detection:
-
-| Extra | Description | Required |
-|-------|-------------|----------|
-| `shape` | Polygon data (geoshape or WKT format) | Yes |
-| `plot_name` | Farmer name for error messages | Yes |
-| `region` | Administrative region (metadata, stored with plot) | Yes |
-| `sub_region` | Sub-region (metadata, stored with plot) | No |
-| `instance_name` | Form instance name for draft matching | No |
-
-### XLSForm Configuration for Overlap Detection
-
-**survey sheet:**
-
-| type | name | label | appearance |
-|------|------|-------|------------|
-| geoshape | plot_boundary | Draw plot boundary | |
-| text | first_name | First Name | |
-| text | father_name | Father's Name | |
-| text | grandfather_name | Grandfather's Name | |
-| select_one regions | region | Select Region | |
-| select_one sub_regions | sub_region | Select Sub-Region | |
-| calculate | full_name | | |
-| calculate | instance_id | | |
-| text | validate_plot | Validate Plot | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${plot_boundary},plot_name=${full_name},region=${region},sub_region=${sub_region},instance_name=${instance_id}) |
-
-**calculations sheet:**
-
-| name | calculation |
-|------|-------------|
-| full_name | concat(${first_name}, ' ', ${father_name}, ' ', ${grandfather_name}) |
-| instance_id | concat(${enumerator_id}, '-', ${region}, '-', today()) |
-
-> **Note**: `instance_id` duplicates the logic from `instance_name` in the settings sheet because settings fields cannot be referenced directly in survey expressions.
-
-### Overlap Error Messages
-
-When overlap is detected:
-```
-New plot for Abebe Kebede Tadesse overlaps with plot for Girma Tesfaye Hailu
-```
-
-### Overlap Threshold
-
-- **Threshold**: 5% of the smaller polygon's area
-- **Calculation**: `intersection_area / min(new_plot_area, existing_plot_area) * 100`
-- **Rationale**: Allows minor boundary touching (GPS inaccuracy) while blocking significant overlaps
-
-### Draft Plot Storage
-
-On successful validation, the plot is saved as a draft in the local database:
-- Stored with `isDraft = true`
-- Linked to form via `instanceName`
-- Used for overlap detection with subsequent plots
-
-### Sync Integration
-
-When submissions are synced from KoboToolbox, the app automatically:
-
-1. **Matches drafts to submissions**: Links local draft plots to their synced submissions by `instanceName`, updating `isDraft = false`
-
-2. **Extracts plots from synced data**: Creates `PlotEntity` records from synced submissions by parsing `rawData` JSON for polygon and farmer information
-
-This ensures overlap detection works against **all plots** (both local drafts and synced submissions from other users/devices).
-
-**Field Mapping Configuration**: Edit `assets/plot_extraction_config.json` to customize which fields are extracted:
-
-```json
-{
-  "polygonFields": ["boundary_mapping/Open_Area_GeoMapping", "manual_boundary"],
-  "plotNameFields": ["First_Name", "Father_s_Name", "Grandfather_s_Name"],
-  "regionField": "woreda",
-  "subRegionField": "kebele"
-}
-```
-
-### Sync Operational Considerations
-
-#### Draft Lifecycle
-
-Drafts persist indefinitely until matched to a synced submission. There is no automatic cleanup of orphaned drafts.
-
-| Draft State | Description |
-|-------------|-------------|
-| `isDraft=true, submissionUuid=null` | Newly created, awaiting sync |
-| `isDraft=false, submissionUuid=<uuid>` | Matched to synced submission |
-| `isDraft=true` (stuck) | Form never submitted to server, or `instanceName` mismatch |
-
-**Clearing orphaned drafts**: Logout (`Menu → Logout`) clears all local data including drafts.
-
-#### Conflict Resolution
-
-The app uses **last-write-wins** strategy with no merge logic:
-- When syncing, if a submission already exists locally, it is replaced with server data
-- Local modifications are overwritten without warning
-- No audit trail of changes
-
-**Implication**: If two users modify the same plot, the last synced version wins.
-
-#### Concurrency
-
-Sync operations are serialized through Android's ViewModelScope:
-- Only one sync can run at a time per app instance
-- No explicit database locks; Room handles SQLite transactions automatically
-- Safe for single-device use; concurrent syncs from multiple devices handled by last-write-wins
-
-#### Performance Considerations
-
-| Dataset Size | Sync Behavior |
-|--------------|---------------|
-| < 1,000 submissions | Fast, no issues |
-| 1,000 - 10,000 submissions | Acceptable; API pagination (300/page) limits memory |
-| > 10,000 submissions | May be slow; plot extraction uses O(n) queries |
-
-**Optimizations in use**:
-- Pagination: API fetches 300 submissions per request
-- Delta sync: Only fetches submissions newer than last sync timestamp
-- Bounding box indexes: Fast spatial queries for overlap detection
-
-#### Troubleshooting Plot Extraction
-
-Plot extraction failures are logged but not shown to users. Common issues:
-
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| Plots not appearing after sync | Field paths in config don't match form structure | Check `plot_extraction_config.json` field names against form JSON |
-| Some submissions missing plots | Invalid polygon data (self-intersection, too few points) | Review `adb logcat` for `PlotExtractor` errors |
-| Zero plots extracted | Polygon field path incorrect | Verify `polygonFields` array in config matches your form |
-
-**Viewing extraction logs**:
-```bash
-adb logcat -s PlotExtractor:E KoboRepository:E
-```
-
-**Verifying config fields**: Export a submission from KoboToolbox and compare JSON keys with `plot_extraction_config.json`.
-
-## Map Visualization
-
-The app includes map visualization for viewing plot overlaps on an interactive **satellite map** powered by Mapbox.
-
-### Features
-
-- **Satellite Imagery**: High-resolution satellite view for accurate field boundary verification
-- **Overlap Preview**: When validation fails due to overlap, tap "View on Map" to see both polygons
-- **Color Coding**: Current plot (cyan fill), overlapping plots (red fill)
-- **Offline Maps**: Download satellite tiles for field use without internet connectivity
-- **Tile Preview**: Verify downloaded tiles by previewing regions on an interactive satellite map
-- **Interactive**: Pinch to zoom, pan to navigate, tap polygon to see plot name
-- **Google Maps Fallback**: Floating button to open location in Google Maps for fresher satellite imagery (visible when online)
-- **Imagery Disclaimer**: Banner warns users that satellite imagery may be outdated
-
-> **Note**: Mapbox satellite imagery may be several years old in some regions. Use the Google Maps button to check for more recent imagery when needed.
-
-### Mapbox Setup
-
-The app uses Mapbox Maps SDK which requires authentication tokens:
-
-1. **Create Mapbox Account**: Sign up at [account.mapbox.com](https://account.mapbox.com/)
-
-2. **Configure Tokens** in `local.properties` (gitignored):
-   ```properties
-   # Secret token for downloading SDK (Downloads:Read scope)
-   MAPBOX_DOWNLOADS_TOKEN=sk.eyJ1...your_secret_token
-   ```
-
-3. **Public Token** in `app/src/main/res/values/mapbox_access_token.xml` (gitignored):
-   ```xml
-   <string name="mapbox_access_token">pk.eyJ1...your_public_token</string>
-   ```
-
-> **Free Tier**: Mapbox offers 25,000 monthly active users for free, sufficient for most deployments.
-
-### Offline Map Downloads
-
-Access offline maps via **Menu → Offline Maps** from the home screen.
-
-**How it works:**
-1. Select a Woreda/region from the list (tap to highlight)
-2. Tap **Download** in the bottom footer to download satellite tiles
-3. After download completes, tap **Preview** to verify tiles on a satellite map
-4. The Download button is automatically disabled when the device is offline
-
-**Predefined Regions**: Configured in `assets/offline_regions.json`:
-```json
-{
-  "regions": [
-    {
-      "name": "Addis Ababa",
-      "north": 9.1,
-      "east": 38.9,
-      "south": 8.8,
-      "west": 38.6
-    }
-  ]
-}
-```
-
-**Download Settings**:
-- Style: Satellite Streets (satellite imagery with road labels)
-- Zoom levels: 15-18 (suitable for plot-level detail)
-- Storage: Mapbox TileStore (managed automatically)
-
-**Tile Preview**: After downloading, use the Preview button to open an interactive satellite map centered on the region. The Mapbox SDK automatically uses cached tiles, so if the map renders correctly offline, the download was successful.
-
-### Adding Custom Regions
-
-Edit `app/src/main/assets/offline_regions.json` to add regions for your deployment:
-
-```json
-{
-  "regions": [
-    {
-      "name": "Your Region Name",
-      "north": <max_latitude>,
-      "east": <max_longitude>,
-      "south": <min_latitude>,
-      "west": <min_longitude>
-    }
-  ]
-}
-```
-
-Use [bboxfinder.com](http://bboxfinder.com/) to find bounding box coordinates for your area.
-
 ## Contributing
 
 This project uses **Beads** for git-backed issue tracking. See available tasks:
@@ -681,4 +293,4 @@ bd list     # View all issues
 
 ## License
 
-[Add license information here]
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
