@@ -14,6 +14,8 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - **Plot Overlap Detection**: Detect and block overlapping plots (>= 5% threshold)
 - **Map Visualization**: View overlapping plots on interactive map with offline tile support
 
+> **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
+
 ## Tech Stack
 
 | Component | Technology |
