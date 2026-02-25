@@ -1,13 +1,13 @@
 # Plot Overlap Detection
 
-The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 5% or more of the smaller polygon's area, validation fails.
+The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 20% or more of the smaller polygon's area, validation fails.
 
 ## How It Works
 
 1. **Single-polygon validation** runs first (vertex count, area, self-intersection)
 2. **Bounding box pre-filter** queries nearby plots from the database using indexed bbox columns
 3. **JTS geometry check** computes precise intersection area
-4. **Threshold check**: overlap >= 5% of smaller polygon → blocked
+4. **Threshold check**: overlap >= 20% of smaller polygon → blocked
 
 > **Note**: Region is stored as metadata only, not used for filtering. This ensures overlaps are detected even when the same plot is registered with a different region label (wrong selection, boundary plots, fraud prevention).
 
@@ -17,7 +17,7 @@ Overlap detection works entirely offline without syncing between form collection
 
 This means:
 - **Form 1** is validated → polygon saved as draft to local DB → returned to ODK Collect
-- **Form 2** is validated → overlap check queries the DB → **finds Form 1's draft** → blocks if overlap >= 5%
+- **Form 2** is validated → overlap check queries the DB → **finds Form 1's draft** → blocks if overlap >= 20%
 - No internet or server sync is needed between collecting plots on the same device
 
 ## Overlap Error Messages
