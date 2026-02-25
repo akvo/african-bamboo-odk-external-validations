@@ -29,7 +29,7 @@ New plot for Abebe Kebede Tadesse overlaps with plot for Girma Tesfaye Hailu
 
 ## Overlap Threshold
 
-- **Threshold**: 5% of the smaller polygon's area
+- **Threshold**: 20% of the smaller polygon's area
 - **Calculation**: `intersection_area / min(new_plot_area, existing_plot_area) * 100`
 - **Rationale**: Allows minor boundary touching (GPS inaccuracy) while blocking significant overlaps
 
