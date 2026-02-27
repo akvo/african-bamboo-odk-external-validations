@@ -159,7 +159,7 @@ private fun LoginScreenFilledPreview() {
             uiState = LoginUiState(
                 username = "testuser",
                 password = "password123",
-                serverUrl = "https://eu.kobotoolbox.org",
+                serverUrl = "https://kc-eu.kobotoolbox.org",
                 formId = "aXf2qPzKm8B7vN3cR9dE"
             ),
             onUsernameChange = {},

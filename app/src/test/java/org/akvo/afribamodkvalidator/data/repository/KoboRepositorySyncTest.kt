@@ -6,6 +6,7 @@ import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
 import org.akvo.afribamodkvalidator.data.dao.PlotDao
@@ -23,6 +24,8 @@ import org.junit.Test
  * Unit tests for KoboRepository sync operations.
  *
  * Tests focus on:
+ * - fetchSubmissions: initial download with progress
+ * - resync: delta sync + validation reconciliation
  * - matchDraftsToSubmissions: draft-to-submission linking logic
  * - extractPlotsFromSubmissions: plot extraction from synced submissions
  *
@@ -31,6 +34,8 @@ import org.junit.Test
  * - Submissions without instanceName
  * - Partial failures during bulk processing
  * - Submissions with invalid/incomplete polygon data
+ * - Re-approved submissions restored via reconciliation
+ * - Newly rejected old submissions removed via reconciliation
  */
 class KoboRepositorySyncTest {
 
@@ -50,6 +55,9 @@ class KoboRepositorySyncTest {
         formMetadataDao = mockk()
         plotDao = mockk()
         plotExtractor = mockk()
+
+        // Default: no existing submissions (first-time fetch scenario)
+        coEvery { submissionDao.findExistingUuids(any()) } returns emptyList()
 
         repository = KoboRepository(
             apiService = apiService,
@@ -92,7 +100,7 @@ class KoboRepositorySyncTest {
         coEvery { plotExtractor.extractPlot(any()) } returns null
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - verify both drafts were matched
         coVerify { plotDao.updateDraftStatus("instance-A", "uuid-1") }
@@ -125,7 +133,7 @@ class KoboRepositorySyncTest {
         coEvery { plotExtractor.extractPlot(any()) } returns null
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - updateDraftStatus called twice (once per draft), both will match the same submission
         // The updateDraftStatus query uses instanceName, so both drafts with "instance-A" will be updated
@@ -154,7 +162,7 @@ class KoboRepositorySyncTest {
         coEvery { plotExtractor.extractPlot(any()) } returns null
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - no draft updates (no match found)
         coVerify(exactly = 0) { plotDao.updateDraftStatus(any(), any()) }
@@ -178,10 +186,11 @@ class KoboRepositorySyncTest {
         coEvery { plotExtractor.extractPlot(any()) } returns null
 
         // When
-        val result = repository.fetchSubmissions(testAssetUid)
+        val events = repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - success, no crashes
-        assertTrue(result.isSuccess)
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(1, complete.inserted)
         // findByInstanceNames should not be called when no drafts
         coVerify(exactly = 0) { submissionDao.findByInstanceNames(any()) }
     }
@@ -217,7 +226,7 @@ class KoboRepositorySyncTest {
         coEvery { plotExtractor.extractPlot(any()) } returns null
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - only matched draft updated
         coVerify(exactly = 1) { plotDao.updateDraftStatus("instance-A", "uuid-1") }
@@ -263,7 +272,7 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.insertOrUpdateAll(capture(capturedPlots)) } just Runs
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - batch insert called with extracted plots
         coVerify { plotDao.insertOrUpdateAll(any()) }
@@ -301,7 +310,7 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.insertOrUpdateAll(capture(capturedPlots)) } just Runs
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - only 1 plot inserted (for uuid-3)
         coVerify { plotDao.insertOrUpdateAll(any()) }
@@ -336,7 +345,7 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.insertOrUpdateAll(capture(capturedPlots)) } just Runs
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - only valid plot inserted
         coVerify { plotDao.insertOrUpdateAll(any()) }
@@ -366,10 +375,11 @@ class KoboRepositorySyncTest {
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
 
         // When
-        val result = repository.fetchSubmissions(testAssetUid)
+        val events = repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - success but no plots inserted
-        assertTrue(result.isSuccess)
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(2, complete.inserted)
         coVerify(exactly = 0) { plotDao.insertOrUpdateAll(any()) }
     }
 
@@ -379,11 +389,11 @@ class KoboRepositorySyncTest {
         setupApiToReturnSubmissions(emptyList())
 
         // When
-        val result = repository.fetchSubmissions(testAssetUid)
+        val events = repository.fetchSubmissions(testAssetUid).toList()
 
-        // Then - success with 0 count
-        assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrNull())
+        // Then - Complete with 0 count
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted)
 
         // No plot operations should occur
         coVerify(exactly = 0) { plotDao.getAllDrafts() }
@@ -416,28 +426,267 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.insertOrUpdateAll(any()) } just Runs
 
         // When
-        repository.fetchSubmissions(testAssetUid)
+        repository.fetchSubmissions(testAssetUid).toList()
 
         // Then - single batch insert call, not 100 individual calls
         coVerify(exactly = 1) { plotDao.insertOrUpdateAll(any()) }
         coVerify(exactly = 0) { plotDao.insertOrUpdate(any()) }
     }
 
-    // ==================== Resync Tests ====================
+    // ==================== Rejection Filter Tests ====================
+
+    @Test
+    fun `fetchSubmissions should skip rejected submissions`() = runTest {
+        // Given - API returns mix of approved and rejected submissions
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A"),
+            createApiJsonObject("uuid-2", "instance-B", validationStatus = "validation_status_not_approved"),
+            createApiJsonObject("uuid-3", "instance-C")
+        )
+        coEvery { apiService.getSubmissions(any(), any(), any()) } returns KoboDataResponse(
+            count = 3, next = null, previous = null, results = jsonResults
+        )
+
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+
+        // When
+        val events = repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - only 2 approved submissions inserted
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(2, complete.inserted)
+        assertEquals(1, complete.rejected)
+        val captured = slot<List<SubmissionEntity>>()
+        coVerify { submissionDao.insertAll(capture(captured)) }
+        assertEquals(2, captured.captured.size)
+        assertTrue(captured.captured.none { it._uuid == "uuid-2" })
+    }
+
+    @Test
+    fun `fetchSubmissions should handle all submissions being rejected`() = runTest {
+        // Given - all submissions are rejected
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A", validationStatus = "validation_status_not_approved"),
+            createApiJsonObject("uuid-2", "instance-B", validationStatus = "validation_status_not_approved")
+        )
+        coEvery { apiService.getSubmissions(any(), any(), any()) } returns KoboDataResponse(
+            count = 2, next = null, previous = null, results = jsonResults
+        )
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+
+        // When
+        val events = repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - zero insertions
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted)
+        assertEquals(2, complete.rejected)
+        coVerify(exactly = 0) { submissionDao.insertAll(any()) }
+    }
+
+    @Test
+    fun `fetchSubmissions should treat empty validation_status as approved`() = runTest {
+        // Given - submission with empty validation_status (common for new submissions)
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A", validationStatus = null),
+            createApiJsonObject("uuid-2", "instance-B")  // no validation status at all
+        )
+        coEvery { apiService.getSubmissions(any(), any(), any()) } returns KoboDataResponse(
+            count = 2, next = null, previous = null, results = jsonResults
+        )
+
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+
+        // When
+        val events = repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - both treated as approved
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(2, complete.inserted)
+    }
+
+    // ==================== Resync + Reconciliation Tests ====================
+
+    @Test
+    fun `resync should delete newly-rejected old submissions via reconciliation`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns nothing new
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        // Reconciliation query finds a newly-rejected submission
+        val rejectedJson = listOf(
+            createApiJsonObject("uuid-1", "instance-A", validationStatus = "validation_status_not_approved")
+        )
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 1, next = null, previous = null, results = rejectedJson)
+
+        coEvery { plotDao.deleteBySubmissionUuids(any()) } returns 1
+        coEvery { submissionDao.deleteByUuids(any()) } returns 1
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - submission deleted via reconciliation
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted)
+        assertEquals(1, complete.rejected)
+        coVerify { submissionDao.deleteByUuids(listOf("uuid-1")) }
+        coVerify { plotDao.deleteBySubmissionUuids(listOf("uuid-1")) }
+        // Sync timestamp advanced so reconciliation window isn't reprocessed
+        coVerify { formMetadataDao.insertOrUpdate(any()) }
+    }
+
+    @Test
+    fun `resync should restore re-approved submissions`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns nothing new
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        // Reconciliation finds a re-approved submission (status changed but NOT rejected)
+        val reApprovedJson = listOf(
+            createApiJsonObject("uuid-1", "instance-A", validationStatus = "validation_status_approved")
+        )
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 1, next = null, previous = null, results = reApprovedJson)
+
+        // Re-fetch full data for re-approved submission
+        val fullDataJson = listOf(
+            createApiJsonObject("uuid-1", "instance-A", validationStatus = "validation_status_approved")
+        )
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_uuid") }, any(), any())
+        } returns KoboDataResponse(count = 1, next = null, previous = null, results = fullDataJson)
+
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - submission re-fetched and inserted
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted) // inserted counts delta sync only
+        assertEquals(1, complete.restored) // restored counts reconciliation restores
+        assertEquals(0, complete.rejected)
+        // Verify the re-fetch query was made
+        coVerify {
+            apiService.getSubmissionsSince(any(), match { it.contains("_uuid") }, any(), any())
+        }
+        // Verify submission was inserted
+        coVerify { submissionDao.insertAll(any()) }
+        // Verify post-processing ran (draft matching + plot extraction)
+        coVerify { plotDao.getAllDrafts() }
+    }
+
+    @Test
+    fun `resync should handle multiple rejected submissions from reconciliation`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns nothing new
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        // Reconciliation finds multiple rejected submissions
+        val rejectedJson = listOf(
+            createApiJsonObject("uuid-1", "instance-A", validationStatus = "validation_status_not_approved"),
+            createApiJsonObject("uuid-2", "instance-B", validationStatus = "validation_status_not_approved")
+        )
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 2, next = null, previous = null, results = rejectedJson)
+
+        coEvery { plotDao.deleteBySubmissionUuids(any()) } returns 2
+        coEvery { submissionDao.deleteByUuids(any()) } returns 2
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - cleanup deletes both
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted)
+        assertEquals(2, complete.rejected)
+        coVerify { submissionDao.deleteByUuids(listOf("uuid-1", "uuid-2")) }
+        coVerify { plotDao.deleteBySubmissionUuids(listOf("uuid-1", "uuid-2")) }
+    }
+
+    @Test
+    fun `resync should not call removeRejected when no status changes found`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns approved submissions
+        val submissions = listOf(createSubmission("uuid-1", "instance-A"))
+        val jsonResults = submissions.map { createApiJsonObject(it._uuid, it.instanceName) }
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 1, next = null, previous = null, results = jsonResults)
+
+        // Reconciliation finds nothing
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns submissions
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any()) } returns null
+
+        // When
+        repository.resync(testAssetUid).toList()
+
+        // Then - no delete calls
+        coVerify(exactly = 0) { submissionDao.deleteByUuids(any()) }
+        coVerify(exactly = 0) { plotDao.deleteBySubmissionUuids(any()) }
+    }
 
     @Test
     fun `resync should use batch operations for draft matching`() = runTest {
         // Given - previous sync exists
-        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000L
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
 
         val submissions = listOf(createSubmission("uuid-1", "instance-A"))
         val jsonResults = submissions.map { createApiJsonObject(it._uuid, it.instanceName) }
-        coEvery { apiService.getSubmissionsSince(any(), any(), any(), any()) } returns KoboDataResponse(
-            count = 1,
-            next = null,
-            previous = null,
-            results = jsonResults
-        )
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 1, next = null, previous = null, results = jsonResults)
+
+        // No status changes from reconciliation
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
 
         val drafts = listOf(createDraftPlot("draft-1", "instance-A"))
         coEvery { plotDao.getAllDrafts() } returns drafts
@@ -452,11 +701,152 @@ class KoboRepositorySyncTest {
         coEvery { plotExtractor.extractPlot(any()) } returns null
 
         // When
-        repository.resync(testAssetUid)
+        repository.resync(testAssetUid).toList()
 
         // Then - batch query used instead of individual queries
         coVerify(exactly = 1) { submissionDao.findByInstanceNames(any()) }
         coVerify(exactly = 0) { submissionDao.findByInstanceName(any()) }
+    }
+
+    // ==================== Progress Events Tests ====================
+
+    @Test
+    fun `fetchSubmissions should emit progress events per page`() = runTest {
+        // Given - API returns 2 pages of submissions
+        val page1Results = (1..3).map { createApiJsonObject("uuid-$it", "instance-$it") }
+        val page2Results = (4..5).map { createApiJsonObject("uuid-$it", "instance-$it") }
+
+        coEvery { apiService.getSubmissions(any(), any(), eq(0)) } returns KoboDataResponse(
+            count = 5, next = "http://next", previous = null, results = page1Results
+        )
+        coEvery { apiService.getSubmissions(any(), any(), eq(300)) } returns KoboDataResponse(
+            count = 5, next = null, previous = null, results = page2Results
+        )
+
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+
+        // When
+        val events = repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - should have Downloading events + Complete
+        assertTrue(events.size >= 2)
+        assertTrue(events.dropLast(1).all { it is SyncProgress.Downloading })
+        assertTrue(events.last() is SyncProgress.Complete)
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(5, complete.inserted)
+    }
+
+    @Test
+    fun `resync with no previous sync should fall back to full fetch`() = runTest {
+        // Given - no previous sync
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns null
+
+        val submissions = listOf(createSubmission("uuid-1", "instance-A"))
+        setupApiToReturnSubmissions(submissions)
+
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any()) } returns null
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - uses full fetch (getSubmissions, not getSubmissionsSince)
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(1, complete.inserted)
+        coVerify { apiService.getSubmissions(any(), any(), any()) }
+        coVerify(exactly = 0) { apiService.getSubmissionsSince(any(), any(), any(), any()) }
+    }
+
+    // ==================== Re-fetch Deduplication Tests ====================
+
+    @Test
+    fun `resync should not count re-fetched submissions as new`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns 3 submissions (re-fetched due to timestamp truncation)
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A"),
+            createApiJsonObject("uuid-2", "instance-B"),
+            createApiJsonObject("uuid-3", "instance-C")
+        )
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 3, next = null, previous = null, results = jsonResults)
+
+        // All 3 already exist in DB (they were re-fetched due to timestamp precision)
+        coEvery { submissionDao.findExistingUuids(any()) } returns listOf("uuid-1", "uuid-2", "uuid-3")
+
+        // No reconciliation changes
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - 0 added (all were re-fetches), still inserted via REPLACE for data freshness
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted)
+        // insertAll still called (REPLACE updates data)
+        coVerify { submissionDao.insertAll(any()) }
+    }
+
+    @Test
+    fun `resync should count only genuinely new submissions`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns 3 submissions: 1 new + 2 re-fetched
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A"),
+            createApiJsonObject("uuid-2", "instance-B"),
+            createApiJsonObject("uuid-3", "instance-C")
+        )
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 3, next = null, previous = null, results = jsonResults)
+
+        // uuid-1 and uuid-2 already exist, uuid-3 is genuinely new
+        coEvery { submissionDao.findExistingUuids(any()) } returns listOf("uuid-1", "uuid-2")
+
+        // No reconciliation changes
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any()) } returns null
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - only 1 genuinely new submission counted
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(1, complete.inserted)
     }
 
     // ==================== Helper Functions ====================
@@ -534,7 +924,11 @@ class KoboRepositorySyncTest {
     /**
      * Creates a proper JSON object with all required Kobo fields for API response simulation.
      */
-    private fun createApiJsonObject(uuid: String, instanceName: String?): kotlinx.serialization.json.JsonObject {
+    private fun createApiJsonObject(
+        uuid: String,
+        instanceName: String?,
+        validationStatus: String? = null
+    ): kotlinx.serialization.json.JsonObject {
         val fields = mutableMapOf<String, kotlinx.serialization.json.JsonElement>(
             "_uuid" to kotlinx.serialization.json.JsonPrimitive(uuid),
             "_id" to kotlinx.serialization.json.JsonPrimitive(12345),
@@ -544,6 +938,11 @@ class KoboRepositorySyncTest {
         )
         if (instanceName != null) {
             fields["meta/instanceName"] = kotlinx.serialization.json.JsonPrimitive(instanceName)
+        }
+        if (validationStatus != null) {
+            fields["_validation_status"] = kotlinx.serialization.json.JsonObject(
+                mapOf("uid" to kotlinx.serialization.json.JsonPrimitive(validationStatus))
+            )
         }
         return kotlinx.serialization.json.JsonObject(fields)
     }

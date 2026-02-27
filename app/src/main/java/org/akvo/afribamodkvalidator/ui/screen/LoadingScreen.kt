@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.akvo.afribamodkvalidator.data.repository.SyncProgress
 import org.akvo.afribamodkvalidator.navigation.LoadingType
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 import org.akvo.afribamodkvalidator.ui.viewmodel.LoadingResult
@@ -40,6 +41,7 @@ fun LoadingScreen(
     viewModel: LoadingViewModel = hiltViewModel()
 ) {
     val result by viewModel.loadingResult.collectAsStateWithLifecycle()
+    val progress by viewModel.syncProgress.collectAsStateWithLifecycle()
 
     LaunchedEffect(loadingType) {
         viewModel.startLoading(loadingType)
@@ -69,6 +71,7 @@ fun LoadingScreen(
         else -> {
             LoadingScreenContent(
                 message = message,
+                syncProgress = progress,
                 modifier = modifier
             )
         }
@@ -78,6 +81,7 @@ fun LoadingScreen(
 @Composable
 private fun LoadingScreenContent(
     message: String,
+    syncProgress: SyncProgress? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -85,13 +89,26 @@ private fun LoadingScreenContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator()
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        val downloading = syncProgress as? SyncProgress.Downloading
+        if (downloading != null && downloading.total > 0) {
+            val fraction = downloading.processed.toFloat() / downloading.total.toFloat()
+            CircularProgressIndicator(progress = { fraction })
+            Spacer(modifier = Modifier.height(16.dp))
+            val percent = (fraction * 100).toInt()
+            Text(
+                text = "$percent% (${downloading.processed}/${downloading.total})",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -143,7 +160,19 @@ private fun ErrorScreenContent(
 private fun LoadingScreenPreview() {
     AfriBamODKValidatorTheme {
         LoadingScreenContent(
-            message = "Downloading data..."
+            message = "Downloading data...",
+            syncProgress = null
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoadingScreenWithProgressPreview() {
+    AfriBamODKValidatorTheme {
+        LoadingScreenContent(
+            message = "Downloading data...",
+            syncProgress = SyncProgress.Downloading(processed = 600, total = 1000)
         )
     }
 }

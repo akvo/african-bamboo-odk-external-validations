@@ -109,8 +109,7 @@ class OverlapChecker(
      */
     fun parseWkt(wkt: String): Polygon? {
         return try {
-            val geometry = wktReader.read(wkt)
-            when (geometry) {
+            when (val geometry = wktReader.read(wkt)) {
                 is Polygon -> geometry
                 else -> {
                     Log.w(TAG, "WKT is not a polygon: ${geometry.geometryType}")

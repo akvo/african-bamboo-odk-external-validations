@@ -7,9 +7,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.CancellationException
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.network.AuthCredentials
 import org.akvo.afribamodkvalidator.data.repository.KoboRepository
+import org.akvo.afribamodkvalidator.data.repository.SyncProgress
 import org.akvo.afribamodkvalidator.navigation.LoadingType
 import java.time.Instant
 import java.time.ZoneId
@@ -40,6 +42,9 @@ class LoadingViewModel @Inject constructor(
     private val _loadingResult = MutableStateFlow<LoadingResult>(LoadingResult.Loading)
     val loadingResult: StateFlow<LoadingResult> = _loadingResult.asStateFlow()
 
+    private val _syncProgress = MutableStateFlow<SyncProgress?>(null)
+    val syncProgress: StateFlow<SyncProgress?> = _syncProgress.asStateFlow()
+
     private var hasStarted = false
 
     fun startLoading(loadingType: LoadingType) {
@@ -69,44 +74,48 @@ class LoadingViewModel @Inject constructor(
     }
 
     private suspend fun performDownload(assetUid: String) {
-        val countBefore = submissionDao.getCount(assetUid)
-
-        koboRepository.fetchSubmissions(assetUid)
-            .onSuccess { totalFetched ->
-                val latestTimestamp = submissionDao.getLatestSubmissionTime(assetUid)
-                val formattedDate = formatTimestamp(latestTimestamp)
-
-                _loadingResult.value = LoadingResult.DownloadSuccess(
-                    totalEntries = totalFetched,
-                    latestSubmissionDate = formattedDate
-                )
+        try {
+            koboRepository.fetchSubmissions(assetUid).collect { progress ->
+                _syncProgress.value = progress
+                if (progress is SyncProgress.Complete) {
+                    val latestTimestamp = submissionDao.getLatestSubmissionTime(assetUid)
+                    val formattedDate = formatTimestamp(latestTimestamp)
+                    _loadingResult.value = LoadingResult.DownloadSuccess(
+                        totalEntries = progress.inserted,
+                        latestSubmissionDate = formattedDate
+                    )
+                }
             }
-            .onFailure { error ->
-                _loadingResult.value = LoadingResult.Error(
-                    error.message ?: "Download failed"
-                )
-            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _loadingResult.value = LoadingResult.Error(
+                e.message ?: "Download failed"
+            )
+        }
     }
 
     private suspend fun performResync(assetUid: String) {
-        val countBefore = submissionDao.getCount(assetUid)
-
-        koboRepository.resync(assetUid)
-            .onSuccess { totalFetched ->
-                val latestTimestamp = submissionDao.getLatestSubmissionTime(assetUid)
-                val formattedDate = formatTimestamp(latestTimestamp)
-
-                _loadingResult.value = LoadingResult.ResyncSuccess(
-                    addedRecords = totalFetched,
-                    updatedRecords = 0,
-                    latestRecordTimestamp = formattedDate
-                )
+        try {
+            koboRepository.resync(assetUid).collect { progress ->
+                _syncProgress.value = progress
+                if (progress is SyncProgress.Complete) {
+                    val latestTimestamp = submissionDao.getLatestSubmissionTime(assetUid)
+                    val formattedDate = formatTimestamp(latestTimestamp)
+                    _loadingResult.value = LoadingResult.ResyncSuccess(
+                        addedRecords = progress.inserted + progress.restored,
+                        updatedRecords = 0,
+                        latestRecordTimestamp = formattedDate
+                    )
+                }
             }
-            .onFailure { error ->
-                _loadingResult.value = LoadingResult.Error(
-                    error.message ?: "Sync failed"
-                )
-            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _loadingResult.value = LoadingResult.Error(
+                e.message ?: "Sync failed"
+            )
+        }
     }
 
     private fun formatTimestamp(timestamp: Long?): String {

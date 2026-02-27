@@ -133,6 +133,13 @@ interface PlotDao {
     suspend fun deleteByUuid(uuid: String): Int
 
     /**
+     * Delete plots by their associated submission UUIDs.
+     * Used for removing plots of rejected submissions during resync.
+     */
+    @Query("DELETE FROM plots WHERE submissionUuid IN (:submissionUuids)")
+    suspend fun deleteBySubmissionUuids(submissionUuids: List<String>): Int
+
+    /**
      * Delete all plots (for logout/data clearing).
      */
     @Query("DELETE FROM plots")

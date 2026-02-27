@@ -193,7 +193,10 @@ private fun HomeDashboardContent(
                 )
             } else {
                 TopAppBar(
-                    title = { Text("Submissions") },
+                    title = {
+                        val count = uiState.submissions.size
+                        Text(if (count > 0) "Submissions ($count)" else "Submissions")
+                    },
                     windowInsets = WindowInsets(0, 0, 0, 0),
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
