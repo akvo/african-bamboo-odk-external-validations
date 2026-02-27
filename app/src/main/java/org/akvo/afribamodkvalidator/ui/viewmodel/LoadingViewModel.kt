@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.CancellationException
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.network.AuthCredentials
 import org.akvo.afribamodkvalidator.data.repository.KoboRepository
@@ -85,6 +86,8 @@ class LoadingViewModel @Inject constructor(
                     )
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             _loadingResult.value = LoadingResult.Error(
                 e.message ?: "Download failed"
@@ -106,6 +109,8 @@ class LoadingViewModel @Inject constructor(
                     )
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             _loadingResult.value = LoadingResult.Error(
                 e.message ?: "Sync failed"
