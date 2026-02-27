@@ -100,7 +100,8 @@ class KoboRepository @Inject constructor(
         totalRejected += reconcileRejected
 
         // Step 3: Post-processing — run if delta sync or reconciliation changed data
-        if (totalFetched > 0 || reconcileRestored > 0) {
+        val dataChanged = totalFetched > 0 || reconcileRestored > 0
+        if (dataChanged) {
             val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
             if (latestSubmissionTime != null) {
                 formMetadataDao.insertOrUpdate(
@@ -114,7 +115,18 @@ class KoboRepository @Inject constructor(
             extractPlotsFromSubmissions(assetUid)
         }
 
-        emit(SyncProgress.Complete(inserted = totalFetched, rejected = totalRejected))
+        // Advance sync timestamp even for reconciliation-only runs to avoid
+        // reprocessing the same validation window on next resync
+        if (!dataChanged && (reconcileRejected > 0 || reconcileRestored > 0)) {
+            formMetadataDao.insertOrUpdate(
+                FormMetadataEntity(
+                    assetUid = assetUid,
+                    lastSyncTimestamp = System.currentTimeMillis()
+                )
+            )
+        }
+
+        emit(SyncProgress.Complete(inserted = totalFetched, rejected = totalRejected, restored = reconcileRestored))
     }
 
     /**

@@ -536,6 +536,7 @@ class KoboRepositorySyncTest {
 
         coEvery { plotDao.deleteBySubmissionUuids(any()) } returns 1
         coEvery { submissionDao.deleteByUuids(any()) } returns 1
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
 
         // When
         val events = repository.resync(testAssetUid).toList()
@@ -546,6 +547,8 @@ class KoboRepositorySyncTest {
         assertEquals(1, complete.rejected)
         coVerify { submissionDao.deleteByUuids(listOf("uuid-1")) }
         coVerify { plotDao.deleteBySubmissionUuids(listOf("uuid-1")) }
+        // Sync timestamp advanced so reconciliation window isn't reprocessed
+        coVerify { formMetadataDao.insertOrUpdate(any()) }
     }
 
     @Test
@@ -587,6 +590,7 @@ class KoboRepositorySyncTest {
         // Then - submission re-fetched and inserted
         val complete = events.last() as SyncProgress.Complete
         assertEquals(0, complete.inserted) // inserted counts delta sync only
+        assertEquals(1, complete.restored) // restored counts reconciliation restores
         assertEquals(0, complete.rejected)
         // Verify the re-fetch query was made
         coVerify {
@@ -619,6 +623,7 @@ class KoboRepositorySyncTest {
 
         coEvery { plotDao.deleteBySubmissionUuids(any()) } returns 2
         coEvery { submissionDao.deleteByUuids(any()) } returns 2
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
 
         // When
         val events = repository.resync(testAssetUid).toList()

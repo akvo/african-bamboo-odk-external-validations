@@ -103,7 +103,7 @@ class LoadingViewModel @Inject constructor(
                     val latestTimestamp = submissionDao.getLatestSubmissionTime(assetUid)
                     val formattedDate = formatTimestamp(latestTimestamp)
                     _loadingResult.value = LoadingResult.ResyncSuccess(
-                        addedRecords = progress.inserted,
+                        addedRecords = progress.inserted + progress.restored,
                         updatedRecords = 0,
                         latestRecordTimestamp = formattedDate
                     )
