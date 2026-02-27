@@ -12,7 +12,7 @@ import javax.inject.Inject
 data class LoginUiState(
     val username: String = "",
     val password: String = "",
-    val serverUrl: String = "https://eu.kobotoolbox.org",
+    val serverUrl: String = "https://kc-eu.kobotoolbox.org",
     val formId: String = ""
 ) {
     val isFormValid: Boolean
