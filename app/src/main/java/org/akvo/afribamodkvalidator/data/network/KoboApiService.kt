@@ -22,6 +22,15 @@ interface KoboApiService {
         @Query("start") start: Int = 0
     ): KoboDataResponse
 
+    @GET("api/v2/assets/{assetUid}/data.json")
+    suspend fun getSubmissionsWithFields(
+        @Path("assetUid") assetUid: String,
+        @Query("query") query: String,
+        @Query("fields") fields: String,
+        @Query("limit") limit: Int = DEFAULT_PAGE_SIZE,
+        @Query("start") start: Int = 0
+    ): KoboDataResponse
+
     companion object {
         const val BASE_URL = "https://kf.kobotoolbox.org/"
         const val DEFAULT_PAGE_SIZE = 300

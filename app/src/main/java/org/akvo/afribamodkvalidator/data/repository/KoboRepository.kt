@@ -1,6 +1,9 @@
 package org.akvo.afribamodkvalidator.data.repository
 
 import android.util.Log
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -24,6 +27,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "KoboRepository"
+private const val VALIDATION_STATUS_NOT_APPROVED = "validation_status_not_approved"
 
 @Singleton
 class KoboRepository @Inject constructor(
@@ -35,119 +39,145 @@ class KoboRepository @Inject constructor(
 ) {
 
     /**
-     * Performs a delta sync, fetching only submissions newer than the last sync.
+     * Performs a delta sync, fetching only submissions newer than the last sync,
+     * then reconciles validation status changes.
      * If no previous sync exists, falls back to full fetch.
      *
-     * @return Result containing the number of new/updated submissions fetched
+     * @return Flow emitting SyncProgress updates
      */
-    suspend fun resync(assetUid: String): Result<Int> {
+    fun resync(assetUid: String): Flow<SyncProgress> = flow {
         // If no previous sync, do a full fetch
         val lastSyncTimestamp = formMetadataDao.getLastSyncTimestamp(assetUid)
-            ?: return fetchSubmissions(assetUid)
+        if (lastSyncTimestamp == null) {
+            emitAll(fetchSubmissionsInternal(assetUid))
+            return@flow
+        }
 
-        return try {
-            var totalFetched = 0
-            var start = 0
-            val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
+        var totalFetched = 0
+        var totalRejected = 0
+        var totalCount = 0
+        var start = 0
+        val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
 
-            // Build query for submissions newer than last sync
-            val lastSyncIso = formatTimestampToIso(lastSyncTimestamp)
-            val query = """{"_submission_time": {"${"$"}gt": "$lastSyncIso"}}"""
+        // Step 1: Delta sync — fetch genuinely new submissions
+        val lastSyncIso = formatTimestampToIso(lastSyncTimestamp)
+        val query = """{"_submission_time": {"${"$"}gt": "$lastSyncIso"}}"""
 
-            do {
-                val response = apiService.getSubmissionsSince(
-                    assetUid = assetUid,
-                    query = query,
-                    limit = pageSize,
-                    start = start
-                )
+        do {
+            val response = apiService.getSubmissionsSince(
+                assetUid = assetUid,
+                query = query,
+                limit = pageSize,
+                start = start
+            )
 
-                val entities = response.results.mapNotNull { jsonObject ->
+            if (totalCount == 0) totalCount = response.count
+
+            val entities = response.results.mapNotNull { jsonObject ->
+                if (isRejected(jsonObject)) {
+                    totalRejected++
+                    null
+                } else {
                     transformToEntity(assetUid, jsonObject)
                 }
-
-                if (entities.isNotEmpty()) {
-                    submissionDao.insertAll(entities)
-                    totalFetched += entities.size
-                }
-
-                start += pageSize
-            } while (response.next != null)
-
-            // Update sync timestamp if we fetched anything
-            if (totalFetched > 0) {
-                val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
-                if (latestSubmissionTime != null) {
-                    formMetadataDao.insertOrUpdate(
-                        FormMetadataEntity(
-                            assetUid = assetUid,
-                            lastSyncTimestamp = latestSubmissionTime
-                        )
-                    )
-                }
-                // Match drafts to submissions after sync
-                matchDraftsToSubmissions()
-                // Extract plots from synced submissions
-                extractPlotsFromSubmissions(assetUid)
             }
 
-            Result.success(totalFetched)
-        } catch (e: Exception) {
-            Result.failure(e)
+            if (entities.isNotEmpty()) {
+                submissionDao.insertAll(entities)
+                totalFetched += entities.size
+            }
+
+            start += pageSize
+            emit(SyncProgress.Downloading(processed = start.coerceAtMost(totalCount), total = totalCount))
+        } while (response.next != null)
+
+        if (totalRejected > 0) {
+            Log.d(TAG, "resync: Skipped $totalRejected rejected submissions from delta")
         }
+
+        // Step 2: Validation reconciliation — catch status changes on old submissions
+        val reconcileRejected = reconcileValidationChanges(assetUid, lastSyncTimestamp)
+        totalRejected += reconcileRejected
+
+        // Step 3: Post-processing
+        if (totalFetched > 0) {
+            val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
+            if (latestSubmissionTime != null) {
+                formMetadataDao.insertOrUpdate(
+                    FormMetadataEntity(
+                        assetUid = assetUid,
+                        lastSyncTimestamp = latestSubmissionTime
+                    )
+                )
+            }
+            matchDraftsToSubmissions()
+            extractPlotsFromSubmissions(assetUid)
+        }
+
+        emit(SyncProgress.Complete(inserted = totalFetched, rejected = totalRejected))
     }
 
     /**
      * Fetches all submissions for a form (initial download).
      *
-     * @return Result containing the total number of submissions fetched
+     * @return Flow emitting SyncProgress updates
      */
-    suspend fun fetchSubmissions(assetUid: String): Result<Int> {
-        return try {
-            var totalFetched = 0
-            var start = 0
-            val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
+    fun fetchSubmissions(assetUid: String): Flow<SyncProgress> = fetchSubmissionsInternal(assetUid)
 
-            do {
-                val response = apiService.getSubmissions(
-                    assetUid = assetUid,
-                    limit = pageSize,
-                    start = start
-                )
+    private fun fetchSubmissionsInternal(assetUid: String): Flow<SyncProgress> = flow {
+        var totalFetched = 0
+        var totalRejected = 0
+        var totalCount = 0
+        var start = 0
+        val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
 
-                val entities = response.results.mapNotNull { jsonObject ->
+        do {
+            val response = apiService.getSubmissions(
+                assetUid = assetUid,
+                limit = pageSize,
+                start = start
+            )
+
+            if (totalCount == 0) totalCount = response.count
+
+            val entities = response.results.mapNotNull { jsonObject ->
+                if (isRejected(jsonObject)) {
+                    totalRejected++
+                    null
+                } else {
                     transformToEntity(assetUid, jsonObject)
                 }
-
-                if (entities.isNotEmpty()) {
-                    submissionDao.insertAll(entities)
-                    totalFetched += entities.size
-                }
-
-                start += pageSize
-            } while (response.next != null)
-
-            // Update sync timestamp and match drafts if we fetched anything
-            if (totalFetched > 0) {
-                val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
-                if (latestSubmissionTime != null) {
-                    formMetadataDao.insertOrUpdate(
-                        FormMetadataEntity(
-                            assetUid = assetUid,
-                            lastSyncTimestamp = latestSubmissionTime
-                        )
-                    )
-                }
-                // Match drafts to submissions after sync
-                matchDraftsToSubmissions()
-                // Extract plots from synced submissions
-                extractPlotsFromSubmissions(assetUid)
             }
 
-            Result.success(totalFetched)
-        } catch (e: Exception) {
-            Result.failure(e)
+            if (entities.isNotEmpty()) {
+                submissionDao.insertAll(entities)
+                totalFetched += entities.size
+            }
+
+            start += pageSize
+            emit(SyncProgress.Downloading(processed = start.coerceAtMost(totalCount), total = totalCount))
+        } while (response.next != null)
+
+        if (totalRejected > 0) {
+            Log.d(TAG, "fetchSubmissions: Skipped $totalRejected rejected submissions")
         }
+
+        // Update sync timestamp and match drafts if we fetched anything
+        if (totalFetched > 0) {
+            val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
+            if (latestSubmissionTime != null) {
+                formMetadataDao.insertOrUpdate(
+                    FormMetadataEntity(
+                        assetUid = assetUid,
+                        lastSyncTimestamp = latestSubmissionTime
+                    )
+                )
+            }
+            matchDraftsToSubmissions()
+            extractPlotsFromSubmissions(assetUid)
+        }
+
+        emit(SyncProgress.Complete(inserted = totalFetched, rejected = totalRejected))
     }
 
     /**
@@ -245,6 +275,115 @@ class KoboRepository @Inject constructor(
         Log.d(TAG, "extractPlotsFromSubmissions: Processed ${submissionsToProcess.size} " +
                 "submissions, extracted ${newPlots.size} plots in ${elapsedMs}ms " +
                 "(skipped ${existingSubmissionUuids.size} existing)")
+    }
+
+    /**
+     * Reconciles validation status changes since last sync.
+     *
+     * Uses lightweight query with fields parameter (~100 bytes/record) to detect:
+     * - Newly rejected submissions → delete from local DB
+     * - Re-approved submissions (previously rejected, now approved) → re-fetch and insert
+     *
+     * @return number of rejected submissions removed
+     */
+    private suspend fun reconcileValidationChanges(assetUid: String, lastSyncTimestamp: Long): Int {
+        val lastSyncEpoch = lastSyncTimestamp / 1000 // Convert millis to seconds for Kobo API
+        val query = """{"_validation_status.timestamp": {"${"$"}gt": $lastSyncEpoch}}"""
+        val fields = """["_uuid","_validation_status"]"""
+
+        val rejectedUuids = mutableListOf<String>()
+        val reApprovedUuids = mutableListOf<String>()
+        var start = 0
+        val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
+
+        do {
+            val response = apiService.getSubmissionsWithFields(
+                assetUid = assetUid,
+                query = query,
+                fields = fields,
+                limit = pageSize,
+                start = start
+            )
+
+            for (jsonObject in response.results) {
+                val uuid = jsonObject.extractString("_uuid") ?: continue
+                if (isRejected(jsonObject)) {
+                    rejectedUuids.add(uuid)
+                } else {
+                    reApprovedUuids.add(uuid)
+                }
+            }
+
+            start += pageSize
+        } while (response.next != null)
+
+        // Delete rejected submissions
+        if (rejectedUuids.isNotEmpty()) {
+            removeRejectedSubmissions(rejectedUuids)
+            Log.d(TAG, "reconcileValidationChanges: Removed ${rejectedUuids.size} newly-rejected submissions")
+        }
+
+        // Re-fetch and insert re-approved submissions
+        if (reApprovedUuids.isNotEmpty()) {
+            restoreReApprovedSubmissions(assetUid, reApprovedUuids)
+            Log.d(TAG, "reconcileValidationChanges: Restored ${reApprovedUuids.size} re-approved submissions")
+        }
+
+        return rejectedUuids.size
+    }
+
+    /**
+     * Re-fetches full data for re-approved submissions and inserts them into the DB.
+     */
+    private suspend fun restoreReApprovedSubmissions(assetUid: String, uuids: List<String>) {
+        // Fetch in batches to avoid query string length limits
+        for (batch in uuids.chunked(50)) {
+            val idList = batch.joinToString(",") { "\"$it\"" }
+            val query = """{"_uuid": {"${"$"}in": [$idList]}}"""
+
+            var start = 0
+            val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
+
+            do {
+                val response = apiService.getSubmissionsSince(
+                    assetUid = assetUid,
+                    query = query,
+                    limit = pageSize,
+                    start = start
+                )
+
+                val entities = response.results.mapNotNull { jsonObject ->
+                    transformToEntity(assetUid, jsonObject)
+                }
+
+                if (entities.isNotEmpty()) {
+                    submissionDao.insertAll(entities)
+                }
+
+                start += pageSize
+            } while (response.next != null)
+        }
+
+        // Extract plots for restored submissions
+        extractPlotsFromSubmissions(assetUid)
+    }
+
+    private fun isRejected(jsonObject: JsonObject): Boolean {
+        val validationStatus = jsonObject["_validation_status"] as? JsonObject ?: return false
+        val uid = validationStatus["uid"]?.jsonPrimitive?.contentOrNull ?: return false
+        return uid == VALIDATION_STATUS_NOT_APPROVED
+    }
+
+    private suspend fun removeRejectedSubmissions(rejectedUuids: List<String>) {
+        if (rejectedUuids.isEmpty()) return
+
+        val startTime = System.currentTimeMillis()
+        val plotsDeleted = plotDao.deleteBySubmissionUuids(rejectedUuids)
+        val submissionsDeleted = submissionDao.deleteByUuids(rejectedUuids)
+        val elapsedMs = System.currentTimeMillis() - startTime
+
+        Log.d(TAG, "removeRejectedSubmissions: Deleted $submissionsDeleted submissions " +
+                "and $plotsDeleted plots in ${elapsedMs}ms")
     }
 
     private fun transformToEntity(assetUid: String, jsonObject: JsonObject): SubmissionEntity? {
