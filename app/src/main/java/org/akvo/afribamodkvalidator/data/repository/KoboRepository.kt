@@ -83,8 +83,10 @@ class KoboRepository @Inject constructor(
             }
 
             if (entities.isNotEmpty()) {
+                // Count only genuinely new submissions (not re-fetched due to timestamp truncation)
+                val existingUuids = submissionDao.findExistingUuids(entities.map { it._uuid }).toSet()
+                totalFetched += entities.count { it._uuid !in existingUuids }
                 submissionDao.insertAll(entities)
-                totalFetched += entities.size
             }
 
             start += pageSize
@@ -102,29 +104,19 @@ class KoboRepository @Inject constructor(
         // Step 3: Post-processing — run if delta sync or reconciliation changed data
         val dataChanged = totalFetched > 0 || reconcileRestored > 0
         if (dataChanged) {
-            val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
-            if (latestSubmissionTime != null) {
-                formMetadataDao.insertOrUpdate(
-                    FormMetadataEntity(
-                        assetUid = assetUid,
-                        lastSyncTimestamp = latestSubmissionTime
-                    )
-                )
-            }
             matchDraftsToSubmissions()
             extractPlotsFromSubmissions(assetUid)
         }
 
-        // Advance sync timestamp even for reconciliation-only runs to avoid
-        // reprocessing the same validation window on next resync
-        if (!dataChanged && (reconcileRejected > 0 || reconcileRestored > 0)) {
-            formMetadataDao.insertOrUpdate(
-                FormMetadataEntity(
-                    assetUid = assetUid,
-                    lastSyncTimestamp = System.currentTimeMillis()
-                )
+        // Always advance sync timestamp after successful resync.
+        // Uses current time to avoid re-fetching caused by sub-second timestamp
+        // truncation (Kobo API returns seconds but compares with sub-second precision).
+        formMetadataDao.insertOrUpdate(
+            FormMetadataEntity(
+                assetUid = assetUid,
+                lastSyncTimestamp = System.currentTimeMillis()
             )
-        }
+        )
 
         emit(SyncProgress.Complete(inserted = totalFetched, rejected = totalRejected, restored = reconcileRestored))
     }
@@ -162,8 +154,10 @@ class KoboRepository @Inject constructor(
             }
 
             if (entities.isNotEmpty()) {
+                // Count only genuinely new submissions (not re-fetched due to timestamp truncation)
+                val existingUuids = submissionDao.findExistingUuids(entities.map { it._uuid }).toSet()
+                totalFetched += entities.count { it._uuid !in existingUuids }
                 submissionDao.insertAll(entities)
-                totalFetched += entities.size
             }
 
             start += pageSize
@@ -174,17 +168,14 @@ class KoboRepository @Inject constructor(
             Log.d(TAG, "fetchSubmissions: Skipped $totalRejected rejected submissions")
         }
 
-        // Update sync timestamp and match drafts if we fetched anything
+        // Post-processing and timestamp update if we fetched anything
         if (totalFetched > 0) {
-            val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
-            if (latestSubmissionTime != null) {
-                formMetadataDao.insertOrUpdate(
-                    FormMetadataEntity(
-                        assetUid = assetUid,
-                        lastSyncTimestamp = latestSubmissionTime
-                    )
+            formMetadataDao.insertOrUpdate(
+                FormMetadataEntity(
+                    assetUid = assetUid,
+                    lastSyncTimestamp = System.currentTimeMillis()
                 )
-            }
+            )
             matchDraftsToSubmissions()
             extractPlotsFromSubmissions(assetUid)
         }

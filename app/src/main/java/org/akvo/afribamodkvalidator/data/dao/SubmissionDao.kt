@@ -82,6 +82,13 @@ interface SubmissionDao {
     suspend fun findByInstanceNames(instanceNames: List<String>): List<SubmissionEntity>
 
     /**
+     * Find which UUIDs from a list already exist in the database.
+     * Used during resync to distinguish new submissions from re-fetched ones.
+     */
+    @Query("SELECT _uuid FROM submissions WHERE _uuid IN (:uuids)")
+    suspend fun findExistingUuids(uuids: List<String>): List<String>
+
+    /**
      * Delete submissions by their UUIDs.
      * Used for removing rejected submissions during resync.
      */

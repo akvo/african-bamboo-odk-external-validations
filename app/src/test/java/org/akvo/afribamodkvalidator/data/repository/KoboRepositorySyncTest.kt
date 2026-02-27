@@ -56,6 +56,9 @@ class KoboRepositorySyncTest {
         plotDao = mockk()
         plotExtractor = mockk()
 
+        // Default: no existing submissions (first-time fetch scenario)
+        coEvery { submissionDao.findExistingUuids(any()) } returns emptyList()
+
         repository = KoboRepository(
             apiService = apiService,
             submissionDao = submissionDao,
@@ -763,6 +766,87 @@ class KoboRepositorySyncTest {
         assertEquals(1, complete.inserted)
         coVerify { apiService.getSubmissions(any(), any(), any()) }
         coVerify(exactly = 0) { apiService.getSubmissionsSince(any(), any(), any(), any()) }
+    }
+
+    // ==================== Re-fetch Deduplication Tests ====================
+
+    @Test
+    fun `resync should not count re-fetched submissions as new`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns 3 submissions (re-fetched due to timestamp truncation)
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A"),
+            createApiJsonObject("uuid-2", "instance-B"),
+            createApiJsonObject("uuid-3", "instance-C")
+        )
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 3, next = null, previous = null, results = jsonResults)
+
+        // All 3 already exist in DB (they were re-fetched due to timestamp precision)
+        coEvery { submissionDao.findExistingUuids(any()) } returns listOf("uuid-1", "uuid-2", "uuid-3")
+
+        // No reconciliation changes
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - 0 added (all were re-fetches), still inserted via REPLACE for data freshness
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(0, complete.inserted)
+        // insertAll still called (REPLACE updates data)
+        coVerify { submissionDao.insertAll(any()) }
+    }
+
+    @Test
+    fun `resync should count only genuinely new submissions`() = runTest {
+        // Given - previous sync exists
+        coEvery { formMetadataDao.getLastSyncTimestamp(testAssetUid) } returns 1000000L
+
+        // Delta sync returns 3 submissions: 1 new + 2 re-fetched
+        val jsonResults = listOf(
+            createApiJsonObject("uuid-1", "instance-A"),
+            createApiJsonObject("uuid-2", "instance-B"),
+            createApiJsonObject("uuid-3", "instance-C")
+        )
+        coEvery {
+            apiService.getSubmissionsSince(any(), match { it.contains("_submission_time") }, any(), any())
+        } returns KoboDataResponse(count = 3, next = null, previous = null, results = jsonResults)
+
+        // uuid-1 and uuid-2 already exist, uuid-3 is genuinely new
+        coEvery { submissionDao.findExistingUuids(any()) } returns listOf("uuid-1", "uuid-2")
+
+        // No reconciliation changes
+        coEvery {
+            apiService.getSubmissionsWithFields(any(), any(), any(), any(), any())
+        } returns KoboDataResponse(count = 0, next = null, previous = null, results = emptyList())
+
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any()) } returns null
+
+        // When
+        val events = repository.resync(testAssetUid).toList()
+
+        // Then - only 1 genuinely new submission counted
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(1, complete.inserted)
     }
 
     // ==================== Helper Functions ====================
