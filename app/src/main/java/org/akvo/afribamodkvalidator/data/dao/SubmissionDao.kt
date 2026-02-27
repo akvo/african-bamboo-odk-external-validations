@@ -82,6 +82,13 @@ interface SubmissionDao {
     suspend fun findByInstanceNames(instanceNames: List<String>): List<SubmissionEntity>
 
     /**
+     * Delete submissions by their UUIDs.
+     * Used for removing rejected submissions during resync.
+     */
+    @Query("DELETE FROM submissions WHERE _uuid IN (:uuids)")
+    suspend fun deleteByUuids(uuids: List<String>): Int
+
+    /**
      * Delete all submissions (for logout/data clearing).
      */
     @Query("DELETE FROM submissions")
