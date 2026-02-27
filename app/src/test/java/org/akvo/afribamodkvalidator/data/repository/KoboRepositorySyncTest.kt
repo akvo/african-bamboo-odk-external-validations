@@ -575,7 +575,10 @@ class KoboRepositorySyncTest {
         } returns KoboDataResponse(count = 1, next = null, previous = null, results = fullDataJson)
 
         coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
         coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
 
         // When
@@ -591,6 +594,8 @@ class KoboRepositorySyncTest {
         }
         // Verify submission was inserted
         coVerify { submissionDao.insertAll(any()) }
+        // Verify post-processing ran (draft matching + plot extraction)
+        coVerify { plotDao.getAllDrafts() }
     }
 
     @Test

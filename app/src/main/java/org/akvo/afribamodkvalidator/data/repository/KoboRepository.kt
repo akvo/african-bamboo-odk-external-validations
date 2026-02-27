@@ -96,11 +96,11 @@ class KoboRepository @Inject constructor(
         }
 
         // Step 2: Validation reconciliation — catch status changes on old submissions
-        val reconcileRejected = reconcileValidationChanges(assetUid, lastSyncTimestamp)
+        val (reconcileRejected, reconcileRestored) = reconcileValidationChanges(assetUid, lastSyncTimestamp)
         totalRejected += reconcileRejected
 
-        // Step 3: Post-processing
-        if (totalFetched > 0) {
+        // Step 3: Post-processing — run if delta sync or reconciliation changed data
+        if (totalFetched > 0 || reconcileRestored > 0) {
             val latestSubmissionTime = submissionDao.getLatestSubmissionTime(assetUid)
             if (latestSubmissionTime != null) {
                 formMetadataDao.insertOrUpdate(
@@ -284,9 +284,9 @@ class KoboRepository @Inject constructor(
      * - Newly rejected submissions → delete from local DB
      * - Re-approved submissions (previously rejected, now approved) → re-fetch and insert
      *
-     * @return number of rejected submissions removed
+     * @return pair of (rejected count, restored count)
      */
-    private suspend fun reconcileValidationChanges(assetUid: String, lastSyncTimestamp: Long): Int {
+    private suspend fun reconcileValidationChanges(assetUid: String, lastSyncTimestamp: Long): Pair<Int, Int> {
         val lastSyncEpoch = lastSyncTimestamp / 1000 // Convert millis to seconds for Kobo API
         val query = """{"_validation_status.timestamp": {"${"$"}gt": $lastSyncEpoch}}"""
         val fields = """["_uuid","_validation_status"]"""
@@ -329,7 +329,7 @@ class KoboRepository @Inject constructor(
             Log.d(TAG, "reconcileValidationChanges: Restored ${reApprovedUuids.size} re-approved submissions")
         }
 
-        return rejectedUuids.size
+        return Pair(rejectedUuids.size, reApprovedUuids.size)
     }
 
     /**
