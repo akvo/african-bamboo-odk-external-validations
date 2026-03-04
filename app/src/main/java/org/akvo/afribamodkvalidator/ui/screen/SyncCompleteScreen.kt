@@ -21,6 +21,7 @@ import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 fun SyncCompleteScreen(
     addedRecords: Int,
     updatedRecords: Int,
+    rejectedRecords: Int,
     latestRecordTimestamp: String,
     onReturnToDashboard: () -> Unit,
     modifier: Modifier = Modifier
@@ -52,6 +53,16 @@ fun SyncCompleteScreen(
             style = MaterialTheme.typography.bodyLarge
         )
 
+        if (rejectedRecords > 0) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Submissions reduced by $rejectedRecords rejected items",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
@@ -77,6 +88,7 @@ private fun SyncCompleteScreenPreview() {
         SyncCompleteScreen(
             addedRecords = 5,
             updatedRecords = 3,
+            rejectedRecords = 2,
             latestRecordTimestamp = "2026-01-21 10:45",
             onReturnToDashboard = {}
         )

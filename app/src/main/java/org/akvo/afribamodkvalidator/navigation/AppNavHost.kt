@@ -10,6 +10,7 @@ import org.akvo.afribamodkvalidator.ui.screen.DownloadCompleteScreen
 import org.akvo.afribamodkvalidator.ui.screen.HomeDashboardScreen
 import org.akvo.afribamodkvalidator.ui.screen.LoadingScreen
 import org.akvo.afribamodkvalidator.ui.screen.LoginScreen
+import org.akvo.afribamodkvalidator.ui.screen.GeoMapViewScreen
 import org.akvo.afribamodkvalidator.ui.screen.OfflineMapScreen
 import org.akvo.afribamodkvalidator.ui.screen.SubmissionDetailScreen
 import org.akvo.afribamodkvalidator.ui.screen.SyncCompleteScreen
@@ -54,11 +55,12 @@ fun AppNavHost(
                         popUpTo(Login) { inclusive = true }
                     }
                 },
-                onResyncComplete = { added, updated, latestTimestamp ->
+                onResyncComplete = { added, updated, rejected, latestTimestamp ->
                     navController.navigate(
                         SyncComplete(
                             addedRecords = added,
                             updatedRecords = updated,
+                            rejectedRecords = rejected,
                             latestRecordTimestamp = latestTimestamp
                         )
                     ) {
@@ -112,6 +114,17 @@ fun AppNavHost(
             SubmissionDetailScreen(
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onViewGeoOnMap = { uuid, fieldKey ->
+                    navController.navigate(GeoMapView(uuid, fieldKey))
+                }
+            )
+        }
+
+        composable<GeoMapView> {
+            GeoMapViewScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -121,6 +134,7 @@ fun AppNavHost(
             SyncCompleteScreen(
                 addedRecords = route.addedRecords,
                 updatedRecords = route.updatedRecords,
+                rejectedRecords = route.rejectedRecords,
                 latestRecordTimestamp = route.latestRecordTimestamp,
                 onReturnToDashboard = {
                     navController.navigate(Home) {

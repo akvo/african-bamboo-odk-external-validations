@@ -30,8 +30,12 @@ data class SubmissionDetail(val uuid: String)
 data class SyncComplete(
     val addedRecords: Int,
     val updatedRecords: Int,
+    val rejectedRecords: Int,
     val latestRecordTimestamp: String
 )
 
 @Serializable
 object OfflineMap
+
+@Serializable
+data class GeoMapView(val uuid: String, val fieldKey: String)

@@ -18,6 +18,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.navigation.SubmissionDetail
+import org.akvo.afribamodkvalidator.validation.GeoType
+import org.akvo.afribamodkvalidator.validation.GeoValueParser
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -25,6 +27,7 @@ import javax.inject.Inject
 
 data class SubmissionDetailUiState(
     val isLoading: Boolean = true,
+    val uuid: String = "",
     val title: String = "",
     val submittedOn: String = "",
     val submittedBy: String = "",
@@ -34,7 +37,9 @@ data class SubmissionDetailUiState(
 
 data class AnswerItem(
     val label: String,
-    val value: String
+    val value: String,
+    val rawKey: String = "",
+    val geoType: GeoType? = null
 )
 
 @HiltViewModel
@@ -85,6 +90,7 @@ class SubmissionDetailViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
+                        uuid = uuid,
                         title = title,
                         submittedOn = submittedOn,
                         submittedBy = submission.submittedBy ?: "Unknown",
@@ -108,9 +114,13 @@ class SubmissionDetailViewModel @Inject constructor(
             jsonObject.entries
                 .filter { !it.key.startsWith("_") && it.key != "meta" && it.key != "formhub" }
                 .map { (key, value) ->
+                    val formattedValue = formatValue(value)
+                    val geoValue = GeoValueParser.parse(formattedValue)
                     AnswerItem(
                         label = formatLabel(key),
-                        value = formatValue(value)
+                        value = formattedValue,
+                        rawKey = key,
+                        geoType = geoValue?.let { GeoValueParser.geoType(it) }
                     )
                 }
         } catch (e: Exception) {
@@ -123,6 +133,7 @@ class SubmissionDetailViewModel @Inject constructor(
             .replace("_", " ")
             .replace("/", " / ")
             .split(" ")
+            .filter { it.isNotEmpty() }
             .joinToString(" ") { word ->
                 word.replaceFirstChar { it.uppercase() }
             }
