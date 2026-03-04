@@ -27,6 +27,7 @@ sealed class LoadingResult {
     data class ResyncSuccess(
         val addedRecords: Int,
         val updatedRecords: Int,
+        val rejectedRecords: Int,
         val latestRecordTimestamp: String
     ) : LoadingResult()
     data class Error(val message: String) : LoadingResult()
@@ -105,6 +106,7 @@ class LoadingViewModel @Inject constructor(
                     _loadingResult.value = LoadingResult.ResyncSuccess(
                         addedRecords = progress.inserted + progress.restored,
                         updatedRecords = 0,
+                        rejectedRecords = progress.rejected,
                         latestRecordTimestamp = formattedDate
                     )
                 }

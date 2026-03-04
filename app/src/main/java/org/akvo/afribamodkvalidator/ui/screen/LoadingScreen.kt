@@ -35,7 +35,7 @@ fun LoadingScreen(
     loadingType: LoadingType,
     message: String,
     onDownloadComplete: (totalEntries: Int, latestDate: String) -> Unit,
-    onResyncComplete: (added: Int, updated: Int, latestTimestamp: String) -> Unit,
+    onResyncComplete: (added: Int, updated: Int, rejected: Int, latestTimestamp: String) -> Unit,
     onBackToLogin: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoadingViewModel = hiltViewModel()
@@ -53,7 +53,7 @@ fun LoadingScreen(
                 onDownloadComplete(r.totalEntries, r.latestSubmissionDate)
             }
             is LoadingResult.ResyncSuccess -> {
-                onResyncComplete(r.addedRecords, r.updatedRecords, r.latestRecordTimestamp)
+                onResyncComplete(r.addedRecords, r.updatedRecords, r.rejectedRecords, r.latestRecordTimestamp)
             }
             is LoadingResult.Error, LoadingResult.Loading -> { /* Handled in UI */ }
         }
