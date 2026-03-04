@@ -13,12 +13,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,6 +43,7 @@ import org.akvo.afribamodkvalidator.ui.viewmodel.SubmissionDetailViewModel
 fun SubmissionDetailScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onViewGeoOnMap: (uuid: String, fieldKey: String) -> Unit = { _, _ -> },
     viewModel: SubmissionDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,6 +51,7 @@ fun SubmissionDetailScreen(
     SubmissionDetailContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
+        onViewGeoOnMap = onViewGeoOnMap,
         modifier = modifier
     )
 }
@@ -57,7 +61,8 @@ fun SubmissionDetailScreen(
 private fun SubmissionDetailContent(
     uiState: SubmissionDetailUiState,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onViewGeoOnMap: (uuid: String, fieldKey: String) -> Unit = { _, _ -> }
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -131,7 +136,12 @@ private fun SubmissionDetailContent(
                     }
 
                     items(uiState.answers) { answer ->
-                        AnswerItemRow(answer = answer)
+                        AnswerItemRow(
+                            answer = answer,
+                            onViewOnMap = if (answer.geoType != null) {
+                                { onViewGeoOnMap(uiState.uuid, answer.rawKey) }
+                            } else null
+                        )
                     }
                 }
             }
@@ -175,7 +185,8 @@ private fun SubmissionHeader(
 @Composable
 private fun AnswerItemRow(
     answer: AnswerItem,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onViewOnMap: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
@@ -188,10 +199,22 @@ private fun AnswerItemRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = answer.value,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        if (onViewOnMap != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(onClick = onViewOnMap) {
+                Icon(
+                    imageVector = Icons.Default.Map,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                Text("View on Map")
+            }
+        } else {
+            Text(
+                text = answer.value,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
     }
 }
 
