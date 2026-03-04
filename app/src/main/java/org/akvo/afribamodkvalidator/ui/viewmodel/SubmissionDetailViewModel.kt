@@ -133,6 +133,7 @@ class SubmissionDetailViewModel @Inject constructor(
             .replace("_", " ")
             .replace("/", " / ")
             .split(" ")
+            .filter { it.isNotEmpty() }
             .joinToString(" ") { word ->
                 word.replaceFirstChar { it.uppercase() }
             }
