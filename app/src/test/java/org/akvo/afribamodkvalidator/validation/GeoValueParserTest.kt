@@ -135,4 +135,14 @@ class GeoValueParserTest {
         assertNotNull(result)
         assertTrue(result is GeoValue.GeoPoint)
     }
+
+    @Test
+    fun `returns null for non-numeric altitude`() {
+        assertNull(GeoValueParser.parse("1.0 36.0 foo 0"))
+    }
+
+    @Test
+    fun `returns null for non-numeric accuracy`() {
+        assertNull(GeoValueParser.parse("1.0 36.0 0 bar"))
+    }
 }

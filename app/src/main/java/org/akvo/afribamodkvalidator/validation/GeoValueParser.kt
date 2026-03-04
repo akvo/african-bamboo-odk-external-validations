@@ -63,8 +63,14 @@ object GeoValueParser {
 
             if (lat !in -90.0..90.0 || lng !in -180.0..180.0) return null
 
-            val alt = parts.getOrNull(2)?.toDoubleOrNull() ?: 0.0
-            val acc = parts.getOrNull(3)?.toDoubleOrNull() ?: 0.0
+            val alt = when (val raw = parts.getOrNull(2)) {
+                null -> 0.0
+                else -> raw.toDoubleOrNull() ?: return null
+            }
+            val acc = when (val raw = parts.getOrNull(3)) {
+                null -> 0.0
+                else -> raw.toDoubleOrNull() ?: return null
+            }
 
             GeoCoordinate(lat, lng, alt, acc)
         } catch (_: NumberFormatException) {
