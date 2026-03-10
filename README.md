@@ -11,7 +11,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Sync status tracking for submissions
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
-- **Plot Overlap Detection**: Detect and block overlapping plots (>= 5% threshold)
+- **Plot Overlap Detection**: Detect and block overlapping plots (>= 20% threshold)
 - **Map Visualization**: View overlapping plots on interactive map with offline tile support
 
 > **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
@@ -222,7 +222,7 @@ For validation checks, blocking mechanics, supported formats, and intent extras,
 
 ## Plot Overlap Detection
 
-The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 5% or more of the smaller polygon's area, validation fails. Overlap detection works fully offline — draft plots are stored locally and checked immediately without server sync.
+The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 20% or more of the smaller polygon's area, validation fails. Overlap detection works fully offline — draft plots are stored locally and checked immediately without server sync.
 
 For the full detection pipeline, threshold details, error messages, and draft storage, see [docs/plot-overlap-detection.md](docs/plot-overlap-detection.md).
 

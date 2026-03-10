@@ -126,13 +126,13 @@ class OverlapCheckerTest {
     }
 
     @Test
-    fun `checkOverlaps detects overlap at exactly 5 percent threshold`() {
+    fun `checkOverlaps detects overlap at exactly 20 percent threshold`() {
         // New polygon: 0-100 x 0-100 (area 10000)
         // Existing polygon: 95-105 x 0-100 (area 1000)
         // Overlap: 95-100 x 0-100 (area 500) = 5% of larger (10000), but 50% of smaller (1000)
-        // Threshold is based on smaller polygon, so this is well above 5%
+        // Threshold is based on smaller polygon, so this is well above 20%
 
-        // Better test: create overlap that is exactly 5% of the smaller polygon
+        // Better test: create overlap that is exactly 20% of the smaller polygon
         // New polygon: 0-10 x 0-10 (area 100)
         // Existing polygon: 9.5-10.5 x 0-10 (area 10)
         // Overlap: 9.5-10 x 0-10 (area 5) = 50% of smaller (10) - above threshold
@@ -148,16 +148,16 @@ class OverlapCheckerTest {
         val overlaps = overlapChecker.checkOverlaps(newPolygon, listOf(existingPlot))
 
         assertEquals(1, overlaps.size)
-        assertTrue(overlaps[0].overlapPercentage >= 5.0)
+        assertTrue(overlaps[0].overlapPercentage >= 20.0)
     }
 
     @Test
-    fun `checkOverlaps ignores overlap below 5 percent threshold`() {
+    fun `checkOverlaps ignores overlap below 20 percent threshold`() {
         // New polygon: 0-100 x 0-100 (area 10000)
         // Existing polygon: 99-101 x 0-2 (area 4)
         // Overlap: 99-100 x 0-2 (area 2) = 2/4 = 50% of smaller - still above
 
-        // Create a scenario where overlap is < 5% of smaller
+        // Create a scenario where overlap is < 20% of smaller
         // New polygon: 0-100 x 0-100 (area 10000)
         // Existing polygon: 99.9-100.1 x 0-100 (area 20)
         // Overlap: 99.9-100 x 0-100 (area 10) = 50% of smaller (20) - still above
@@ -347,8 +347,8 @@ class OverlapCheckerTest {
     }
 
     @Test
-    fun `default threshold constant is 5 percent`() {
-        assertEquals(5.0, OverlapChecker.DEFAULT_OVERLAP_THRESHOLD_PERCENT, 0.001)
+    fun `default threshold constant is 20 percent`() {
+        assertEquals(20.0, OverlapChecker.DEFAULT_OVERLAP_THRESHOLD_PERCENT, 0.001)
     }
 
     // ==================== Helper Functions ====================
