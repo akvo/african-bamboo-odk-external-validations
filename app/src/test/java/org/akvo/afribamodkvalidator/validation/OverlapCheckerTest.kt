@@ -181,6 +181,26 @@ class OverlapCheckerTest {
     }
 
     @Test
+    fun `checkOverlaps allows 10 percent overlap with default 20 percent threshold`() {
+        // New polygon: 0-10 x 0-10 (area 100)
+        // Existing polygon: 9-20 x 0-10 (area 110)
+        // Overlap: 9-10 x 0-10 (area 10) = 10% of smaller (100) - below 20% threshold
+        val newPolygonWkt = "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"
+        val newPolygon = overlapChecker.parseWkt(newPolygonWkt)!!
+
+        val existingPlot = createPlotEntity(
+            uuid = "existing-1",
+            plotName = "Slightly Overlapping Plot",
+            polygonWkt = "POLYGON ((9 0, 20 0, 20 10, 9 10, 9 0))"
+        )
+
+        val overlaps = overlapChecker.checkOverlaps(newPolygon, listOf(existingPlot))
+
+        // 10% overlap is below the default 20% threshold, so no overlap should be reported
+        assertEquals(0, overlaps.size)
+    }
+
+    @Test
     fun `checkOverlaps returns empty list for non-overlapping polygons`() {
         // Two squares that don't touch
         val newPolygonWkt = "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"
