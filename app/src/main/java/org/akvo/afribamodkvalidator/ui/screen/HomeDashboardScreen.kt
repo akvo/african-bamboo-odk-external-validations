@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -86,6 +87,7 @@ fun HomeDashboardScreen(
         onSearchActiveChange = viewModel::onSearchActiveChange,
         onSortOptionChange = viewModel::onSortOptionChange,
         onShowSortSheet = viewModel::onShowSortSheet,
+        onToggleWarningFilter = viewModel::onToggleWarningFilter,
         modifier = modifier
     )
 }
@@ -102,6 +104,7 @@ private fun HomeDashboardContent(
     onSearchActiveChange: (Boolean) -> Unit,
     onSortOptionChange: (SortOption) -> Unit,
     onShowSortSheet: (Boolean) -> Unit,
+    onToggleWarningFilter: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -203,6 +206,17 @@ private fun HomeDashboardContent(
                         titleContentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     actions = {
+                        IconButton(onClick = onToggleWarningFilter) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Filter warnings",
+                                tint = if (uiState.showOnlyWarnings) {
+                                    Color(0xFFFFA000)
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                        }
                         IconButton(onClick = { onShowSortSheet(true) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Sort,
@@ -275,10 +289,10 @@ private fun HomeDashboardContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (uiState.searchQuery.isNotEmpty()) {
-                            "No results found"
-                        } else {
-                            "No submissions yet"
+                        text = when {
+                            uiState.searchQuery.isNotEmpty() -> "No results found"
+                            uiState.showOnlyWarnings -> "No submissions with warnings"
+                            else -> "No submissions yet"
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -423,7 +437,8 @@ private fun HomeDashboardPreview() {
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
-            onShowSortSheet = {}
+            onShowSortSheet = {},
+            onToggleWarningFilter = {}
         )
     }
 }
@@ -441,7 +456,8 @@ private fun HomeDashboardLoadingPreview() {
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
-            onShowSortSheet = {}
+            onShowSortSheet = {},
+            onToggleWarningFilter = {}
         )
     }
 }
@@ -464,7 +480,8 @@ private fun HomeDashboardSearchActivePreview() {
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
-            onShowSortSheet = {}
+            onShowSortSheet = {},
+            onToggleWarningFilter = {}
         )
     }
 }
@@ -485,7 +502,8 @@ private fun HomeDashboardEmptyPreview() {
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
-            onShowSortSheet = {}
+            onShowSortSheet = {},
+            onToggleWarningFilter = {}
         )
     }
 }

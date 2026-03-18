@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
+import org.akvo.afribamodkvalidator.data.dao.PlotWarningDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 import org.akvo.afribamodkvalidator.data.network.AuthCredentials
@@ -32,21 +33,44 @@ data class HomeUiState(
     val isSearchActive: Boolean = false,
     val isLoading: Boolean = false,
     val sortOption: SortOption = SortOption.DATE_NEWEST,
-    val showSortSheet: Boolean = false
+    val showSortSheet: Boolean = false,
+    val showOnlyWarnings: Boolean = false
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val submissionDao: SubmissionDao,
     private val formMetadataDao: FormMetadataDao,
-    private val authCredentials: AuthCredentials
+    private val authCredentials: AuthCredentials,
+    private val plotWarningDao: PlotWarningDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
+    private val warningCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
         loadSubmissions()
+
+        viewModelScope.launch {
+            val assetUid = authCredentials.assetUid
+            if (assetUid.isNotBlank()) {
+                plotWarningDao.getWarningCountsByForm(assetUid).collect { counts ->
+                    val countMap = counts.associate { it.plotSubmissionUuid to it.warningCount }
+                    warningCounts.value = countMap
+                    // Re-apply warning counts to current submissions
+                    _uiState.update { state ->
+                        val updated = state.submissions.map { it.copy(warningCount = countMap[it.uuid] ?: 0) }
+                        val sorted = sortSubmissions(updated, state.sortOption)
+                        state.copy(
+                            submissions = updated,
+                            filteredSubmissions = if (state.searchQuery.isBlank()) sorted
+                                else filterSubmissions(sorted, state.searchQuery)
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun loadSubmissions() {
@@ -106,6 +130,17 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(showSortSheet = show) }
     }
 
+    fun onToggleWarningFilter() {
+        _uiState.update { state ->
+            val newShowOnly = !state.showOnlyWarnings
+            val sorted = sortSubmissions(state.submissions, state.sortOption)
+            state.copy(
+                showOnlyWarnings = newShowOnly,
+                filteredSubmissions = applyFilters(sorted, state.searchQuery, newShowOnly)
+            )
+        }
+    }
+
     fun onSearchActiveChange(active: Boolean) {
         _uiState.update { state ->
             if (!active) {
@@ -130,19 +165,31 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun applyFilters(
+        submissions: List<SubmissionUiModel>,
+        query: String,
+        showOnlyWarnings: Boolean
+    ): List<SubmissionUiModel> {
+        var result = submissions
+        if (showOnlyWarnings) {
+            result = result.filter { it.warningCount > 0 }
+        }
+        if (query.isNotBlank()) {
+            val lowerQuery = query.lowercase()
+            result = result.filter { submission ->
+                submission.displayTitle.lowercase().contains(lowerQuery) ||
+                    submission.uuid.lowercase().contains(lowerQuery) ||
+                    submission.syncedOnText.lowercase().contains(lowerQuery)
+            }
+        }
+        return result
+    }
+
     private fun filterSubmissions(
         submissions: List<SubmissionUiModel>,
         query: String
     ): List<SubmissionUiModel> {
-        if (query.isBlank()) {
-            return submissions
-        }
-        val lowerQuery = query.lowercase()
-        return submissions.filter { submission ->
-            submission.displayTitle.lowercase().contains(lowerQuery) ||
-                submission.uuid.lowercase().contains(lowerQuery) ||
-                submission.syncedOnText.lowercase().contains(lowerQuery)
-        }
+        return applyFilters(submissions, query, _uiState.value.showOnlyWarnings)
     }
 
     private fun sortSubmissions(
@@ -175,7 +222,8 @@ class HomeViewModel @Inject constructor(
             displayTitle = displayTitle,
             syncedOnText = syncedOnText,
             submissionTimestamp = submissionTime,
-            isSynced = true
+            isSynced = true,
+            warningCount = warningCounts.value[_uuid] ?: 0
         )
     }
 }

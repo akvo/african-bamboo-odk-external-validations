@@ -1,19 +1,26 @@
 package org.akvo.afribamodkvalidator.ui.screen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,6 +46,7 @@ import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 import org.akvo.afribamodkvalidator.ui.viewmodel.AnswerItem
 import org.akvo.afribamodkvalidator.ui.viewmodel.SubmissionDetailUiState
 import org.akvo.afribamodkvalidator.ui.viewmodel.SubmissionDetailViewModel
+import org.akvo.afribamodkvalidator.ui.viewmodel.WarningUiItem
 
 @Composable
 fun SubmissionDetailScreen(
@@ -135,6 +144,16 @@ private fun SubmissionDetailContent(
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     }
 
+                    if (uiState.warnings.isNotEmpty()) {
+                        item {
+                            WarningsSection(warnings = uiState.warnings)
+                        }
+
+                        item {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        }
+                    }
+
                     items(uiState.answers) { answer ->
                         AnswerItemRow(
                             answer = answer,
@@ -144,6 +163,56 @@ private fun SubmissionDetailContent(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WarningsSection(
+    warnings: List<WarningUiItem>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = Color(0xFFFFA000)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Warnings (" + warnings.size + ")",
+                style = MaterialTheme.typography.titleSmall,
+                color = Color(0xFFFFA000)
+            )
+        }
+
+        warnings.forEach { warning ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .background(
+                        color = Color(0xFFFFF3E0),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = warning.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFFE65100)
+                )
             }
         }
     }
@@ -234,6 +303,10 @@ private fun SubmissionDetailPreview() {
                     AnswerItem("Survey Date", "2026-01-21"),
                     AnswerItem("Water Source Type", "Borehole"),
                     AnswerItem("Distance To Water Source", "500 meters")
+                ),
+                warnings = listOf(
+                    WarningUiItem("GPS_ACCURACY_LOW", "Average GPS accuracy is 18.3m (threshold: 15m)"),
+                    WarningUiItem("AREA_TOO_LARGE", "Plot area is 25.1ha (threshold: 20ha)")
                 )
             ),
             onNavigateBack = {}

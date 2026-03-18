@@ -17,6 +17,8 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
+import org.akvo.afribamodkvalidator.data.dao.PlotWarningDao
+import org.akvo.afribamodkvalidator.data.entity.PlotWarningEntity
 import org.akvo.afribamodkvalidator.navigation.SubmissionDetail
 import org.akvo.afribamodkvalidator.validation.GeoType
 import org.akvo.afribamodkvalidator.validation.GeoValueParser
@@ -32,7 +34,8 @@ data class SubmissionDetailUiState(
     val submittedOn: String = "",
     val submittedBy: String = "",
     val answers: List<AnswerItem> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val warnings: List<WarningUiItem> = emptyList()
 )
 
 data class AnswerItem(
@@ -42,10 +45,16 @@ data class AnswerItem(
     val geoType: GeoType? = null
 )
 
+data class WarningUiItem(
+    val type: String,
+    val message: String
+)
+
 @HiltViewModel
 class SubmissionDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val submissionDao: SubmissionDao
+    private val submissionDao: SubmissionDao,
+    private val plotWarningDao: PlotWarningDao
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<SubmissionDetail>()
@@ -87,6 +96,15 @@ class SubmissionDetailViewModel @Inject constructor(
                 val fallbackTitle = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(zonedDateTime)
                 val title = submission.instanceName ?: fallbackTitle
 
+                // Load warnings for this submission
+                val warningEntities = plotWarningDao.getWarningsForPlot(uuid)
+                val warningItems = warningEntities.map { entity ->
+                    WarningUiItem(
+                        type = entity.warningType,
+                        message = entity.message
+                    )
+                }
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -94,7 +112,8 @@ class SubmissionDetailViewModel @Inject constructor(
                         title = title,
                         submittedOn = submittedOn,
                         submittedBy = submission.submittedBy ?: "Unknown",
-                        answers = answers
+                        answers = answers,
+                        warnings = warningItems
                     )
                 }
             } catch (e: Exception) {

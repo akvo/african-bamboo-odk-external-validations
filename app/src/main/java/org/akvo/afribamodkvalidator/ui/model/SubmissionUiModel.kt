@@ -5,5 +5,6 @@ data class SubmissionUiModel(
     val displayTitle: String,
     val syncedOnText: String,
     val submissionTimestamp: Long,
-    val isSynced: Boolean = true
+    val isSynced: Boolean = true,
+    val warningCount: Int = 0
 )
