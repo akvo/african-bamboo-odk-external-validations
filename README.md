@@ -12,6 +12,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
 - **Plot Overlap Detection**: Detect and block overlapping plots (>= 20% threshold)
+- **Warning Flags**: 5 data quality checks (GPS accuracy, point gaps, spacing, area, vertex count) with Kobo write-back
 - **Map Visualization**: View overlapping plots on interactive map with offline tile support
 
 > **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
@@ -188,7 +189,7 @@ All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only
 | geoshape | manual_boundary | Draw boundary | | yes |
 | text | validate_trigger | Tap to validate | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${manual_boundary}) | yes |
 
-**With overlap detection (survey sheet):**
+**With overlap detection and warning flags (survey sheet):**
 
 | type | name | label | appearance | required |
 |------|------|-------|------------|----------|
@@ -200,7 +201,10 @@ All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only
 | select_one sub_regions | sub_region | Select Sub-Region | | |
 | calculate | full_name | | | |
 | calculate | instance_id | | | |
+| calculate | dcu_validation_warnings | | `once('')` | |
 | text | validate_plot | Validate Plot | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${plot_boundary},plot_name=${full_name},region=${region},sub_region=${sub_region},instance_name=${instance_id}) | yes |
+
+> **`dcu_validation_warnings`**: This field is populated automatically by the validation app with warning flags (e.g., GPS accuracy, point gaps, area). It is not visible to enumerators. The app writes a pipe-delimited string via PATCH API, for example: `GPS_ACCURACY_LOW: 18.3m (>15m) | AREA_TOO_LARGE: 25.1ha (>20ha)`. The field must exist in the XLSForm before the app can write to it.
 
 **calculations sheet (for overlap detection):**
 
@@ -225,6 +229,20 @@ For validation checks, blocking mechanics, supported formats, and intent extras,
 The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 20% or more of the smaller polygon's area, validation fails. Overlap detection works fully offline — draft plots are stored locally and checked immediately without server sync.
 
 For the full detection pipeline, threshold details, error messages, and draft storage, see [docs/plot-overlap-detection.md](docs/plot-overlap-detection.md).
+
+## Extended Validation Rules (Warning Flags)
+
+After submissions are synced, 5 data-quality checks run automatically and attach warning flags to plots. Unlike overlap detection, these rules **do not block** submissions — they flag plots for review. Warnings are synced back to KoboToolbox via the `dcu_validation_warnings` field and submission notes.
+
+| Rule | Threshold |
+|------|-----------|
+| Average GPS accuracy | > 15m |
+| Gap between consecutive points | > 50m |
+| Uneven point spacing (CV) | > 0.5 |
+| Plot area too large | > 20 ha |
+| Too few vertices (rough boundary) | 6–10 vertices |
+
+For thresholds, data flow, Kobo write-back, and UI display, see [docs/extended-validation-rules.md](docs/extended-validation-rules.md).
 
 ## Sync Integration
 
