@@ -39,6 +39,18 @@ interface FormMetadataDao {
     suspend fun deleteByAssetUid(uid: String): Int
 
     /**
+     * Update polygon field paths for a form (discovered from asset detail API).
+     */
+    @Query("UPDATE form_metadata SET polygonFields = :fields WHERE assetUid = :uid")
+    suspend fun updatePolygonFields(uid: String, fields: String)
+
+    /**
+     * Get stored polygon field paths for a form.
+     */
+    @Query("SELECT polygonFields FROM form_metadata WHERE assetUid = :uid")
+    suspend fun getPolygonFields(uid: String): String?
+
+    /**
      * Delete all metadata (for logout/data clearing).
      */
     @Query("DELETE FROM form_metadata")

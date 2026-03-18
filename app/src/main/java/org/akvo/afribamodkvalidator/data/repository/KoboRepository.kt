@@ -14,10 +14,16 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
 import org.akvo.afribamodkvalidator.data.dao.PlotDao
+import org.akvo.afribamodkvalidator.data.dao.PlotWarningDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
+import kotlinx.serialization.encodeToString
 import org.akvo.afribamodkvalidator.data.entity.FormMetadataEntity
+import org.akvo.afribamodkvalidator.data.entity.PlotWarningEntity
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 import org.akvo.afribamodkvalidator.data.network.KoboApiService
+import org.akvo.afribamodkvalidator.validation.GeoValue
+import org.akvo.afribamodkvalidator.validation.GeoValueParser
+import org.akvo.afribamodkvalidator.validation.WarningRuleEngine
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -35,7 +41,8 @@ class KoboRepository @Inject constructor(
     private val submissionDao: SubmissionDao,
     private val formMetadataDao: FormMetadataDao,
     private val plotDao: PlotDao,
-    private val plotExtractor: PlotExtractor
+    private val plotExtractor: PlotExtractor,
+    private val plotWarningDao: PlotWarningDao,
 ) {
 
     /**
@@ -101,20 +108,25 @@ class KoboRepository @Inject constructor(
         val (reconcileRejected, reconcileRestored) = reconcileValidationChanges(assetUid, lastSyncTimestamp)
         totalRejected += reconcileRejected
 
-        // Step 3: Post-processing — run if delta sync or reconciliation changed data
+        // Step 3: Post-processing
+        val polygonFields = fetchAndStorePolygonFields(assetUid)
         val dataChanged = totalFetched > 0 || reconcileRestored > 0
         if (dataChanged) {
             matchDraftsToSubmissions()
-            extractPlotsFromSubmissions(assetUid)
         }
+        // Always run plot extraction + warning computation (catches submissions
+        // that had plots before warnings feature, or after polygon field discovery changes)
+        extractPlotsFromSubmissions(assetUid, polygonFields)
 
         // Always advance sync timestamp after successful resync.
         // Uses current time to avoid re-fetching caused by sub-second timestamp
         // truncation (Kobo API returns seconds but compares with sub-second precision).
+        val storedFields = formMetadataDao.getPolygonFields(assetUid)
         formMetadataDao.insertOrUpdate(
             FormMetadataEntity(
                 assetUid = assetUid,
-                lastSyncTimestamp = System.currentTimeMillis()
+                lastSyncTimestamp = System.currentTimeMillis(),
+                polygonFields = storedFields
             )
         )
 
@@ -129,6 +141,9 @@ class KoboRepository @Inject constructor(
     fun fetchSubmissions(assetUid: String): Flow<SyncProgress> = fetchSubmissionsInternal(assetUid)
 
     private fun fetchSubmissionsInternal(assetUid: String): Flow<SyncProgress> = flow {
+        // Discover polygon fields from asset detail before fetching submissions
+        val polygonFields = fetchAndStorePolygonFields(assetUid)
+
         var totalFetched = 0
         var totalRejected = 0
         var totalCount = 0
@@ -173,11 +188,12 @@ class KoboRepository @Inject constructor(
             formMetadataDao.insertOrUpdate(
                 FormMetadataEntity(
                     assetUid = assetUid,
-                    lastSyncTimestamp = System.currentTimeMillis()
+                    lastSyncTimestamp = System.currentTimeMillis(),
+                    polygonFields = Json.encodeToString(polygonFields)
                 )
             )
             matchDraftsToSubmissions()
-            extractPlotsFromSubmissions(assetUid)
+            extractPlotsFromSubmissions(assetUid, polygonFields)
         }
 
         emit(SyncProgress.Complete(inserted = totalFetched, rejected = totalRejected))
@@ -241,7 +257,7 @@ class KoboRepository @Inject constructor(
      * For large datasets, this reduces database queries from O(2N) to O(3),
      * regardless of dataset size.
      */
-    private suspend fun extractPlotsFromSubmissions(assetUid: String) {
+    private suspend fun extractPlotsFromSubmissions(assetUid: String, polygonFields: List<String>) {
         val startTime = System.currentTimeMillis()
         val submissions = submissionDao.getSubmissionsSync(assetUid)
 
@@ -254,30 +270,218 @@ class KoboRepository @Inject constructor(
         val submissionUuids = submissions.map { it._uuid }
         val existingSubmissionUuids = plotDao.findExistingSubmissionUuids(submissionUuids).toSet()
 
-        // Filter to submissions that need plot extraction
+        // Extract plots for submissions that don't have them yet
         val submissionsToProcess = submissions.filter { it._uuid !in existingSubmissionUuids }
-
-        if (submissionsToProcess.isEmpty()) {
-            val elapsedMs = System.currentTimeMillis() - startTime
-            Log.d(TAG, "extractPlotsFromSubmissions: All ${submissions.size} submissions " +
-                    "already have plots (${elapsedMs}ms)")
-            return
+        if (submissionsToProcess.isNotEmpty()) {
+            val newPlots = submissionsToProcess.mapNotNull { submission ->
+                plotExtractor.extractPlot(submission, polygonFields)
+            }
+            if (newPlots.isNotEmpty()) {
+                plotDao.insertOrUpdateAll(newPlots)
+            }
+            Log.d(TAG, "extractPlotsFromSubmissions: Extracted ${newPlots.size} plots " +
+                    "from ${submissionsToProcess.size} new submissions")
         }
 
-        // Extract plots from submissions
-        val newPlots = submissionsToProcess.mapNotNull { submission ->
-            plotExtractor.extractPlot(submission)
+        // Compute warnings for ALL submissions that don't already have warnings
+        // (covers submissions that had plots before warnings feature or polygon field changes)
+        val warningUuids = plotWarningDao.getAllPlotUuidsWithWarnings().toSet()
+        val submissionsNeedingWarnings = submissions.filter { it._uuid !in warningUuids }
+        if (submissionsNeedingWarnings.isNotEmpty()) {
+            computeAndPersistWarnings(submissionsNeedingWarnings, polygonFields)
         }
 
-        // Batch insert all new plots
-        if (newPlots.isNotEmpty()) {
-            plotDao.insertOrUpdateAll(newPlots)
+        // Sync warnings to Kobo (fire-and-forget, failures logged)
+        syncWarningsToKobo(assetUid)
+
+        val elapsedMs = System.currentTimeMillis() - startTime
+        Log.d(TAG, "extractPlotsFromSubmissions: ${submissions.size} submissions, " +
+                "${submissionsToProcess.size} new plots, " +
+                "${submissionsNeedingWarnings.size} needing warnings (${elapsedMs}ms)")
+    }
+
+    /**
+     * Computes warning flags for submissions and persists them to the database.
+     * Parses the geoshape from rawData, runs all 5 warning rules, and batch-inserts results.
+     */
+    private suspend fun computeAndPersistWarnings(submissions: List<SubmissionEntity>, polygonFields: List<String>) {
+        val startTime = System.currentTimeMillis()
+        var totalWarnings = 0
+
+        for (submission in submissions) {
+            try {
+                val rawData = Json.parseToJsonElement(submission.rawData) as? JsonObject ?: continue
+                val polygonData = extractPolygonData(rawData, polygonFields) ?: continue
+
+                val geoValue = GeoValueParser.parse(polygonData)
+                if (geoValue !is GeoValue.GeoShape) continue
+
+                val coordinates = geoValue.coordinates
+                val areaHectares = WarningRuleEngine.calculateAreaHectares(coordinates)
+                val warnings = WarningRuleEngine.evaluate(coordinates, areaHectares)
+
+                if (warnings.isNotEmpty()) {
+                    // Delete existing warnings for this plot (handles resync)
+                    plotWarningDao.deleteByPlotUuid(submission._uuid)
+
+                    val entities = warnings.map { warning ->
+                        PlotWarningEntity(
+                            plotSubmissionUuid = submission._uuid,
+                            warningType = warning.type.name,
+                            message = warning.message,
+                            shortText = warning.shortText,
+                            value = warning.value
+                        )
+                    }
+                    plotWarningDao.insertAll(entities)
+                    totalWarnings += entities.size
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to compute warnings for submission: " + submission._uuid, e)
+            }
         }
 
         val elapsedMs = System.currentTimeMillis() - startTime
-        Log.d(TAG, "extractPlotsFromSubmissions: Processed ${submissionsToProcess.size} " +
-                "submissions, extracted ${newPlots.size} plots in ${elapsedMs}ms " +
-                "(skipped ${existingSubmissionUuids.size} existing)")
+        Log.d(TAG, "computeAndPersistWarnings: Generated " + totalWarnings + " warnings for " + submissions.size + " submissions in " + elapsedMs + "ms")
+    }
+
+    /**
+     * Syncs warnings to Kobo using two strategies:
+     * 1. Primary: PATCH dcu_validation_warnings field (one call per submission)
+     * 2. Fallback: POST individual notes via v1 API
+     *
+     * Failures are logged but don't block the sync flow.
+     * Unsynced warnings are retried on the next sync/resync cycle.
+     */
+    private suspend fun syncWarningsToKobo(assetUid: String) {
+        syncWarningsViaField(assetUid)
+        syncWarningsViaNotes()
+    }
+
+    /**
+     * Primary sync: PATCH the dcu_validation_warnings field via bulk API.
+     * Groups unsynced warnings by submission, builds pipe-delimited text per submission,
+     * then sends one bulk PATCH per unique warning text.
+     */
+    private suspend fun syncWarningsViaField(assetUid: String) {
+        val unsyncedWarnings = plotWarningDao.getFieldUnsyncedWarnings()
+        if (unsyncedWarnings.isEmpty()) return
+
+        // Group by submission UUID and build pipe-delimited text
+        val warningsBySubmission = unsyncedWarnings.groupBy { it.plotSubmissionUuid }
+        val submissionWarningTexts = mutableMapOf<String, Pair<String, String>>() // uuid -> (koboId, text)
+
+        for ((submissionUuid, warnings) in warningsBySubmission) {
+            val submission = submissionDao.getByUuid(submissionUuid) ?: continue
+            val pipeDelimited = warnings.joinToString(" | ") { it.shortText }
+            submissionWarningTexts[submissionUuid] = Pair(submission._id, pipeDelimited)
+        }
+
+        // Group submissions by warning text for efficient bulk calls
+        val byText = submissionWarningTexts.entries.groupBy({ it.value.second }) { it }
+
+        for ((warningText, entries) in byText) {
+            try {
+                val koboIds = entries.mapNotNull { it.value.first.toIntOrNull() }
+                if (koboIds.isEmpty()) continue
+                val payload = JsonObject(mapOf(
+                    "payload" to JsonObject(mapOf(
+                        "submission_ids" to JsonArray(koboIds.map { JsonPrimitive(it) }),
+                        "data" to JsonObject(mapOf(
+                            "dcu_validation_warnings" to JsonPrimitive(warningText)
+                        ))
+                    ))
+                ))
+                apiService.patchSubmissionsBulk(assetUid, payload)
+                // Mark all submissions in this batch as synced
+                for (entry in entries) {
+                    plotWarningDao.markFieldSynced(entry.key)
+                }
+                Log.d(TAG, "syncWarningsViaField: Bulk patched ${entries.size} submissions")
+            } catch (e: Exception) {
+                Log.e(TAG, "syncWarningsViaField: Failed to bulk patch ${entries.size} submissions", e)
+            }
+        }
+    }
+
+    /**
+     * Fallback sync: POST each warning as a note via the v1 API.
+     */
+    private suspend fun syncWarningsViaNotes() {
+        val unsyncedWarnings = plotWarningDao.getNotesUnsyncedWarnings()
+        if (unsyncedWarnings.isEmpty()) return
+
+        for (warning in unsyncedWarnings) {
+            try {
+                val submission = submissionDao.getByUuid(warning.plotSubmissionUuid) ?: continue
+                val noteText = "[DCU Warning] ${warning.message}"
+                apiService.addNote(noteText, submission._id)
+                plotWarningDao.markNoteSynced(warning.id)
+                Log.d(TAG, "syncWarningsViaNotes: Posted note for warning ${warning.id}")
+            } catch (e: Exception) {
+                Log.e(TAG, "syncWarningsViaNotes: Failed to post note for warning ${warning.id}", e)
+            }
+        }
+    }
+
+    /**
+     * Extracts polygon data string from rawData JSON using discovered field paths.
+     */
+    private fun extractPolygonData(rawData: JsonObject, polygonFields: List<String>): String? {
+        for (field in polygonFields) {
+            val value = rawData[field]?.jsonPrimitive?.contentOrNull
+            if (!value.isNullOrBlank()) return value
+        }
+        return null
+    }
+
+    /**
+     * Fetches asset detail from Kobo API and discovers geoshape/geotrace field paths.
+     * Stores discovered fields in FormMetadataEntity for reuse.
+     * Falls back to previously stored fields on API failure.
+     */
+    private suspend fun fetchAndStorePolygonFields(assetUid: String): List<String> {
+        return try {
+            val assetDetail = apiService.getAssetDetail(assetUid)
+            val fields = extractPolygonFieldPaths(assetDetail)
+            if (fields.isNotEmpty()) {
+                formMetadataDao.updatePolygonFields(assetUid, Json.encodeToString(fields))
+            }
+            Log.d(TAG, "fetchAndStorePolygonFields: Discovered ${fields.size} polygon fields: $fields")
+            fields
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchAndStorePolygonFields: Failed to fetch asset detail, using stored fields", e)
+            val stored = formMetadataDao.getPolygonFields(assetUid)
+            if (stored != null) Json.decodeFromString(stored) else emptyList()
+        }
+    }
+
+    /**
+     * Reads previously stored polygon fields from the database.
+     */
+    private suspend fun getStoredPolygonFields(assetUid: String): List<String> {
+        val stored = formMetadataDao.getPolygonFields(assetUid)
+        return if (stored != null) Json.decodeFromString(stored) else emptyList()
+    }
+
+    /**
+     * Extracts geoshape/geotrace field paths from Kobo asset detail response.
+     * Parses content.survey and filters for geo field types.
+     * Prefers $xpath (full path) with fallback to name.
+     */
+    internal fun extractPolygonFieldPaths(assetDetail: JsonObject): List<String> {
+        val content = assetDetail["content"] as? JsonObject ?: return emptyList()
+        val survey = content["survey"] as? JsonArray ?: return emptyList()
+
+        return survey.filterIsInstance<JsonObject>()
+            .filter { item ->
+                val type = item["type"]?.jsonPrimitive?.contentOrNull ?: ""
+                type == "geoshape" || type == "geotrace"
+            }
+            .mapNotNull { item ->
+                item["\$xpath"]?.jsonPrimitive?.contentOrNull
+                    ?: item["name"]?.jsonPrimitive?.contentOrNull
+            }
     }
 
     /**
@@ -368,7 +572,8 @@ class KoboRepository @Inject constructor(
         }
 
         // Extract plots for restored submissions
-        extractPlotsFromSubmissions(assetUid)
+        val polygonFields = getStoredPolygonFields(assetUid)
+        extractPlotsFromSubmissions(assetUid, polygonFields)
     }
 
     private fun isRejected(jsonObject: JsonObject): Boolean {
@@ -381,12 +586,13 @@ class KoboRepository @Inject constructor(
         if (rejectedUuids.isEmpty()) return
 
         val startTime = System.currentTimeMillis()
+        val warningsDeleted = plotWarningDao.deleteByPlotUuids(rejectedUuids)
         val plotsDeleted = plotDao.deleteBySubmissionUuids(rejectedUuids)
         val submissionsDeleted = submissionDao.deleteByUuids(rejectedUuids)
         val elapsedMs = System.currentTimeMillis() - startTime
 
         Log.d(TAG, "removeRejectedSubmissions: Deleted $submissionsDeleted submissions " +
-                "and $plotsDeleted plots in ${elapsedMs}ms")
+                "$plotsDeleted plots, and $warningsDeleted warnings in ${elapsedMs}ms")
     }
 
     private fun transformToEntity(assetUid: String, jsonObject: JsonObject): SubmissionEntity? {

@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
 import org.akvo.afribamodkvalidator.data.dao.PlotDao
+import org.akvo.afribamodkvalidator.data.dao.PlotWarningDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.dto.KoboDataResponse
 import org.akvo.afribamodkvalidator.data.entity.PlotEntity
+import org.akvo.afribamodkvalidator.data.entity.PlotWarningEntity
 import org.akvo.afribamodkvalidator.data.entity.SubmissionEntity
 import org.akvo.afribamodkvalidator.data.network.KoboApiService
 import org.junit.Assert.assertEquals
@@ -45,26 +47,39 @@ class KoboRepositorySyncTest {
     private lateinit var formMetadataDao: FormMetadataDao
     private lateinit var plotDao: PlotDao
     private lateinit var plotExtractor: PlotExtractor
+    private lateinit var plotWarningDao: PlotWarningDao
 
     private val testAssetUid = "test-asset-123"
 
     @Before
     fun setup() {
+        nextKoboId = 100
         apiService = mockk()
         submissionDao = mockk()
         formMetadataDao = mockk()
         plotDao = mockk()
         plotExtractor = mockk()
+        plotWarningDao = mockk(relaxed = true)
 
         // Default: no existing submissions (first-time fetch scenario)
         coEvery { submissionDao.findExistingUuids(any()) } returns emptyList()
+
+        // Default: asset detail returns empty survey (no polygon fields)
+        coEvery { apiService.getAssetDetail(any(), any()) } returns kotlinx.serialization.json.JsonObject(
+            mapOf("content" to kotlinx.serialization.json.JsonObject(
+                mapOf("survey" to kotlinx.serialization.json.JsonArray(emptyList()))
+            ))
+        )
+        coEvery { formMetadataDao.getPolygonFields(any()) } returns null
+        coEvery { formMetadataDao.updatePolygonFields(any(), any()) } just Runs
 
         repository = KoboRepository(
             apiService = apiService,
             submissionDao = submissionDao,
             formMetadataDao = formMetadataDao,
             plotDao = plotDao,
-            plotExtractor = plotExtractor
+            plotExtractor = plotExtractor,
+            plotWarningDao = plotWarningDao
         )
     }
 
@@ -97,7 +112,7 @@ class KoboRepositorySyncTest {
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
         coEvery { plotDao.updateDraftStatus(any(), any()) } returns 1
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         repository.fetchSubmissions(testAssetUid).toList()
@@ -130,7 +145,7 @@ class KoboRepositorySyncTest {
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
         coEvery { plotDao.updateDraftStatus(any(), any()) } returns 1
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         repository.fetchSubmissions(testAssetUid).toList()
@@ -159,7 +174,7 @@ class KoboRepositorySyncTest {
         coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         repository.fetchSubmissions(testAssetUid).toList()
@@ -183,7 +198,7 @@ class KoboRepositorySyncTest {
         coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         val events = repository.fetchSubmissions(testAssetUid).toList()
@@ -223,7 +238,7 @@ class KoboRepositorySyncTest {
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
         coEvery { plotDao.updateDraftStatus(any(), any()) } returns 1
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         repository.fetchSubmissions(testAssetUid).toList()
@@ -254,7 +269,7 @@ class KoboRepositorySyncTest {
             createPlot("plot-1", "instance-A", "uuid-1"),
             createPlot("plot-2", "instance-B", "uuid-2")
         )
-        coEvery { plotExtractor.extractPlot(any()) } answers {
+        coEvery { plotExtractor.extractPlot(any(), any()) } answers {
             val submission = firstArg<SubmissionEntity>()
             when (submission._uuid) {
                 "uuid-1" -> extractedPlots[0]
@@ -296,7 +311,7 @@ class KoboRepositorySyncTest {
 
         // Only uuid-3 should be processed - extractor only called for that one
         val newPlot = createPlot("plot-3", "instance-C", "uuid-3")
-        coEvery { plotExtractor.extractPlot(any()) } answers {
+        coEvery { plotExtractor.extractPlot(any(), any()) } answers {
             val submission = firstArg<SubmissionEntity>()
             if (submission._uuid == "uuid-3") newPlot else null
         }
@@ -331,7 +346,7 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
 
         // First submission extracts successfully, second fails (returns null)
-        coEvery { plotExtractor.extractPlot(any()) } answers {
+        coEvery { plotExtractor.extractPlot(any(), any()) } answers {
             val submission = firstArg<SubmissionEntity>()
             if (submission._uuid == "uuid-1") createPlot("plot-1", "instance-A", "uuid-1") else null
         }
@@ -366,7 +381,7 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
 
         // Both fail extraction
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         coEvery { submissionDao.insertAll(any()) } just Runs
         coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
@@ -412,7 +427,7 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
 
         // All extract successfully
-        coEvery { plotExtractor.extractPlot(any()) } answers {
+        coEvery { plotExtractor.extractPlot(any(), any()) } answers {
             val submission = firstArg<SubmissionEntity>()
             val index = submission._uuid.removePrefix("uuid-").toInt()
             createPlot("plot-$index", "instance-$index", "uuid-$index")
@@ -540,6 +555,8 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.deleteBySubmissionUuids(any()) } returns 1
         coEvery { submissionDao.deleteByUuids(any()) } returns 1
         coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
 
         // When
         val events = repository.resync(testAssetUid).toList()
@@ -627,6 +644,8 @@ class KoboRepositorySyncTest {
         coEvery { plotDao.deleteBySubmissionUuids(any()) } returns 2
         coEvery { submissionDao.deleteByUuids(any()) } returns 2
         coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
 
         // When
         val events = repository.resync(testAssetUid).toList()
@@ -662,7 +681,7 @@ class KoboRepositorySyncTest {
         coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
         coEvery { submissionDao.getSubmissionsSync(any()) } returns submissions
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         repository.resync(testAssetUid).toList()
@@ -698,7 +717,7 @@ class KoboRepositorySyncTest {
         coEvery { submissionDao.getSubmissionsSync(any()) } returns submissions
         coEvery { plotDao.updateDraftStatus(any(), any()) } returns 1
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         repository.resync(testAssetUid).toList()
@@ -756,7 +775,7 @@ class KoboRepositorySyncTest {
         coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
         coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns submissions
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         val events = repository.resync(testAssetUid).toList()
@@ -839,7 +858,7 @@ class KoboRepositorySyncTest {
         coEvery { submissionDao.getSubmissionsSync(any()) } returns emptyList()
         coEvery { plotDao.getAllDrafts() } returns emptyList()
         coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
-        coEvery { plotExtractor.extractPlot(any()) } returns null
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
 
         // When
         val events = repository.resync(testAssetUid).toList()
@@ -849,7 +868,243 @@ class KoboRepositorySyncTest {
         assertEquals(1, complete.inserted)
     }
 
+    // ==================== Warning Sync Tests ====================
+
+    @Test
+    fun `syncWarningsViaField should PATCH pipe-delimited warnings and mark fieldSynced`() = runTest {
+        // Given - unsynced warnings for one submission
+        val warnings = listOf(
+            createWarningEntity(1, "uuid-1", "GPS_ACCURACY_LOW", "GPS accuracy: 18.3m", "GPS_ACCURACY_LOW: 18.3m (>15m)", 18.3),
+            createWarningEntity(2, "uuid-1", "AREA_TOO_LARGE", "Area: 25.1ha", "AREA_TOO_LARGE: 25.1ha (>20ha)", 25.1)
+        )
+        val submission = createSubmission("uuid-1", "instance-A")
+
+        coEvery { plotWarningDao.getFieldUnsyncedWarnings() } returns warnings
+        coEvery { submissionDao.getByUuid("uuid-1") } returns submission
+        coEvery { apiService.patchSubmissionsBulk(any(), any()) } returns kotlinx.serialization.json.JsonObject(emptyMap())
+        coEvery { plotWarningDao.markFieldSynced("uuid-1") } returns 2
+
+        // No notes to sync
+        coEvery { plotWarningDao.getNotesUnsyncedWarnings() } returns emptyList()
+
+        // Setup fetch flow to trigger sync
+        setupApiToReturnSubmissions(listOf(submission))
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns listOf(submission)
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
+
+        // When
+        repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - bulk PATCH called with pipe-delimited string in payload wrapper
+        val payloadSlot = slot<kotlinx.serialization.json.JsonObject>()
+        coVerify { apiService.patchSubmissionsBulk(testAssetUid, capture(payloadSlot)) }
+        val innerPayload = payloadSlot.captured["payload"] as kotlinx.serialization.json.JsonObject
+        val data = innerPayload["data"] as kotlinx.serialization.json.JsonObject
+        val patchValue = (data["dcu_validation_warnings"] as kotlinx.serialization.json.JsonPrimitive).content
+        assertEquals("GPS_ACCURACY_LOW: 18.3m (>15m) | AREA_TOO_LARGE: 25.1ha (>20ha)", patchValue)
+        coVerify { plotWarningDao.markFieldSynced("uuid-1") }
+    }
+
+    @Test
+    fun `syncWarningsViaField should not block on PATCH failure`() = runTest {
+        // Given - PATCH will fail
+        val warnings = listOf(
+            createWarningEntity(1, "uuid-1", "GPS_ACCURACY_LOW", "GPS accuracy: 18.3m", "GPS_ACCURACY_LOW: 18.3m (>15m)", 18.3)
+        )
+        val submission = createSubmission("uuid-1", "instance-A")
+
+        coEvery { plotWarningDao.getFieldUnsyncedWarnings() } returns warnings
+        coEvery { submissionDao.getByUuid("uuid-1") } returns submission
+        coEvery { apiService.patchSubmissionsBulk(any(), any()) } throws RuntimeException("Network error")
+
+        // No notes to sync
+        coEvery { plotWarningDao.getNotesUnsyncedWarnings() } returns emptyList()
+
+        // Setup fetch flow
+        setupApiToReturnSubmissions(listOf(submission))
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns listOf(submission)
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
+
+        // When - should not throw
+        val events = repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - sync completes despite PATCH failure, fieldSynced NOT called
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(1, complete.inserted)
+        coVerify(exactly = 0) { plotWarningDao.markFieldSynced(any()) }
+    }
+
+    @Test
+    fun `syncWarningsViaNotes should POST each warning and mark notesSynced`() = runTest {
+        // Given - unsynced notes
+        val warnings = listOf(
+            createWarningEntity(10, "uuid-1", "GPS_ACCURACY_LOW", "Average GPS accuracy is 18.3m (threshold: 15m)", "GPS_ACCURACY_LOW: 18.3m (>15m)", 18.3),
+            createWarningEntity(11, "uuid-1", "AREA_TOO_LARGE", "Plot area is 25.1ha (threshold: 20ha)", "AREA_TOO_LARGE: 25.1ha (>20ha)", 25.1)
+        )
+        val submission = createSubmission("uuid-1", "instance-A")
+
+        // No field warnings to sync
+        coEvery { plotWarningDao.getFieldUnsyncedWarnings() } returns emptyList()
+        coEvery { plotWarningDao.getNotesUnsyncedWarnings() } returns warnings
+        coEvery { submissionDao.getByUuid("uuid-1") } returns submission
+        coEvery { apiService.addNote(any(), any()) } returns kotlinx.serialization.json.JsonObject(emptyMap())
+        coEvery { plotWarningDao.markNoteSynced(any()) } returns 1
+
+        // Setup fetch flow
+        setupApiToReturnSubmissions(listOf(submission))
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns listOf(submission)
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
+
+        // When
+        repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - each warning posted as a note with [DCU Warning] prefix
+        coVerify { apiService.addNote("[DCU Warning] Average GPS accuracy is 18.3m (threshold: 15m)", any()) }
+        coVerify { apiService.addNote("[DCU Warning] Plot area is 25.1ha (threshold: 20ha)", any()) }
+        coVerify { plotWarningDao.markNoteSynced(10) }
+        coVerify { plotWarningDao.markNoteSynced(11) }
+    }
+
+    @Test
+    fun `syncWarningsViaNotes should continue on individual note failure`() = runTest {
+        // Given - two warnings, first POST fails, second should still succeed
+        val warnings = listOf(
+            createWarningEntity(10, "uuid-1", "GPS_ACCURACY_LOW", "GPS warning", "GPS_ACCURACY_LOW: 18.3m", 18.3),
+            createWarningEntity(11, "uuid-1", "AREA_TOO_LARGE", "Area warning", "AREA_TOO_LARGE: 25.1ha", 25.1)
+        )
+        val submission = createSubmission("uuid-1", "instance-A")
+
+        coEvery { plotWarningDao.getFieldUnsyncedWarnings() } returns emptyList()
+        coEvery { plotWarningDao.getNotesUnsyncedWarnings() } returns warnings
+        coEvery { submissionDao.getByUuid("uuid-1") } returns submission
+        // First call fails, second succeeds
+        coEvery { apiService.addNote(match { it.contains("GPS warning") }, any()) } throws RuntimeException("Network error")
+        coEvery { apiService.addNote(match { it.contains("Area warning") }, any()) } returns kotlinx.serialization.json.JsonObject(emptyMap())
+        coEvery { plotWarningDao.markNoteSynced(any()) } returns 1
+
+        // Setup fetch flow
+        setupApiToReturnSubmissions(listOf(submission))
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns listOf(submission)
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
+
+        // When - should not throw
+        val events = repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - second warning still synced, first not marked
+        val complete = events.last() as SyncProgress.Complete
+        assertEquals(1, complete.inserted)
+        coVerify(exactly = 0) { plotWarningDao.markNoteSynced(10) }
+        coVerify(exactly = 1) { plotWarningDao.markNoteSynced(11) }
+    }
+
+    @Test
+    fun `syncWarningsToKobo should skip when no unsynced warnings`() = runTest {
+        // Given - no unsynced warnings
+        coEvery { plotWarningDao.getFieldUnsyncedWarnings() } returns emptyList()
+        coEvery { plotWarningDao.getNotesUnsyncedWarnings() } returns emptyList()
+
+        val submission = createSubmission("uuid-1", "instance-A")
+        setupApiToReturnSubmissions(listOf(submission))
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns listOf(submission)
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
+
+        // When
+        repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - no API calls for sync
+        coVerify(exactly = 0) { apiService.patchSubmissionsBulk(any(), any()) }
+        coVerify(exactly = 0) { apiService.addNote(any(), any()) }
+    }
+
+    @Test
+    fun `syncWarningsViaField should group warnings by submission for single PATCH`() = runTest {
+        // Given - 3 warnings across 2 submissions
+        val warnings = listOf(
+            createWarningEntity(1, "uuid-1", "GPS_ACCURACY_LOW", "msg1", "short1", 18.3),
+            createWarningEntity(2, "uuid-1", "AREA_TOO_LARGE", "msg2", "short2", 25.1),
+            createWarningEntity(3, "uuid-2", "LOW_VERTEX_COUNT", "msg3", "short3", 7.0)
+        )
+        val sub1 = createSubmission("uuid-1", "instance-A")
+        val sub2 = createSubmission("uuid-2", "instance-B")
+
+        coEvery { plotWarningDao.getFieldUnsyncedWarnings() } returns warnings
+        coEvery { submissionDao.getByUuid("uuid-1") } returns sub1
+        coEvery { submissionDao.getByUuid("uuid-2") } returns sub2
+        coEvery { apiService.patchSubmissionsBulk(any(), any()) } returns kotlinx.serialization.json.JsonObject(emptyMap())
+        coEvery { plotWarningDao.markFieldSynced(any()) } returns 1
+
+        coEvery { plotWarningDao.getNotesUnsyncedWarnings() } returns emptyList()
+
+        setupApiToReturnSubmissions(listOf(sub1, sub2))
+        coEvery { plotDao.getAllDrafts() } returns emptyList()
+        coEvery { submissionDao.insertAll(any()) } just Runs
+        coEvery { submissionDao.getLatestSubmissionTime(any()) } returns System.currentTimeMillis()
+        coEvery { formMetadataDao.insertOrUpdate(any()) } just Runs
+        coEvery { formMetadataDao.getLastSyncTimestamp(any()) } returns null
+        coEvery { submissionDao.getSubmissionsSync(testAssetUid) } returns listOf(sub1, sub2)
+        coEvery { plotDao.findExistingSubmissionUuids(any()) } returns emptyList()
+        coEvery { plotExtractor.extractPlot(any(), any()) } returns null
+
+        // When
+        repository.fetchSubmissions(testAssetUid).toList()
+
+        // Then - 2 bulk PATCH calls (different warning texts for each submission)
+        coVerify(exactly = 2) { apiService.patchSubmissionsBulk(any(), any()) }
+        coVerify { plotWarningDao.markFieldSynced("uuid-1") }
+        coVerify { plotWarningDao.markFieldSynced("uuid-2") }
+    }
+
     // ==================== Helper Functions ====================
+
+    private fun createWarningEntity(
+        id: Long,
+        submissionUuid: String,
+        type: String,
+        message: String,
+        shortText: String,
+        value: Double
+    ) = PlotWarningEntity(
+        id = id,
+        plotSubmissionUuid = submissionUuid,
+        warningType = type,
+        message = message,
+        shortText = shortText,
+        value = value,
+        fieldSynced = false,
+        notesSynced = false
+    )
+
+    private var nextKoboId = 100
 
     private fun createSubmission(
         uuid: String,
@@ -858,7 +1113,7 @@ class KoboRepositorySyncTest {
     ) = SubmissionEntity(
         _uuid = uuid,
         assetUid = testAssetUid,
-        _id = uuid,
+        _id = (nextKoboId++).toString(),
         submissionTime = submissionTime,
         submittedBy = "testuser",
         instanceName = instanceName,

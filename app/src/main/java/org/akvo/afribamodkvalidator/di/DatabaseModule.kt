@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.akvo.afribamodkvalidator.data.dao.FormMetadataDao
 import org.akvo.afribamodkvalidator.data.dao.PlotDao
+import org.akvo.afribamodkvalidator.data.dao.PlotWarningDao
 import org.akvo.afribamodkvalidator.data.dao.SubmissionDao
 import org.akvo.afribamodkvalidator.data.database.AppDatabase
 import javax.inject.Singleton
@@ -55,5 +56,11 @@ object DatabaseModule {
     @Singleton
     fun providePlotDao(database: AppDatabase): PlotDao {
         return database.plotDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePlotWarningDao(database: AppDatabase): PlotWarningDao {
+        return database.plotWarningDao()
     }
 }
