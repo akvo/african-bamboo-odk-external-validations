@@ -31,28 +31,28 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onUsernameChange(value: String) {
-        _uiState.update { it.copy(username = value) }
+        _uiState.update { it.copy(username = value.trim()) }
     }
 
     fun onPasswordChange(value: String) {
-        _uiState.update { it.copy(password = value) }
+        _uiState.update { it.copy(password = value.trim()) }
     }
 
     fun onServerUrlChange(value: String) {
-        _uiState.update { it.copy(serverUrl = value) }
+        _uiState.update { it.copy(serverUrl = value.trim()) }
     }
 
     fun onFormIdChange(value: String) {
-        _uiState.update { it.copy(formId = value) }
+        _uiState.update { it.copy(formId = value.trim()) }
     }
 
     fun startLoginAndDownloadProcess() {
         val state = _uiState.value
         authCredentials.set(
-            username = state.username,
+            username = state.username.trim(),
             password = state.password,
-            assetUid = state.formId,
-            serverUrl = state.serverUrl
+            assetUid = state.formId.trim(),
+            serverUrl = state.serverUrl.trim()
         )
     }
 }
