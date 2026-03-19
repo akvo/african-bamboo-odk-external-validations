@@ -48,8 +48,13 @@ fun SubmissionListItem(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = submission.displayTitle,
+                    text = submission.koboId,
                     style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = submission.displayTitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = submission.syncedOnText,
@@ -69,6 +74,7 @@ private fun SubmissionListItemWithInstanceNamePreview() {
         SubmissionListItem(
             submission = SubmissionUiModel(
                 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                koboId = "PLT123456789",
                 displayTitle = "enum_009-SID-03-2026-01-23",
                 syncedOnText = "Synced on Tue, Jan 21, 2026 at 09:30",
                 submissionTimestamp = 1737452400000L,
@@ -87,6 +93,7 @@ private fun SubmissionListItemFallbackPreview() {
         SubmissionListItem(
             submission = SubmissionUiModel(
                 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                koboId = "PLT987654321",
                 displayTitle = "2026-01-21 08:15",
                 syncedOnText = "Synced on Tue, Jan 21, 2026 at 08:15",
                 submissionTimestamp = 1737447300000L,

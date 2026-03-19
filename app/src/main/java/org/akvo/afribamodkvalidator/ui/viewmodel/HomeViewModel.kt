@@ -42,6 +42,10 @@ class HomeViewModel @Inject constructor(
     private val authCredentials: AuthCredentials
 ) : ViewModel() {
 
+    companion object {
+        const val KOBO_ID_PREFIX = "PLT"
+    }
+
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -138,8 +142,11 @@ class HomeViewModel @Inject constructor(
             return submissions
         }
         val lowerQuery = query.lowercase()
+        val prefixLower = KOBO_ID_PREFIX.lowercase()
         return submissions.filter { submission ->
             submission.displayTitle.lowercase().contains(lowerQuery) ||
+                submission.koboId.lowercase().contains(lowerQuery) ||
+                submission.koboId.removePrefix(prefixLower).contains(lowerQuery) ||
                 submission.uuid.lowercase().contains(lowerQuery) ||
                 submission.syncedOnText.lowercase().contains(lowerQuery)
         }
@@ -172,6 +179,7 @@ class HomeViewModel @Inject constructor(
 
         return SubmissionUiModel(
             uuid = _uuid,
+            koboId = "$KOBO_ID_PREFIX${_id}",
             displayTitle = displayTitle,
             syncedOnText = syncedOnText,
             submissionTimestamp = submissionTime,
