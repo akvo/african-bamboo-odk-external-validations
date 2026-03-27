@@ -493,7 +493,7 @@ private fun HomeDashboardEmptyPreview() {
 private val previewSubmissions = listOf(
     SubmissionUiModel(
         uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        koboId = "PLT123456789",
+        koboId = "#123456789",
         displayTitle = "enum_009-SID-03-2026-01-21",
         syncedOnText = "Synced on Tue, Jan 21, 2026 at 09:30",
         submissionTimestamp = 1737452400000L,
@@ -501,7 +501,7 @@ private val previewSubmissions = listOf(
     ),
     SubmissionUiModel(
         uuid = "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-        koboId = "PLT987654321",
+        koboId = "#987654321",
         displayTitle = "enum_010-SID-04-2026-01-21",
         syncedOnText = "Synced on Tue, Jan 21, 2026 at 08:15",
         submissionTimestamp = 1737447300000L,
@@ -509,7 +509,7 @@ private val previewSubmissions = listOf(
     ),
     SubmissionUiModel(
         uuid = "c3d4e5f6-a7b8-9012-cdef-123456789012",
-        koboId = "PLT456789123",
+        koboId = "#456789123",
         displayTitle = "2026-01-20 16:45",
         syncedOnText = "Synced on Mon, Jan 20, 2026 at 16:45",
         submissionTimestamp = 1737391500000L,

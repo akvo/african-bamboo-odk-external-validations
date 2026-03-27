@@ -43,7 +43,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val KOBO_ID_PREFIX = "PLT"
+        const val KOBO_ID_PREFIX = "#"
     }
 
     private val _uiState = MutableStateFlow(HomeUiState())
