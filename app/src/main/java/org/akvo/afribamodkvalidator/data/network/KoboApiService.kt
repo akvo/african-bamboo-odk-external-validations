@@ -34,7 +34,8 @@ interface KoboApiService {
 
     @GET("api/v2/assets/")
     suspend fun getAssets(
-        @Query("limit") limit: Int = 100
+        @Query("limit") limit: Int = DEFAULT_PAGE_SIZE,
+        @Query("start") start: Int = 0
     ): KoboAssetsResponse
 
     companion object {

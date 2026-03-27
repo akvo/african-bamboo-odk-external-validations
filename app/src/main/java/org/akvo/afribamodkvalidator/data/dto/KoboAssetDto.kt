@@ -8,7 +8,9 @@ data class KoboAsset(
     @SerialName("uid")
     val uid: String,
     @SerialName("name")
-    val name: String
+    val name: String,
+    @SerialName("deployment_status")
+    val deploymentStatus: String? = null
 )
 
 @Serializable
