@@ -92,7 +92,7 @@ private fun LoginScreenContent(
             onValueChange = onUsernameChange,
             label = { Text("Username") },
             singleLine = true,
-            enabled = !uiState.hasAssets,
+            enabled = !uiState.hasAssets && !uiState.isLoadingAssets,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -103,7 +103,7 @@ private fun LoginScreenContent(
             onValueChange = onPasswordChange,
             label = { Text("Password") },
             singleLine = true,
-            enabled = !uiState.hasAssets,
+            enabled = !uiState.hasAssets && !uiState.isLoadingAssets,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
@@ -124,7 +124,7 @@ private fun LoginScreenContent(
             onValueChange = onServerUrlChange,
             label = { Text("Server URL") },
             singleLine = true,
-            enabled = !uiState.hasAssets,
+            enabled = !uiState.hasAssets && !uiState.isLoadingAssets,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             modifier = Modifier.fillMaxWidth()
         )
@@ -187,33 +187,61 @@ private fun AssetDropdown(
     onAssetSelected: (KoboAsset) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredAssets = remember(assets, searchQuery) {
+        if (searchQuery.isBlank()) assets
+        else assets.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            value = selectedAsset?.name ?: "",
-            onValueChange = {},
-            readOnly = true,
+            value = if (expanded) searchQuery else (selectedAsset?.name ?: ""),
+            onValueChange = { searchQuery = it },
             label = { Text("Select Form") },
+            placeholder = if (expanded) {{ Text("Search forms...") }} else null,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = {
+                expanded = false
+                searchQuery = ""
+            }
         ) {
-            assets.forEach { asset ->
+            if (filteredAssets.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text(asset.name) },
-                    onClick = {
-                        onAssetSelected(asset)
-                        expanded = false
-                    }
+                    text = { Text("No forms found", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    onClick = {},
+                    enabled = false
                 )
+            } else {
+                filteredAssets.forEach { asset ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(asset.name)
+                                Text(
+                                    text = asset.uid,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        onClick = {
+                            onAssetSelected(asset)
+                            expanded = false
+                            searchQuery = ""
+                        }
+                    )
+                }
             }
         }
     }
