@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.CancellationException
 import org.akvo.afribamodkvalidator.data.dto.KoboAsset
 import org.akvo.afribamodkvalidator.data.network.AuthCredentials
 import org.akvo.afribamodkvalidator.data.network.KoboApiService
@@ -61,10 +62,9 @@ class LoginViewModel @Inject constructor(
 
     fun fetchAssets() {
         val state = _uiState.value
-        authCredentials.set(
+        authCredentials.setTemporary(
             username = state.username.trim(),
             password = state.password,
-            assetUid = "",
             serverUrl = state.serverUrl.trim()
         )
 
@@ -72,13 +72,24 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val response = apiService.getAssets()
+                val allAssets = mutableListOf<KoboAsset>()
+                var start = 0
+                val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
+
+                do {
+                    val response = apiService.getAssets(limit = pageSize, start = start)
+                    allAssets.addAll(response.results.filter { it.deploymentStatus != "draft" })
+                    start += pageSize
+                } while (response.next != null)
+
                 _uiState.update {
                     it.copy(
-                        assets = response.results,
+                        assets = allAssets,
                         isLoadingAssets = false
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(

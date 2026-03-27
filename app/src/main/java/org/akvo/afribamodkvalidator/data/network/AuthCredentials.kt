@@ -40,6 +40,12 @@ class AuthCredentials @Inject constructor(
         }
     }
 
+    fun setTemporary(username: String, password: String, serverUrl: String) {
+        this.username = username
+        this.password = password
+        this.serverUrl = normalizeServerUrl(serverUrl)
+    }
+
     fun set(username: String, password: String, assetUid: String, serverUrl: String) {
         val normalizedUrl = normalizeServerUrl(serverUrl)
         this.username = username
