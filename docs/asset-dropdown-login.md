@@ -1,6 +1,6 @@
 # Asset Dropdown Login Refactor
 
-Replace the Form ID text input on the LoginScreen with a dropdown populated from the Kobo assets list API.
+Replace the Form ID text input on the LoginScreen with a searchable dropdown populated from the Kobo assets list API.
 
 ## Workflow Change
 
@@ -18,7 +18,7 @@ flowchart TB
         direction TB
         A1([Start]) --> A2[Input Username +<br/>Password + Server URL]
         A2 --> A3[Fetch Forms]
-        A3 --> A4[Select a form<br/>from dropdown]
+        A3 --> A4[Search & select a form<br/>from dropdown]
         A4 --> A5[Download Data]
         A5 --> A6[Sync all data]
         A6 --> A7([Dashboard])
@@ -30,34 +30,37 @@ flowchart TB
 The LoginScreen becomes a two-phase UI on a single screen:
 
 - **Phase 1**: Enter credentials (username, password, server URL) -> tap "Fetch Forms"
-- **Phase 2**: Select a form from the dropdown -> tap "Download Data"
+  - Credential fields are disabled while the fetch is in-flight
+- **Phase 2**: Search and select a form from the dropdown -> tap "Download Data"
+  - Credential fields remain disabled after assets are fetched
+  - Draft forms (`deployment_status = "draft"`) are excluded from the dropdown
 
 ## API Endpoint
 
 ```
-GET {{baseUrl}}/api/v2/assets/
+GET {{baseUrl}}/api/v2/assets/?limit=300&start=0
 Authorization: Basic {base64(username:password)}
 ```
 
-Response fields used: `uid` (value), `name` (label) from each item in `results`.
+Paginated using `do/while (response.next != null)` loop, consistent with submission endpoints.
+
+Response fields used: `uid` (value + subtitle), `name` (label), `deployment_status` (filtering).
 
 ## Files Changed
 
 ### 1. New DTO: `KoboAssetDto.kt`
 
 ```kotlin
-// data/dto/KoboAssetDto.kt
 package org.akvo.afribamodkvalidator.data.dto
-
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 
 @Serializable
 data class KoboAsset(
     @SerialName("uid")
     val uid: String,
     @SerialName("name")
-    val name: String
+    val name: String,
+    @SerialName("deployment_status")
+    val deploymentStatus: String? = null
 )
 
 @Serializable
@@ -73,45 +76,56 @@ data class KoboAssetsResponse(
 
 ### 2. Updated `KoboApiService.kt`
 
-Add the assets list endpoint:
+Added the assets list endpoint with pagination params:
 
 ```kotlin
 @GET("api/v2/assets/")
 suspend fun getAssets(
-    @Query("limit") limit: Int = 100
+    @Query("limit") limit: Int = DEFAULT_PAGE_SIZE,
+    @Query("start") start: Int = 0
 ): KoboAssetsResponse
 ```
 
-### 3. Updated `LoginUiState`
+### 3. Updated `AuthCredentials.kt`
+
+Added `setTemporary()` for in-memory-only credentials (no session persistence). This allows the interceptors to authenticate the assets fetch without marking the user as logged in or overwriting a previously saved `assetUid`:
+
+```kotlin
+fun setTemporary(username: String, password: String, serverUrl: String) {
+    this.username = username
+    this.password = password
+    this.serverUrl = normalizeServerUrl(serverUrl)
+}
+```
+
+Session is only persisted via `set()` in `startLoginAndDownloadProcess()` when the user has selected a form.
+
+### 4. Updated `LoginUiState`
 
 ```kotlin
 data class LoginUiState(
     val username: String = "",
     val password: String = "",
     val serverUrl: String = "https://kc-eu.kobotoolbox.org",
-    // Phase 2 state
     val assets: List<KoboAsset> = emptyList(),
     val selectedAsset: KoboAsset? = null,
     val isLoadingAssets: Boolean = false,
     val assetsError: String? = null
 ) {
-    /** Phase 1: credentials are filled */
     val areCredentialsValid: Boolean
         get() = username.isNotBlank() &&
                 password.isNotBlank() &&
                 serverUrl.isNotBlank()
 
-    /** Phase 2: a form has been selected */
     val isFormValid: Boolean
         get() = areCredentialsValid && selectedAsset != null
 
-    /** Whether we've fetched assets (entered phase 2) */
     val hasAssets: Boolean
         get() = assets.isNotEmpty()
 }
 ```
 
-### 4. Updated `LoginViewModel`
+### 5. Updated `LoginViewModel`
 
 ```kotlin
 @HiltViewModel
@@ -120,19 +134,14 @@ class LoginViewModel @Inject constructor(
     private val apiService: KoboApiService
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
-
     // ... existing onXxxChange methods ...
 
-    /** Phase 1 -> Phase 2: set credentials temporarily and fetch assets */
+    /** Phase 1 -> Phase 2: set credentials temporarily (no session persist) and fetch assets */
     fun fetchAssets() {
         val state = _uiState.value
-        // Set credentials so interceptors can authenticate the request
-        authCredentials.set(
+        authCredentials.setTemporary(
             username = state.username.trim(),
             password = state.password,
-            assetUid = "",  // not known yet
             serverUrl = state.serverUrl.trim()
         )
 
@@ -140,13 +149,21 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val response = apiService.getAssets()
+                val allAssets = mutableListOf<KoboAsset>()
+                var start = 0
+                val pageSize = KoboApiService.DEFAULT_PAGE_SIZE
+
+                do {
+                    val response = apiService.getAssets(limit = pageSize, start = start)
+                    allAssets.addAll(response.results.filter { it.deploymentStatus != "draft" })
+                    start += pageSize
+                } while (response.next != null)
+
                 _uiState.update {
-                    it.copy(
-                        assets = response.results,
-                        isLoadingAssets = false
-                    )
+                    it.copy(assets = allAssets, isLoadingAssets = false)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -162,7 +179,7 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(selectedAsset = asset) }
     }
 
-    /** Phase 2 -> Download: finalize credentials with selected asset */
+    /** Phase 2 -> Download: finalize credentials with selected asset (persists session) */
     fun startLoginAndDownloadProcess() {
         val state = _uiState.value
         val asset = state.selectedAsset ?: return
@@ -176,64 +193,18 @@ class LoginViewModel @Inject constructor(
 }
 ```
 
-### 5. Updated `LoginScreen.kt`
+### 6. Updated `LoginScreen.kt`
 
-Replace the Form ID `OutlinedTextField` with an `ExposedDropdownMenuBox`:
+Key UI behaviors:
+
+- **Credential fields** disabled when `hasAssets || isLoadingAssets`
+- **Phase 1 button**: "Fetch Forms" with `CircularProgressIndicator` during loading
+- **Phase 2 button**: "Download Data" enabled when `isFormValid`
+- **Searchable dropdown**: editable text field filters assets by name when expanded, shows `selectedAsset.name` when collapsed
+- **Dropdown items**: form name as title, `uid` as subtitle in `bodySmall` style
+- **Empty state**: "No forms found" shown when search query matches nothing
 
 ```kotlin
-@Composable
-private fun LoginScreenContent(
-    uiState: LoginUiState,
-    onUsernameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onServerUrlChange: (String) -> Unit,
-    onFetchAssetsClick: () -> Unit,
-    onAssetSelected: (KoboAsset) -> Unit,
-    onDownloadClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // ... username, password, serverUrl fields (unchanged) ...
-
-    // Phase 2: Asset dropdown (shown after fetch)
-    if (uiState.hasAssets) {
-        AssetDropdown(
-            assets = uiState.assets,
-            selectedAsset = uiState.selectedAsset,
-            onAssetSelected = onAssetSelected
-        )
-    }
-
-    // Error message
-    if (uiState.assetsError != null) {
-        Text(
-            text = uiState.assetsError,
-            color = MaterialTheme.colorScheme.error
-        )
-    }
-
-    // Phase 1 button: "Fetch Forms" (before assets loaded)
-    // Phase 2 button: "Download Data" (after asset selected)
-    if (!uiState.hasAssets) {
-        Button(
-            onClick = onFetchAssetsClick,
-            enabled = uiState.areCredentialsValid && !uiState.isLoadingAssets
-        ) {
-            if (uiState.isLoadingAssets) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Text(if (uiState.isLoadingAssets) "Fetching Forms..." else "Fetch Forms")
-        }
-    } else {
-        Button(
-            onClick = onDownloadClick,
-            enabled = uiState.isFormValid
-        ) {
-            Text("Download Data")
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssetDropdown(
@@ -242,39 +213,63 @@ private fun AssetDropdown(
     onAssetSelected: (KoboAsset) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredAssets = remember(assets, searchQuery) {
+        if (searchQuery.isBlank()) assets
+        else assets.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            value = selectedAsset?.name ?: "",
-            onValueChange = {},
-            readOnly = true,
+            value = if (expanded) searchQuery else (selectedAsset?.name ?: ""),
+            onValueChange = { searchQuery = it },
             label = { Text("Select Form") },
+            placeholder = if (expanded) {{ Text("Search forms...") }} else null,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = {
+                expanded = false
+                searchQuery = ""
+            }
         ) {
-            assets.forEach { asset ->
+            if (filteredAssets.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text(asset.name) },
-                    onClick = {
-                        onAssetSelected(asset)
-                        expanded = false
-                    }
+                    text = { Text("No forms found", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    onClick = {},
+                    enabled = false
                 )
+            } else {
+                filteredAssets.forEach { asset ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(asset.name)
+                                Text(
+                                    text = asset.uid,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        onClick = {
+                            onAssetSelected(asset)
+                            expanded = false
+                            searchQuery = ""
+                        }
+                    )
+                }
             }
         }
     }
 }
 ```
-
-### 6. Credential fields become read-only in Phase 2
-
-Once assets are fetched, disable the username/password/serverUrl fields to prevent editing credentials while a dropdown is showing stale results. Changing credentials requires going back to phase 1 (e.g., via a "Change Account" link or clearing assets).
