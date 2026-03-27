@@ -1,5 +1,6 @@
 package org.akvo.afribamodkvalidator.data.network
 
+import org.akvo.afribamodkvalidator.data.dto.KoboAssetsResponse
 import org.akvo.afribamodkvalidator.data.dto.KoboDataResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -30,6 +31,11 @@ interface KoboApiService {
         @Query("limit") limit: Int = DEFAULT_PAGE_SIZE,
         @Query("start") start: Int = 0
     ): KoboDataResponse
+
+    @GET("api/v2/assets/")
+    suspend fun getAssets(
+        @Query("limit") limit: Int = 100
+    ): KoboAssetsResponse
 
     companion object {
         const val BASE_URL = "https://kf.kobotoolbox.org/"
