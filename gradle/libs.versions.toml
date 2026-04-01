@@ -31,6 +31,7 @@ retrofit = "2.11.0"
 retrofitKotlinxSerialization = "1.0.0"
 desugarJdkLibs = "2.0.4"
 securityCrypto = "1.1.0-alpha06"
+datastorePreferences = "1.1.1"
 mapbox = "11.18.1"
 
 [libraries]
@@ -76,6 +77,7 @@ retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = 
 retrofit-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerialization" }
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 mapbox-maps = { group = "com.mapbox.maps", name = "android", version.ref = "mapbox" }
 
 [plugins]

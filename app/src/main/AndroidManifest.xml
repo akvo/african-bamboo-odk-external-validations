@@ -45,6 +45,16 @@
         </activity>
 
         <activity
+            android:name=".validation.BlurValidationActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AfriBamODKValidator.AppCompat">
+            <intent-filter>
+                <action android:name="org.akvo.afribamodkvalidator.VALIDATE_IMAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".validation.MapPreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.AfriBamODKValidator.AppCompat" />

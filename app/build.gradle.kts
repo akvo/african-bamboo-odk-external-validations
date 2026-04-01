@@ -118,6 +118,9 @@ dependencies {
     // Security - Encrypted SharedPreferences
     implementation(libs.security.crypto)
 
+    // DataStore - Settings persistence
+    implementation(libs.datastore.preferences)
+
     // Networking
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)

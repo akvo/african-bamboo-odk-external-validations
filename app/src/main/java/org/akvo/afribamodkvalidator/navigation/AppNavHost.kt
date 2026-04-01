@@ -12,6 +12,7 @@ import org.akvo.afribamodkvalidator.ui.screen.LoadingScreen
 import org.akvo.afribamodkvalidator.ui.screen.LoginScreen
 import org.akvo.afribamodkvalidator.ui.screen.GeoMapViewScreen
 import org.akvo.afribamodkvalidator.ui.screen.OfflineMapScreen
+import org.akvo.afribamodkvalidator.ui.screen.SettingsScreen
 import org.akvo.afribamodkvalidator.ui.screen.SubmissionDetailScreen
 import org.akvo.afribamodkvalidator.ui.screen.SyncCompleteScreen
 
@@ -106,6 +107,17 @@ fun AppNavHost(
                 },
                 onOfflineMapsClick = {
                     navController.navigate(OfflineMap)
+                },
+                onSettingsClick = {
+                    navController.navigate(Settings)
+                }
+            )
+        }
+
+        composable<Settings> {
+            SettingsScreen(
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
