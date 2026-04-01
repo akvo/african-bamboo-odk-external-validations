@@ -11,10 +11,13 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Sync status tracking for submissions
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
+- **ODK External App**: Image blur detection for photo quality checks
 - **Plot Overlap Detection**: Detect and block overlapping plots (>= 20% threshold)
+- **Image Quality Check**: Two-tier blur detection — block unreadable, warn borderline photos
 - **Map Visualization**: View overlapping plots on interactive map with offline tile support
+- **Configurable Settings**: Runtime-adjustable thresholds for blur and overlap detection
 
-> **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
+> **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons and image quality. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
 
 ## Tech Stack
 
@@ -26,6 +29,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 | DI | Hilt 2.51.1 |
 | Navigation | Navigation Compose 2.8.5 |
 | Database | Room 2.6.1 |
+| Settings | DataStore Preferences 1.1.1 |
 | Geometry | JTS Topology Suite 1.19.0 |
 | Maps | Mapbox Maps SDK 11.18.1 |
 | Serialization | Kotlinx Serialization 1.6.3 |
@@ -220,6 +224,30 @@ All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only
 
 For validation checks, blocking mechanics, supported formats, and intent extras, see [docs/polygon-validation.md](docs/polygon-validation.md).
 
+## ODK External App: Image Blur Detection
+
+ExternalODK also validates image quality by detecting blur before accepting photos into the form. This ensures photos of farmer names, documents, or ID cards are readable at collection time.
+
+The app uses a **two-tier approach**: very blurry images are blocked (must retake), borderline images show a warning (retake or accept), and sharp images pass silently.
+
+### XLSForm Configuration
+
+| type | name | label | appearance | required |
+|------|------|-------|------------|----------|
+| image | farmer_photo | Take photo of farmer name | | yes |
+| text | validate_photo | Validate Photo | ex:org.akvo.afribamodkvalidator.VALIDATE_IMAGE(value=${farmer_photo}) | yes |
+
+### Threshold Settings
+
+Both blur thresholds are adjustable at runtime via the **Settings** screen (Home → menu → Settings). No APK rebuild needed to tune values in the field.
+
+| Setting | Default | Effect |
+|---------|---------|--------|
+| Warn Threshold | 100 | Warn if blur score is below this |
+| Block Threshold | 50 | Always block if blur score is below this |
+
+For the full detection algorithm, tuning guide, and security details, see [docs/blur-detection.md](docs/blur-detection.md).
+
 ## Plot Overlap Detection
 
 The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 20% or more of the smaller polygon's area, validation fails. Overlap detection works fully offline — draft plots are stored locally and checked immediately without server sync.
@@ -264,15 +292,23 @@ For test categories, structure, CI commands, troubleshooting, and test templates
 app/src/main/java/org/akvo/afribamodkvalidator/
 ├── AfriBamODKValidatorApplication.kt    # Hilt Application class
 ├── MainActivity.kt              # Main entry point
+├── data/
+│   ├── settings/                # DataStore settings persistence
+│   └── ...                      # DAO, entities, network, session
 ├── navigation/
 │   ├── Routes.kt                # Type-safe navigation routes
 │   └── AppNavHost.kt            # Navigation host setup
 ├── ui/
 │   ├── component/               # Reusable UI components
 │   ├── model/                   # UI data models
-│   ├── screen/                  # Composable screens
+│   ├── screen/                  # Composable screens (incl. Settings)
 │   ├── theme/                   # Material 3 theming
 │   └── viewmodel/               # ViewModels with StateFlow
+├── validation/                  # External ODK validation intents
+│   ├── BlurDetector.kt          # Laplacian variance blur detection
+│   ├── BlurValidationActivity.kt # VALIDATE_IMAGE intent handler
+│   ├── PolygonValidationActivity.kt # VALIDATE_POLYGON intent handler
+│   └── ...                      # Overlap checker, geo parsing
 └── docs/                        # Feature specifications
 ```
 
