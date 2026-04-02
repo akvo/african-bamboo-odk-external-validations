@@ -44,6 +44,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Blur Validation: custom camera app for ODK Collect -->
+        <activity
+            android:name=".validation.BlurValidationActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AfriBamODKValidator.AppCompat">
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".validation.MapPreviewActivity"
             android:exported="false"
@@ -53,6 +64,16 @@
             android:name=".validation.TilePreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.AfriBamODKValidator.AppCompat" />
+        <!-- FileProvider for camera image capture -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
