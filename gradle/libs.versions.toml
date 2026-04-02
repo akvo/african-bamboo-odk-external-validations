@@ -32,6 +32,9 @@ retrofitKotlinxSerialization = "1.0.0"
 desugarJdkLibs = "2.0.4"
 securityCrypto = "1.1.0-alpha06"
 mapbox = "11.18.1"
+mlkitTextRecognition = "16.0.1"
+datastorePreferences = "1.1.1"
+coroutinesPlayServices = "1.8.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -77,6 +80,9 @@ retrofit-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "r
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 mapbox-maps = { group = "com.mapbox.maps", name = "android", version.ref = "mapbox" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

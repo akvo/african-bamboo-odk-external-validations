@@ -74,6 +74,11 @@ android {
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.all {
+            it.testLogging {
+                showStandardStreams = true
+            }
+        }
     }
 }
 
@@ -114,6 +119,13 @@ dependencies {
 
     // Kotlinx Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // ML Kit Text Recognition - blur detection via OCR confidence
+    implementation(libs.mlkit.text.recognition)
+    implementation(libs.kotlinx.coroutines.play.services)
+
+    // DataStore Preferences - runtime settings
+    implementation(libs.datastore.preferences)
 
     // Security - Encrypted SharedPreferences
     implementation(libs.security.crypto)
