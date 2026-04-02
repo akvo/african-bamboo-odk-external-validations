@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -65,19 +66,24 @@ class BlurValidationActivity : AppCompatActivity() {
 
         savedInstanceState?.let {
             currentPhotoPath = it.getString(STATE_PHOTO_PATH)
-            currentPhotoUri = it.getParcelable(STATE_PHOTO_URI)
-            outputUri = it.getParcelable(STATE_OUTPUT_URI)
+            currentPhotoUri = getParcelableCompat(it, STATE_PHOTO_URI)
+            outputUri = getParcelableCompat(it, STATE_OUTPUT_URI)
         }
 
         Log.d(TAG, "Intent action: ${intent.action}")
         intent.extras?.let { bundle ->
             for (key in bundle.keySet()) {
-                Log.d(TAG, "Intent extra: key='$key', value='${bundle.get(key)}'")
+                Log.d(TAG, "Intent extra: key='$key', value='${bundle.getString(key)}'")
             }
         }
 
         if (outputUri == null) {
-            outputUri = intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT)
+            outputUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT)
+            }
         }
         Log.d(TAG, "Output URI: $outputUri")
 
@@ -218,7 +224,7 @@ class BlurValidationActivity : AppCompatActivity() {
         val qualityPercent = if (result.method == BlurDetector.METHOD_OCR) {
             "${(result.score * 100).toInt()}%"
         } else {
-            "${"%.0f".format(result.score)}"
+            "%.0f".format(result.score)
         }
 
         val dialog = AlertDialog.Builder(this)
@@ -246,7 +252,7 @@ class BlurValidationActivity : AppCompatActivity() {
         val qualityPercent = if (result.method == BlurDetector.METHOD_OCR) {
             "${(result.score * 100).toInt()}%"
         } else {
-            "${"%.0f".format(result.score)}"
+            "%.0f".format(result.score)
         }
 
         val dialog = AlertDialog.Builder(this)
@@ -316,6 +322,18 @@ class BlurValidationActivity : AppCompatActivity() {
             setResult(RESULT_OK, resultIntent)
         }
         finish()
+    }
+
+    private inline fun <reified T : android.os.Parcelable> getParcelableCompat(
+        bundle: Bundle,
+        key: String
+    ): T? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            bundle.getParcelable(key, T::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            bundle.getParcelable(key)
+        }
     }
 
     companion object {

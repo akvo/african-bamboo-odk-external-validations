@@ -108,6 +108,49 @@ git push              # Push to remote
 - **Use Mermaid** for all visualizations in markdown files (flowcharts, sequence diagrams, ERDs)
 - Prefer diagrams over ASCII art for complex flows
 
+## Kotlin Code Style Rules
+
+### Deprecated Android APIs
+Always use version-gated calls for deprecated APIs. Never use bare deprecated methods:
+
+```kotlin
+// BAD: Deprecated in API 33
+val uri: Uri? = intent.getParcelableExtra("key")
+val uri: Uri? = bundle.getParcelable("key")
+
+// GOOD: Version-gated with inline reified helper
+private inline fun <reified T : Parcelable> getParcelableCompat(bundle: Bundle, key: String): T? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        bundle.getParcelable(key, T::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        bundle.getParcelable(key)
+    }
+}
+```
+
+### String Templates
+Do not wrap a single expression in `"${expr}"` — use the expression directly:
+
+```kotlin
+// BAD: Unnecessary string template
+val s = "${"%.0f".format(value)}"
+
+// GOOD: Direct expression
+val s = "%.0f".format(value)
+```
+
+### Bundle.get() Deprecation
+Use typed getters (`getString`, `getInt`, etc.) instead of `bundle.get(key)`:
+
+```kotlin
+// BAD
+bundle.get(key)
+
+// GOOD
+bundle.getString(key)
+```
+
 ## Key Directories
 
 - `app/src/main/java/com/akvo/externalodk/` - Main source code
