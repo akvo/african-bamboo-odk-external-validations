@@ -11,10 +11,13 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - Sync status tracking for submissions
 - Material 3 design with Jetpack Compose
 - **ODK External App**: Polygon validation for geoshape fields
+- **ODK Custom Camera**: Image blur detection for document photos (title deeds, farmer names)
 - **Plot Overlap Detection**: Detect and block overlapping plots (>= 20% threshold)
+- **Image Quality Check**: ML Kit OCR confidence + Laplacian fallback with color-coded watermarks
 - **Map Visualization**: View overlapping plots on interactive map with offline tile support
+- **Configurable Settings**: Runtime-adjustable thresholds for blur detection
 
-> **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
+> **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons and image quality. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
 
 ## Tech Stack
 
@@ -26,6 +29,8 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 | DI | Hilt 2.51.1 |
 | Navigation | Navigation Compose 2.8.5 |
 | Database | Room 2.6.1 |
+| Settings | DataStore Preferences 1.1.1 |
+| OCR | ML Kit Text Recognition 16.0.1 |
 | Geometry | JTS Topology Suite 1.19.0 |
 | Maps | Mapbox Maps SDK 11.18.1 |
 | Serialization | Kotlinx Serialization 1.6.3 |
@@ -220,6 +225,77 @@ All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only
 
 For validation checks, blocking mechanics, supported formats, and intent extras, see [docs/polygon-validation.md](docs/polygon-validation.md).
 
+## ODK Custom Camera: Image Blur Detection
+
+ExternalODK includes a custom camera app that validates image quality (blur) before accepting document photos into ODK Collect forms. This ensures photos of title deeds, farmer names, and other documents are readable at collection time.
+
+### How It Works
+
+The app acts as a **custom camera replacement** for ODK Collect. When the user taps the image question, our app opens the system camera, captures the photo, validates blur quality, stamps a color-coded watermark, and returns the image to ODK.
+
+**Detection method**: ML Kit Text Recognition OCR confidence (primary) with Laplacian variance fallback for non-Latin scripts.
+
+| Detection | When Used | Catches |
+|-----------|-----------|---------|
+| ML Kit OCR confidence | Text elements >= 5 | Focus blur, motion blur, any blur that makes text unreadable |
+| Laplacian variance | Text elements < 5 (non-Latin, handwriting) | Focus blur |
+| Immediate block | Text elements = 0 | Extreme blur where no text is detected at all |
+
+### Two-Tier Response
+
+| OCR Confidence | Classification | App Behavior | Watermark |
+|----------------|---------------|--------------|-----------|
+| > 0.65 | Sharp / readable | Pass silently | Green `[SHARP]` |
+| 0.35 - 0.65 | Borderline | Warning dialog (Use Anyway / Reject) | Yellow `[WARNING]` |
+| < 0.35 or 0 elements | Unreadable | Blocked (must retake) | Red `[BLOCKED]` |
+
+### Watermark
+
+**All validated images** get a color-coded watermark overlay at the bottom-right corner. This lets supervisors reviewing submitted photos identify borderline images that were accepted by the enumerator:
+
+- **Green** `Q:0.82 OCR E:23 [SHARP] ✓` — clearly readable
+- **Yellow** `Q:0.52 OCR E:8 [WARNING] ⚠` — borderline, accepted by enumerator (supervisor should review)
+- **Red** `Q:0.15 OCR E:2 [BLOCKED] ✗` — blocked (only visible in debug, since image is rejected)
+
+Watermark key: **Q** = quality score, **OCR/LAP** = method used, **E** = text elements found.
+
+### XLSForm Configuration
+
+Use the `parameters` column to set our app as the camera:
+
+| type | name | label | hint | parameters | required |
+|------|------|-------|------|------------|----------|
+| image | title_deed_page1 | Title Deed - Page 1 | Take a clear photo of the first page | max-pixels=1024 app=org.akvo.afribamodkvalidator | yes |
+| image | title_deed_page2 | Title Deed - Page 2 | Take a clear photo of the second page | max-pixels=1024 app=org.akvo.afribamodkvalidator | yes |
+
+- `app=org.akvo.afribamodkvalidator` — launches our app instead of the default camera
+- `max-pixels=1024` — ODK downscales after receiving the image (compatible)
+- **Do NOT use `appearance: new`** — it conflicts with `app=` and reverts to the default camera
+
+> **Note**: Gallery picks ("Choose Image") bypass blur validation since `appearance: new` cannot be used with `app=`. Gallery images are typically not motion-blurred, so this is acceptable for most use cases.
+
+### Settings
+
+Thresholds are adjustable at runtime via **Settings** (Home → menu → Settings):
+
+| Setting | Default | Step | Description |
+|---------|---------|------|-------------|
+| OCR Warn Threshold | 0.65 | 0.05 | Warn if OCR confidence below this |
+| OCR Block Threshold | 0.35 | 0.05 | Block if OCR confidence below this |
+| Laplacian Warn Threshold | 100 | 10 | Fallback warn threshold for non-Latin text |
+| Laplacian Block Threshold | 50 | 10 | Fallback block threshold for non-Latin text |
+
+Each setting uses a `[-] slider [+]` control — drag the slider for quick adjustment or tap `[-]`/`[+]` for precise increments. Use **Reset Settings** to restore all thresholds to recommended values.
+
+### Installation
+
+1. Build and install the APK on the same device as ODK Collect
+2. Configure your XLSForm with `parameters: app=org.akvo.afribamodkvalidator`
+3. Deploy the form to your device
+4. Optionally adjust thresholds via Settings
+
+For the full detection algorithm, benchmark data, architecture diagrams, and threshold tuning guide, see [docs/blur-detection-implementation-plan.md](docs/blur-detection-implementation-plan.md).
+
 ## Plot Overlap Detection
 
 The app detects overlapping plots to prevent duplicate land registrations. When a new plot overlaps with an existing plot by 20% or more of the smaller polygon's area, validation fails. Overlap detection works fully offline — draft plots are stored locally and checked immediately without server sync.
@@ -264,15 +340,24 @@ For test categories, structure, CI commands, troubleshooting, and test templates
 app/src/main/java/org/akvo/afribamodkvalidator/
 ├── AfriBamODKValidatorApplication.kt    # Hilt Application class
 ├── MainActivity.kt              # Main entry point
+├── data/
+│   ├── settings/                # DataStore preferences (validation thresholds)
+│   └── ...                      # DAO, entities, network, session
 ├── navigation/
 │   ├── Routes.kt                # Type-safe navigation routes
 │   └── AppNavHost.kt            # Navigation host setup
 ├── ui/
 │   ├── component/               # Reusable UI components
 │   ├── model/                   # UI data models
-│   ├── screen/                  # Composable screens
+│   ├── screen/                  # Composable screens (incl. Settings)
 │   ├── theme/                   # Material 3 theming
 │   └── viewmodel/               # ViewModels with StateFlow
+├── validation/                  # External ODK validation intents
+│   ├── BlurDetector.kt          # ML Kit OCR + Laplacian hybrid
+│   ├── BlurValidationActivity.kt # Custom camera app for ODK
+│   ├── ImageWatermark.kt        # Color-coded quality overlay
+│   ├── PolygonValidationActivity.kt # Polygon validation intent
+│   └── ...                      # Overlap checker, geo parsing
 └── docs/                        # Feature specifications
 ```
 
