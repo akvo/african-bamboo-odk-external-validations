@@ -192,17 +192,18 @@ private fun SettingsContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SettingsSection(title = "Polygon Validation") {
-                    CounterSlider(
-                        label = "Overlap Threshold",
-                        value = uiState.overlapThreshold,
-                        valueRange = 1f..50f,
-                        step = 1.0,
-                        format = { "%.0f%%".format(it) },
-                        description = "Block polygon if overlap exceeds this percentage",
-                        onValueChange = onOverlapChange
-                    )
-                }
+                // Hidden from enumerators to prevent threshold manipulation
+                // SettingsSection(title = "Polygon Validation") {
+                //     CounterSlider(
+                //         label = "Overlap Threshold",
+                //         value = uiState.overlapThreshold,
+                //         valueRange = 1f..50f,
+                //         step = 1.0,
+                //         format = { "%.0f%%".format(it) },
+                //         description = "Block polygon if overlap exceeds this percentage",
+                //         onValueChange = onOverlapChange
+                //     )
+                // }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -252,9 +253,12 @@ private fun CounterSlider(
     description: String,
     onValueChange: (Double) -> Unit
 ) {
+    // Local state for slider drag — only persist on release or button tap
+    var localValue by remember(value) { mutableStateOf(value) }
+
     Column {
         Text(
-            text = "$label: ${format(value)}",
+            text = "$label: ${format(localValue)}",
             style = MaterialTheme.typography.bodyLarge
         )
         Row(
@@ -263,29 +267,38 @@ private fun CounterSlider(
         ) {
             IconButton(
                 onClick = {
-                    val newVal = (value - step).coerceIn(
-                        valueRange.start.toDouble(),
-                        valueRange.endInclusive.toDouble()
+                    val newVal = roundToStep(
+                        (localValue - step).coerceIn(
+                            valueRange.start.toDouble(),
+                            valueRange.endInclusive.toDouble()
+                        ),
+                        step
                     )
-                    onValueChange(roundToStep(newVal, step))
+                    localValue = newVal
+                    onValueChange(newVal)
                 },
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(Icons.Default.Remove, contentDescription = "Decrease")
             }
             Slider(
-                value = value.toFloat(),
-                onValueChange = { onValueChange(roundToStep(it.toDouble(), step)) },
+                value = localValue.toFloat(),
+                onValueChange = { localValue = roundToStep(it.toDouble(), step) },
+                onValueChangeFinished = { onValueChange(localValue) },
                 valueRange = valueRange,
                 modifier = Modifier.weight(1f)
             )
             IconButton(
                 onClick = {
-                    val newVal = (value + step).coerceIn(
-                        valueRange.start.toDouble(),
-                        valueRange.endInclusive.toDouble()
+                    val newVal = roundToStep(
+                        (localValue + step).coerceIn(
+                            valueRange.start.toDouble(),
+                            valueRange.endInclusive.toDouble()
+                        ),
+                        step
                     )
-                    onValueChange(roundToStep(newVal, step))
+                    localValue = newVal
+                    onValueChange(newVal)
                 },
                 modifier = Modifier.size(40.dp)
             ) {
