@@ -12,6 +12,7 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -46,10 +47,11 @@ class BlurDetectionBenchmarkTest {
     @Test
     fun benchmark_side_by_side_all_photos() = runBlocking {
         val photos = loadTestPhotos()
-        if (photos.isEmpty()) {
-            Log.w(TAG, "NO TEST PHOTOS FOUND. Add images to assets/blur_test_photos/")
-            return@runBlocking
-        }
+        assumeTrue(
+            "No test photos in assets/blur_test_photos/ (fixtures are gitignored). " +
+                "Copy from fixtures/ to run this benchmark manually.",
+            photos.isNotEmpty()
+        )
 
         Log.d(TAG, "")
         Log.d(TAG, "╔═══════════════════════════════════════════════════════════════════════════════════╗")
@@ -93,7 +95,7 @@ class BlurDetectionBenchmarkTest {
 
     @Test
     fun sharp_title_deed_should_have_high_ocr_confidence() = runBlocking {
-        val bitmap = loadPhoto("sharp_title_deed_amharic.png") ?: return@runBlocking
+        val bitmap = loadPhoto("sharp_title_deed_amharic.png") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
 
@@ -109,7 +111,7 @@ class BlurDetectionBenchmarkTest {
 
     @Test
     fun sharp_keyboard_should_have_high_ocr_confidence() = runBlocking {
-        val bitmap = loadPhoto("sharp_keyboard_clear.jpeg") ?: return@runBlocking
+        val bitmap = loadPhoto("sharp_keyboard_clear.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
 
@@ -124,7 +126,7 @@ class BlurDetectionBenchmarkTest {
 
     @Test
     fun sharp_book_page_should_have_high_ocr_confidence() = runBlocking {
-        val bitmap = loadPhoto("sharp_book_page_indonesian.jpeg") ?: return@runBlocking
+        val bitmap = loadPhoto("sharp_book_page_indonesian.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
 
@@ -139,7 +141,7 @@ class BlurDetectionBenchmarkTest {
 
     @Test
     fun blurry_keyboard_focus_should_have_low_ocr_confidence() = runBlocking {
-        val bitmap = loadPhoto("blurry_keyboard_focus.jpeg") ?: return@runBlocking
+        val bitmap = loadPhoto("blurry_keyboard_focus.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
 
@@ -151,7 +153,7 @@ class BlurDetectionBenchmarkTest {
 
     @Test
     fun blurry_screen_motion_should_have_low_ocr_confidence() = runBlocking {
-        val bitmap = loadPhoto("blurry_screen_motion.jpeg") ?: return@runBlocking
+        val bitmap = loadPhoto("blurry_screen_motion.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
 
@@ -162,7 +164,7 @@ class BlurDetectionBenchmarkTest {
 
     @Test
     fun blurry_extreme_motion_should_have_very_low_ocr_confidence() = runBlocking {
-        val bitmap = loadPhoto("blurry_keyboard_extreme_motion.jpeg") ?: return@runBlocking
+        val bitmap = loadPhoto("blurry_keyboard_extreme_motion.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
 
@@ -178,7 +180,7 @@ class BlurDetectionBenchmarkTest {
     @Test
     fun laplacian_comparison_sharp_vs_blurry() {
         val photos = loadTestPhotos()
-        if (photos.isEmpty()) return
+        assumeTrue("No test photos (gitignored)", photos.isNotEmpty())
 
         Log.d(TAG, "")
         Log.d(TAG, "╔═══════════════════════════════════════════════════════════╗")
