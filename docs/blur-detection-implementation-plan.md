@@ -57,7 +57,7 @@ Tested on Samsung SM-A145F with 6 fixture photos. Results prove Laplacian alone 
 | Config storage | Jetpack DataStore | Runtime-editable via Settings screen |
 | Image return | Copy to ODK's `EXTRA_OUTPUT` URI | Standard camera app contract |
 | **Watermark** | **On ALL validated images (sharp, borderline, blocked)** | Supervisor audit trail |
-| Gallery | Blocked via `appearance: new` in XLSForm | Title deeds should be fresh photos |
+| Gallery | Not blocked (`appearance: new` conflicts with `app=`) | Gallery picks bypass blur validation but are typically not motion-blurred |
 
 ## Architecture
 
