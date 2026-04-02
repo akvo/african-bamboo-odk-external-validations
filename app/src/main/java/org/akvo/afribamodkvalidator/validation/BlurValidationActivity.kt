@@ -3,12 +3,14 @@ package org.akvo.afribamodkvalidator.validation
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.exifinterface.media.ExifInterface
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -33,7 +35,7 @@ import javax.inject.Inject
  * (with Laplacian fallback), stamps a quality watermark,
  * and returns the image to ODK Collect.
  *
- * XLSForm: type=image, parameters=app=org.akvo.afribamodkvalidator, appearance=new
+ * XLSForm: type=image, parameters=app=org.akvo.afribamodkvalidator (leave appearance blank; do not use appearance=new)
  */
 @AndroidEntryPoint
 class BlurValidationActivity : AppCompatActivity() {
@@ -121,8 +123,9 @@ class BlurValidationActivity : AppCompatActivity() {
     private fun validateAndStamp(filePath: String) {
         lifecycleScope.launch {
             try {
+                // Load bitmap and apply EXIF rotation on IO thread
                 val bitmap = withContext(Dispatchers.IO) {
-                    BitmapFactory.decodeFile(filePath)
+                    loadAndRotateBitmap(filePath)
                 }
                 if (bitmap == null) {
                     showDialog("Invalid Image", "Could not load the captured image.")
@@ -132,13 +135,16 @@ class BlurValidationActivity : AppCompatActivity() {
                 val settings = settingsDataStore.getSettings()
                 val detector = BlurDetector()
 
-                val result = detector.detect(
-                    bitmap = bitmap,
-                    ocrWarnThreshold = settings.ocrWarnThreshold,
-                    ocrBlockThreshold = settings.ocrBlockThreshold,
-                    lapWarnThreshold = settings.laplacianWarnThreshold,
-                    lapBlockThreshold = settings.laplacianBlockThreshold
-                )
+                // Run detection on Default dispatcher (CPU-bound work)
+                val result = withContext(Dispatchers.Default) {
+                    detector.detect(
+                        bitmap = bitmap,
+                        ocrWarnThreshold = settings.ocrWarnThreshold,
+                        ocrBlockThreshold = settings.ocrBlockThreshold,
+                        lapWarnThreshold = settings.laplacianWarnThreshold,
+                        lapBlockThreshold = settings.laplacianBlockThreshold
+                    )
+                }
                 bitmap.recycle()
 
                 Log.d(
@@ -150,7 +156,7 @@ class BlurValidationActivity : AppCompatActivity() {
                         "Text: '${result.detectedText.take(40)}'"
                 )
 
-                // Always stamp watermark
+                // Stamp watermark on IO thread
                 withContext(Dispatchers.IO) {
                     ImageWatermark.stamp(filePath, result)
                 }
@@ -165,6 +171,47 @@ class BlurValidationActivity : AppCompatActivity() {
                 showDialog("Error", "Failed to analyze image quality. Please try again.")
             }
         }
+    }
+
+    /**
+     * Load a JPEG and apply EXIF rotation so the bitmap is upright.
+     * Many camera apps store rotation in EXIF rather than rotating pixels.
+     */
+    private fun loadAndRotateBitmap(filePath: String): Bitmap? {
+        val bitmap = BitmapFactory.decodeFile(filePath) ?: return null
+
+        val rotation = try {
+            val exif = ExifInterface(filePath)
+            when (exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                else -> 0f
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to read EXIF orientation", e)
+            0f
+        }
+
+        if (rotation == 0f) return bitmap
+
+        val matrix = Matrix().apply { postRotate(rotation) }
+        val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        bitmap.recycle()
+
+        // Save the rotated bitmap back so watermark and ODK get correct orientation
+        try {
+            File(filePath).outputStream().use { out ->
+                rotated.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to save rotated bitmap", e)
+        }
+
+        return rotated
     }
 
     private fun showWarningDialog(filePath: String, result: BlurDetector.BlurResult) {

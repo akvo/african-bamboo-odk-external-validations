@@ -122,6 +122,9 @@ dependencies {
 
     // ML Kit Text Recognition - blur detection via OCR confidence
     implementation(libs.mlkit.text.recognition)
+
+    // ExifInterface - EXIF orientation correction for camera captures
+    implementation(libs.exifinterface)
     implementation(libs.kotlinx.coroutines.play.services)
 
     // DataStore Preferences - runtime settings
