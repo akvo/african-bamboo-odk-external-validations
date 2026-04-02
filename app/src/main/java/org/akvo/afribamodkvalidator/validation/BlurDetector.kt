@@ -1,7 +1,6 @@
 package org.akvo.afribamodkvalidator.validation
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.Log
 import com.google.mlkit.vision.common.InputImage
@@ -9,7 +8,7 @@ import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.tasks.await
-import kotlin.math.sqrt
+import androidx.core.graphics.scale
 
 /**
  * Detects image blur using a hybrid approach:
@@ -89,7 +88,7 @@ class BlurDetector {
                 }
             }
 
-            val confidences = allElements.mapNotNull { element -> element.confidence }
+            val confidences = allElements.map { element -> element.confidence }
             val avgConfidence = if (confidences.isNotEmpty()) confidences.average() else 0.0
 
             OcrAnalysis(
@@ -191,11 +190,9 @@ class BlurDetector {
         val h = bitmap.height
         if (w <= maxDim && h <= maxDim) return bitmap
         val scale = maxDim.toDouble() / maxOf(w, h)
-        return Bitmap.createScaledBitmap(
-            bitmap,
+        return bitmap.scale(
             (w * scale).toInt().coerceAtLeast(1),
-            (h * scale).toInt().coerceAtLeast(1),
-            true
+            (h * scale).toInt().coerceAtLeast(1)
         )
     }
 
