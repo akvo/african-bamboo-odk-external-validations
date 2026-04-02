@@ -1,17 +1,21 @@
 package org.akvo.afribamodkvalidator.data.settings
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.akvo.afribamodkvalidator.validation.BlurDetector
 import org.akvo.afribamodkvalidator.validation.OverlapChecker
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,7 +38,16 @@ class ValidationSettingsDataStore @Inject constructor(
 
     private val dataStore = context.validationSettingsDataStore
 
-    val settingsFlow: Flow<ValidationSettings> = dataStore.data.map { prefs ->
+    val settingsFlow: Flow<ValidationSettings> = dataStore.data
+        .catch { e ->
+            if (e is IOException) {
+                Log.e(TAG, "DataStore read failed, using defaults", e)
+                emit(emptyPreferences())
+            } else {
+                throw e
+            }
+        }
+        .map { prefs ->
         ValidationSettings(
             ocrWarnThreshold = prefs[KEY_OCR_WARN] ?: BlurDetector.DEFAULT_OCR_WARN,
             ocrBlockThreshold = prefs[KEY_OCR_BLOCK] ?: BlurDetector.DEFAULT_OCR_BLOCK,
@@ -72,6 +85,7 @@ class ValidationSettingsDataStore @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "ValidationSettings"
         private val KEY_OCR_WARN = doublePreferencesKey("ocr_warn_threshold")
         private val KEY_OCR_BLOCK = doublePreferencesKey("ocr_block_threshold")
         private val KEY_LAP_WARN = doublePreferencesKey("lap_warn_threshold")
