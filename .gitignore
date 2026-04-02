@@ -19,6 +19,11 @@ local.properties
 # Mapbox access token (contains API key)
 app/src/main/res/values/mapbox_access_token.xml
 
+# Test fixtures (may contain personal data from real documents)
+fixtures/
+app/src/androidTest/assets/blur_test_photos/
+app/src/test/resources/fixtures/blur_test_photos/
+
 # Release signing
 release-keystore.jks
 keystore.properties
