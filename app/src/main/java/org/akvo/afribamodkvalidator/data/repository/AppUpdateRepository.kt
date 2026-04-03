@@ -41,18 +41,20 @@ class AppUpdateRepository @Inject constructor(
     private var activeDownloadId: Long = -1
     private var downloadReceiver: BroadcastReceiver? = null
 
+    internal var githubRepo: String = BuildConfig.GITHUB_REPO
+    internal var versionName: String = BuildConfig.VERSION_NAME
+
     suspend fun checkForUpdate(): UpdateResult {
         return try {
-            val parts = BuildConfig.GITHUB_REPO.split("/")
+            val parts = githubRepo.split("/")
             if (parts.size != 2) {
                 return UpdateResult.Error("Invalid GITHUB_REPO configuration")
             }
             val (owner, repo) = parts
             val release = gitHubApiService.getLatestRelease(owner, repo)
             val remoteVersion = release.tagName.removePrefix("v")
-            val currentVersion = BuildConfig.VERSION_NAME
 
-            if (isNewerVersion(remoteVersion, currentVersion)) {
+            if (isNewerVersion(remoteVersion, versionName)) {
                 val apkAsset = release.assets.firstOrNull { it.name.endsWith(".apk") }
                 if (apkAsset != null) {
                     UpdateResult.Available(
@@ -82,7 +84,7 @@ class AppUpdateRepository @Inject constructor(
             .setTitle("Downloading update")
             .setDescription("Downloading $fileName")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "updates/$fileName")
             .setMimeType("application/vnd.android.package-archive")
 
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -96,7 +98,7 @@ class AppUpdateRepository @Inject constructor(
         downloadReceiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                if (downloadId == activeDownloadId) {
+                if (downloadId == activeDownloadId && verifyDownload(downloadId)) {
                     onComplete(downloadId)
                 }
             }
@@ -129,6 +131,34 @@ class AppUpdateRepository @Inject constructor(
      */
     fun installApk(downloadId: Long): Boolean {
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+
+        val fileUri = downloadManager.getUriForDownloadedFile(downloadId) ?: return false
+
+        val installUri = when (fileUri.scheme) {
+            "file" -> {
+                val file = File(fileUri.path ?: return false)
+                FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+            }
+            "content" -> fileUri
+            else -> return false
+        }
+
+        val installIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(installUri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        context.startActivity(installIntent)
+        return true
+    }
+
+    private fun verifyDownload(downloadId: Long): Boolean {
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val query = DownloadManager.Query().setFilterById(downloadId)
 
         return downloadManager.query(query).use { cursor ->
@@ -136,30 +166,13 @@ class AppUpdateRepository @Inject constructor(
 
             val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
             if (statusIndex < 0) return@use false
-            val status = cursor.getInt(statusIndex)
+            if (cursor.getInt(statusIndex) != DownloadManager.STATUS_SUCCESSFUL) return@use false
 
-            if (status != DownloadManager.STATUS_SUCCESSFUL) return@use false
+            val titleIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)
+            if (titleIndex < 0) return@use false
+            val title = cursor.getString(titleIndex) ?: return@use false
 
-            val uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
-            if (uriIndex < 0) return@use false
-            val localUri = cursor.getString(uriIndex) ?: return@use false
-            val path = Uri.parse(localUri).path ?: return@use false
-            val file = File(path)
-
-            val contentUri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file
-            )
-
-            val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(contentUri, "application/vnd.android.package-archive")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-
-            context.startActivity(installIntent)
-            true
+            title == "Downloading update"
         }
     }
 
@@ -172,10 +185,11 @@ class AppUpdateRepository @Inject constructor(
 
     private fun cleanupOldApks() {
         try {
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS
+            val updatesDir = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "updates"
             )
-            downloadsDir.listFiles()?.filter {
+            updatesDir.listFiles()?.filter {
                 it.name.startsWith(APK_FILE_PREFIX) && it.name.endsWith(".apk")
             }?.forEach { it.delete() }
         } catch (e: Exception) {

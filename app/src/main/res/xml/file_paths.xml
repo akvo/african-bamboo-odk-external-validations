@@ -4,6 +4,6 @@
         name="pictures"
         path="Pictures/" />
     <external-path
-        name="downloads"
-        path="Download/" />
+        name="updates"
+        path="Download/updates/" />
 </paths>

@@ -3,6 +3,7 @@ package org.akvo.afribamodkvalidator.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,15 +39,16 @@ class AppUpdateViewModel @Inject constructor(
     val updateState: StateFlow<UpdateUiState> = _updateState.asStateFlow()
 
     private var hasCheckedOnLaunch = false
+    private var checkJob: Job? = null
 
     fun checkForUpdate(isManual: Boolean = false) {
         if (!isManual && hasCheckedOnLaunch) return
-        if (_updateState.value is UpdateUiState.Checking ||
+        if (checkJob?.isActive == true ||
             _updateState.value is UpdateUiState.Downloading
         ) return
         if (!isManual) hasCheckedOnLaunch = true
 
-        viewModelScope.launch {
+        checkJob = viewModelScope.launch {
             _updateState.value = if (isManual) UpdateUiState.Checking else UpdateUiState.Idle
 
             when (val result = appUpdateRepository.checkForUpdate()) {
@@ -95,7 +97,14 @@ class AppUpdateViewModel @Inject constructor(
             }
         }
 
-        appUpdateRepository.downloadApk(apkUrl, fileName)
+        try {
+            appUpdateRepository.downloadApk(apkUrl, fileName)
+        } catch (e: Exception) {
+            appUpdateRepository.unregisterDownloadCompleteReceiver()
+            _updateState.value = UpdateUiState.Error(
+                e.message ?: "Failed to start download"
+            )
+        }
     }
 
     fun dismissUpdate() {
