@@ -113,6 +113,7 @@ fun HomeDashboardScreen(
 @Composable
 private fun HomeDashboardContent(
     uiState: HomeUiState,
+    modifier: Modifier = Modifier,
     updateState: UpdateUiState = UpdateUiState.Idle,
     currentVersion: String = "",
     onResyncClick: () -> Unit,
@@ -127,7 +128,6 @@ private fun HomeDashboardContent(
     onCheckForUpdates: () -> Unit = {},
     onDownloadUpdate: (String) -> Unit = {},
     onDismissUpdate: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
