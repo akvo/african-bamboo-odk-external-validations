@@ -27,6 +27,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -34,6 +35,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -56,11 +59,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.akvo.afribamodkvalidator.ui.component.SubmissionListItem
+import org.akvo.afribamodkvalidator.ui.component.UpdateDialog
 import org.akvo.afribamodkvalidator.ui.model.SubmissionUiModel
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
+import org.akvo.afribamodkvalidator.ui.viewmodel.AppUpdateViewModel
 import org.akvo.afribamodkvalidator.ui.viewmodel.HomeUiState
 import org.akvo.afribamodkvalidator.ui.viewmodel.HomeViewModel
 import org.akvo.afribamodkvalidator.ui.viewmodel.SortOption
+import org.akvo.afribamodkvalidator.ui.viewmodel.UpdateUiState
 
 
 @Composable
@@ -71,12 +77,20 @@ fun HomeDashboardScreen(
     onOfflineMapsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    updateViewModel: AppUpdateViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val updateState by updateViewModel.updateState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        updateViewModel.checkForUpdate(isManual = false)
+    }
 
     HomeDashboardContent(
         uiState = uiState,
+        updateState = updateState,
+        currentVersion = updateViewModel.currentVersion(),
         onResyncClick = onResyncClick,
         onLogout = {
             viewModel.logout { onLogout() }
@@ -88,6 +102,9 @@ fun HomeDashboardScreen(
         onSearchActiveChange = viewModel::onSearchActiveChange,
         onSortOptionChange = viewModel::onSortOptionChange,
         onShowSortSheet = viewModel::onShowSortSheet,
+        onCheckForUpdates = { updateViewModel.checkForUpdate(isManual = true) },
+        onDownloadUpdate = updateViewModel::downloadAndInstall,
+        onDismissUpdate = updateViewModel::dismissUpdate,
         modifier = modifier
     )
 }
@@ -96,6 +113,9 @@ fun HomeDashboardScreen(
 @Composable
 private fun HomeDashboardContent(
     uiState: HomeUiState,
+    modifier: Modifier = Modifier,
+    updateState: UpdateUiState = UpdateUiState.Idle,
+    currentVersion: String = "",
     onResyncClick: () -> Unit,
     onLogout: () -> Unit,
     onSubmissionClick: (String) -> Unit,
@@ -105,12 +125,15 @@ private fun HomeDashboardContent(
     onSearchActiveChange: (Boolean) -> Unit,
     onSortOptionChange: (SortOption) -> Unit,
     onShowSortSheet: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    onCheckForUpdates: () -> Unit = {},
+    onDownloadUpdate: (String) -> Unit = {},
+    onDismissUpdate: () -> Unit = {},
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.isSearchActive) {
         if (uiState.isSearchActive) {
@@ -148,8 +171,41 @@ private fun HomeDashboardContent(
         )
     }
 
+    when (updateState) {
+        is UpdateUiState.Available -> {
+            UpdateDialog(
+                version = updateState.version,
+                currentVersion = currentVersion,
+                releaseNotes = updateState.releaseNotes,
+                apkSizeMb = updateState.apkSizeMb,
+                isMetered = updateState.isMetered,
+                onUpdate = { onDownloadUpdate(updateState.apkUrl) },
+                onDismiss = onDismissUpdate
+            )
+        }
+        is UpdateUiState.UpToDate -> {
+            LaunchedEffect(updateState) {
+                snackbarHostState.showSnackbar("You're up to date (v$currentVersion)")
+                onDismissUpdate()
+            }
+        }
+        is UpdateUiState.Error -> {
+            LaunchedEffect(updateState) {
+                snackbarHostState.showSnackbar("Update check failed: ${updateState.message}")
+                onDismissUpdate()
+            }
+        }
+        is UpdateUiState.Downloading -> {
+            LaunchedEffect(updateState) {
+                snackbarHostState.showSnackbar("Downloading update...")
+            }
+        }
+        else -> {}
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             if (uiState.isSearchActive) {
                 TopAppBar(
@@ -228,6 +284,14 @@ private fun HomeDashboardContent(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
+                            DropdownMenuItem(
+                                text = { Text("Check for Updates") },
+                                onClick = {
+                                    showMenu = false
+                                    onCheckForUpdates()
+                                }
+                            )
+                            HorizontalDivider()
                             DropdownMenuItem(
                                 text = { Text("Offline Maps") },
                                 onClick = {

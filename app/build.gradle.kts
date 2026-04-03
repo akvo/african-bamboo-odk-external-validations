@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,8 +9,6 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-import java.util.Properties
-
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
@@ -17,9 +17,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "org.akvo.afribamodkvalidator"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.akvo.afribamodkvalidator"
@@ -29,6 +27,8 @@ android {
         versionName = "1.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "GITHUB_REPO", "\"akvo/african-bamboo-odk-external-validations\"")
     }
 
     signingConfigs {
@@ -71,6 +71,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
