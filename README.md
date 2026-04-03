@@ -16,6 +16,7 @@ An Android client application for KoboToolbox API integration. AfriBamODKValidat
 - **Image Quality Check**: ML Kit OCR confidence + Laplacian fallback with color-coded watermarks
 - **Map Visualization**: View overlapping plots on interactive map with offline tile support
 - **Configurable Settings**: Runtime-adjustable thresholds for blur detection
+- **In-App Updates**: Self-update via GitHub Releases with version comparison and DownloadManager
 
 > **How does it all fit together?** The app has two roles: (1) a data manager that downloads submissions and populates the plot database, and (2) an external validator that ODK Collect calls to check polygons and image quality. See the [Architecture Overview](docs/architecture-overview.md) for diagrams explaining how these components communicate.
 
@@ -175,6 +176,32 @@ Use `--update` to rebuild and replace the APK on an existing release without cha
 # Fix code, commit, then:
 ./release.sh --update
 ```
+
+## In-App Updates
+
+The app checks for new versions via GitHub Releases and can download and install updates directly.
+
+### Automatic Check
+
+On each app launch, the app silently checks the [GitHub Releases](https://github.com/akvo/african-bamboo-odk-external-validations/releases) API. If a newer version is found, an update dialog appears with release notes and download size.
+
+### Manual Check
+
+**Home → menu (⋮) → Check for Updates**
+
+- **Update available**: Dialog shows version, release notes, and APK size. Tap "Update Now" to download and install.
+- **Up to date**: Snackbar confirms current version.
+- **On mobile data**: A warning appears in the dialog before downloading.
+
+### Testing Updates on a Real Device
+
+| Method | Steps | Best For |
+|--------|-------|----------|
+| **Fake local version** | Set `versionName = "1.0"` in `build.gradle.kts`, build, install, tap "Check for Updates" | Dev iteration |
+| **Install old APK** | Download [v1.3 APK](https://github.com/akvo/african-bamboo-odk-external-validations/releases/tag/v1.3), install via `adb install`, open app | Full E2E testing |
+| **Same version** | Keep current version, tap "Check for Updates" → "You're up to date" | Edge case |
+
+> **Note**: After tapping "Update Now", the APK downloads to `Download/updates/` via Android's DownloadManager (with notification progress), then the system package installer opens. On Android 8+, you may need to grant "Install from this source" permission.
 
 ## ODK External App: Polygon Validation
 
