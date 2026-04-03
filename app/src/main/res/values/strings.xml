@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AB ODK Validator</string>
+    <string name="app_name">AB Validation</string>
     <string name="view_in_google_maps">View in Google Maps</string>
     <string name="imagery_disclaimer">ℹ Satellite imagery may be outdated and not reflect recent land changes</string>
 </resources>
