@@ -1,12 +1,16 @@
 package org.akvo.afribamodkvalidator.ui.screen
 
 import android.content.Context
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,12 +19,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
@@ -35,7 +46,19 @@ fun SupportScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val html = remember { buildHtml(context) }
+    val isDark = isSystemInDarkTheme()
+    val htmlState = produceState<String?>(initialValue = null, isDark) {
+        value = withContext(Dispatchers.Default) {
+            buildHtml(context, isDark)
+        }
+    }
+    val webViewRef = remember { mutableStateOf<WebView?>(null) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            webViewRef.value?.destroy()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -59,51 +82,82 @@ fun SupportScreen(
                 windowInsets = WindowInsets(0)
             )
         },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier
     ) { innerPadding ->
-        AndroidView(
-            factory = { ctx ->
-                WebView(ctx).apply {
-                    settings.javaScriptEnabled = false
-                    setBackgroundColor(0)
-                    loadDataWithBaseURL(
-                        null, html, "text/html", "UTF-8", null
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        )
+        val html = htmlState.value
+        if (html == null) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            AndroidView(
+                factory = { ctx ->
+                    WebView(ctx).apply {
+                        webViewRef.value = this
+                        settings.javaScriptEnabled = false
+                        settings.allowFileAccess = false
+                        settings.allowContentAccess = false
+                        settings.blockNetworkLoads = true
+                        setBackgroundColor(0)
+                        webViewClient = object : WebViewClient() {
+                            override fun shouldOverrideUrlLoading(
+                                view: WebView?,
+                                request: WebResourceRequest?
+                            ): Boolean = true
+                        }
+                        loadDataWithBaseURL(
+                            null, html, "text/html", "UTF-8", null
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            )
+        }
     }
 }
 
-private fun buildHtml(context: Context): String {
+private fun buildHtml(context: Context, isDark: Boolean): String {
     val markdown = loadMarkdownFromAssets(context)
     val flavour = GFMFlavourDescriptor()
-    val tree = MarkdownParser(flavour).buildMarkdownTreeFromString(markdown)
-    val body = HtmlGenerator(markdown, tree, flavour).generateHtml()
-    return wrapWithStyle(body)
+    val tree = MarkdownParser(flavour)
+        .buildMarkdownTreeFromString(markdown)
+    val body = HtmlGenerator(markdown, tree, flavour)
+        .generateHtml()
+    return wrapWithStyle(body, isDark)
 }
 
-private fun wrapWithStyle(body: String): String = """
+private fun wrapWithStyle(body: String, isDark: Boolean): String {
+    val textColor = if (isDark) "#e0e0e0" else "#1a1a1a"
+    val headingColor = if (isDark) "#ffffff" else "#111111"
+    val borderColor = if (isDark) "#444" else "#ccc"
+    val thBg = if (isDark) "#2a2a2a" else "#f0f0f0"
+    val thColor = if (isDark) "#ffffff" else "#1a1a1a"
+    val evenRowBg = if (isDark) "#1e1e1e" else "#f8f8f8"
+    val cellColor = if (isDark) "#e0e0e0" else "#1a1a1a"
+    return """
 <!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  :root {
-    color-scheme: light dark;
-  }
   body {
     font-family: -apple-system, sans-serif;
     font-size: 15px;
     line-height: 1.5;
     padding: 8px 12px;
     margin: 0;
-    color: #1a1a1a;
+    color: $textColor;
     background: transparent;
   }
+  h1, h2, h3 { color: $headingColor; }
   h1 { font-size: 1.4em; margin: 0.8em 0 0.4em; }
   h2 { font-size: 1.25em; margin: 0.7em 0 0.3em; }
   h3 { font-size: 1.1em; margin: 0.6em 0 0.3em; }
@@ -114,22 +168,17 @@ private fun wrapWithStyle(body: String): String = """
     font-size: 0.92em;
   }
   th, td {
-    border: 1px solid #ccc;
+    border: 1px solid $borderColor;
     padding: 6px 8px;
     text-align: left;
+    color: $cellColor;
   }
   th {
-    background: #f0f0f0;
+    background: $thBg;
+    color: $thColor;
     font-weight: 600;
   }
-  tr:nth-child(even) { background: #f8f8f8; }
-  @media (prefers-color-scheme: dark) {
-    body { color: #e0e0e0; }
-    th { background: #2a2a2a; }
-    td { border-color: #444; }
-    tr:nth-child(even) { background: #1e1e1e; }
-    tr:nth-child(odd)  { background: transparent; }
-  }
+  tr:nth-child(even) { background: $evenRowBg; }
 </style>
 </head>
 <body>
@@ -137,6 +186,7 @@ $body
 </body>
 </html>
 """.trimIndent()
+}
 
 private fun loadMarkdownFromAssets(context: Context): String {
     return try {
