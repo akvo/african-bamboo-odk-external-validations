@@ -42,3 +42,6 @@ data class GeoMapView(val uuid: String, val fieldKey: String)
 
 @Serializable
 object Settings
+
+@Serializable
+object Support

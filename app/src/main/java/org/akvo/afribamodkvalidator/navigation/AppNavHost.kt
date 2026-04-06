@@ -14,6 +14,7 @@ import org.akvo.afribamodkvalidator.ui.screen.GeoMapViewScreen
 import org.akvo.afribamodkvalidator.ui.screen.OfflineMapScreen
 import org.akvo.afribamodkvalidator.ui.screen.SettingsScreen
 import org.akvo.afribamodkvalidator.ui.screen.SubmissionDetailScreen
+import org.akvo.afribamodkvalidator.ui.screen.SupportScreen
 import org.akvo.afribamodkvalidator.ui.screen.SyncCompleteScreen
 
 @Composable
@@ -110,12 +111,21 @@ fun AppNavHost(
                 },
                 onSettingsClick = {
                     navController.navigate(Settings)
+                },
+                onSupportClick = {
+                    navController.navigate(Support)
                 }
             )
         }
 
         composable<Settings> {
             SettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Support> {
+            SupportScreen(
                 onBack = { navController.popBackStack() }
             )
         }
