@@ -85,32 +85,43 @@ android {
     }
 }
 
+val supportContentRef: String = project.findProperty(
+    "supportContentRef"
+) as? String ?: "main"
+
 val supportContentUrl: String = project.findProperty(
     "supportContentUrl"
 ) as? String
     ?: ("https://raw.githubusercontent.com/" +
             "akvo/african-bamboo-dashboard/" +
-            "main/frontend/public/docs/validation-rules.md")
+            "$supportContentRef/frontend/public/docs/validation-rules.md")
 
 tasks.register("downloadSupportContent") {
     description = "Downloads validation rules markdown from the DCU repo"
     val outputFile = file("src/main/assets/validation-rules.md")
 
+    inputs.property("supportContentUrl", supportContentUrl)
+    outputs.file(outputFile)
+
     doLast {
+        val tempFile = File(outputFile.parentFile, ".validation-rules.md.tmp")
         try {
+            outputFile.parentFile.mkdirs()
             val conn = URI(supportContentUrl).toURL()
                 .openConnection() as HttpURLConnection
             conn.connectTimeout = 10_000
             conn.readTimeout = 10_000
             conn.inputStream.use { input ->
-                outputFile.outputStream().use { output ->
+                tempFile.outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
+            tempFile.renameTo(outputFile)
             logger.lifecycle(
                 "Downloaded support content to ${outputFile.path}"
             )
         } catch (e: Exception) {
+            tempFile.delete()
             if (outputFile.exists()) {
                 logger.warn(
                     "Download failed, keeping existing: ${e.message}"
