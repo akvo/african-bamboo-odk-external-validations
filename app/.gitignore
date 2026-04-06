@@ -1,1 +1,4 @@
 /build
+
+# Generated at build time by downloadSupportContent task
+src/main/assets/validation-rules.md
