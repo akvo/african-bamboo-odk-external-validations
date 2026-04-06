@@ -141,7 +141,9 @@ tasks.register("downloadSupportContent") {
 }
 
 tasks.matching {
-    it.name.startsWith("merge") && it.name.endsWith("Assets")
+    val n = it.name
+    (n.startsWith("merge") && n.endsWith("Assets")) ||
+        n.contains("Lint", ignoreCase = true)
 }.configureEach {
     dependsOn("downloadSupportContent")
 }
