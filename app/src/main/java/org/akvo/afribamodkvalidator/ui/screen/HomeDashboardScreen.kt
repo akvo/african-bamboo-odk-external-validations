@@ -76,6 +76,7 @@ fun HomeDashboardScreen(
     onSubmissionClick: (String) -> Unit,
     onOfflineMapsClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSupportClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
     updateViewModel: AppUpdateViewModel = hiltViewModel()
@@ -98,6 +99,7 @@ fun HomeDashboardScreen(
         onSubmissionClick = onSubmissionClick,
         onOfflineMapsClick = onOfflineMapsClick,
         onSettingsClick = onSettingsClick,
+        onSupportClick = onSupportClick,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onSearchActiveChange = viewModel::onSearchActiveChange,
         onSortOptionChange = viewModel::onSortOptionChange,
@@ -121,6 +123,7 @@ private fun HomeDashboardContent(
     onSubmissionClick: (String) -> Unit,
     onOfflineMapsClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSupportClick: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onSearchActiveChange: (Boolean) -> Unit,
     onSortOptionChange: (SortOption) -> Unit,
@@ -306,6 +309,14 @@ private fun HomeDashboardContent(
                                     onSettingsClick()
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text("Support") },
+                                onClick = {
+                                    showMenu = false
+                                    onSupportClick()
+                                }
+                            )
+                            HorizontalDivider()
                             DropdownMenuItem(
                                 text = { Text("Logout") },
                                 onClick = {
@@ -495,6 +506,7 @@ private fun HomeDashboardPreview() {
             onSubmissionClick = {},
             onOfflineMapsClick = {},
             onSettingsClick = {},
+            onSupportClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -514,6 +526,7 @@ private fun HomeDashboardLoadingPreview() {
             onSubmissionClick = {},
             onOfflineMapsClick = {},
             onSettingsClick = {},
+            onSupportClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -538,6 +551,7 @@ private fun HomeDashboardSearchActivePreview() {
             onSubmissionClick = {},
             onOfflineMapsClick = {},
             onSettingsClick = {},
+            onSupportClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
@@ -560,6 +574,7 @@ private fun HomeDashboardEmptyPreview() {
             onSubmissionClick = {},
             onOfflineMapsClick = {},
             onSettingsClick = {},
+            onSupportClick = {},
             onSearchQueryChange = {},
             onSearchActiveChange = {},
             onSortOptionChange = {},
