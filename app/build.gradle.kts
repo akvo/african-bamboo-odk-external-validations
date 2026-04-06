@@ -1,3 +1,5 @@
+import java.net.HttpURLConnection
+import java.net.URI
 import java.util.Properties
 
 plugins {
@@ -83,6 +85,56 @@ android {
     }
 }
 
+val supportContentUrl: String = project.findProperty(
+    "supportContentUrl"
+) as? String
+    ?: ("https://raw.githubusercontent.com/" +
+            "akvo/african-bamboo-dashboard/" +
+            "main/frontend/public/docs/validation-rules.md")
+
+tasks.register("downloadSupportContent") {
+    description = "Downloads validation rules markdown from the DCU repo"
+    val outputFile = file("src/main/assets/validation-rules.md")
+
+    doLast {
+        try {
+            val conn = URI(supportContentUrl).toURL()
+                .openConnection() as HttpURLConnection
+            conn.connectTimeout = 10_000
+            conn.readTimeout = 10_000
+            conn.inputStream.use { input ->
+                outputFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            logger.lifecycle(
+                "Downloaded support content to ${outputFile.path}"
+            )
+        } catch (e: Exception) {
+            if (outputFile.exists()) {
+                logger.warn(
+                    "Download failed, keeping existing: ${e.message}"
+                )
+            } else {
+                logger.warn(
+                    "Download failed, no fallback: ${e.message}"
+                )
+                outputFile.writeText(
+                    "# Validation Rules\n\n" +
+                            "Content unavailable. " +
+                            "Visit the project documentation."
+                )
+            }
+        }
+    }
+}
+
+tasks.matching {
+    it.name.startsWith("merge") && it.name.endsWith("Assets")
+}.configureEach {
+    dependsOn("downloadSupportContent")
+}
+
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
@@ -130,6 +182,9 @@ dependencies {
 
     // DataStore Preferences - runtime settings
     implementation(libs.datastore.preferences)
+
+    // Markdown-to-HTML converter for Support screen WebView
+    implementation(libs.jetbrains.markdown)
 
     // Security - Encrypted SharedPreferences
     implementation(libs.security.crypto)
