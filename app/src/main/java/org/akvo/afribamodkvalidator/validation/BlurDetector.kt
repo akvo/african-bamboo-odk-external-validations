@@ -221,7 +221,7 @@ class BlurDetector {
         private const val TAG = "BlurDetector"
 
         const val DEFAULT_OCR_WARN = 0.65
-        const val DEFAULT_OCR_BLOCK = 0.35
+        const val DEFAULT_OCR_BLOCK = 0.60
         const val DEFAULT_LAP_WARN = 100.0
         const val DEFAULT_LAP_BLOCK = 50.0
         const val MIN_ELEMENTS_FOR_OCR = 5

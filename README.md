@@ -273,8 +273,8 @@ The app acts as a **custom camera replacement** for ODK Collect. When the user t
 | OCR Confidence | Classification | App Behavior | Watermark |
 |----------------|---------------|--------------|-----------|
 | > 0.65 | Sharp / readable | Pass silently | Green `[SHARP]` |
-| 0.35 - 0.65 | Borderline | Warning dialog (Use Anyway / Reject) | Yellow `[WARNING]` |
-| < 0.35 or 0 elements | Unreadable | Blocked (must retake) | Red `[BLOCKED]` |
+| 0.60 - 0.65 | Borderline | Warning dialog (Use Anyway / Reject) | Yellow `[WARNING]` |
+| < 0.60 or 0 elements | Unreadable | Blocked (must retake) | Red `[BLOCKED]` |
 
 ### Watermark
 
@@ -308,7 +308,7 @@ Thresholds are adjustable at runtime via **Settings** (Home → menu → Setting
 | Setting | Default | Step | Description |
 |---------|---------|------|-------------|
 | OCR Warn Threshold | 0.65 | 0.05 | Warn if OCR confidence below this |
-| OCR Block Threshold | 0.35 | 0.05 | Block if OCR confidence below this |
+| OCR Block Threshold | 0.60 | 0.05 | Block if OCR confidence below this |
 | Laplacian Warn Threshold | 100 | 10 | Fallback warn threshold for non-Latin text |
 | Laplacian Block Threshold | 50 | 10 | Fallback block threshold for non-Latin text |
 

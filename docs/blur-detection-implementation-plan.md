@@ -163,7 +163,7 @@ class BlurDetector(private val context: Context) {
 
     companion object {
         const val DEFAULT_OCR_WARN = 0.65
-        const val DEFAULT_OCR_BLOCK = 0.35
+        const val DEFAULT_OCR_BLOCK = 0.60
         const val DEFAULT_LAP_WARN = 100.0
         const val DEFAULT_LAP_BLOCK = 50.0
         const val MIN_ELEMENTS_FOR_OCR = 5
@@ -264,7 +264,7 @@ class BlurDetector(private val context: Context) {
 ```kotlin
 data class ValidationSettings(
     val ocrWarnThreshold: Double = 0.65,
-    val ocrBlockThreshold: Double = 0.35,
+    val ocrBlockThreshold: Double = 0.60,
     val laplacianWarnThreshold: Double = 100.0,
     val laplacianBlockThreshold: Double = 50.0,
     val overlapThreshold: Double = 20.0
@@ -288,7 +288,7 @@ data class ValidationSettings(
 │ ├──────────────────────────────────┤ │
 │ │ Block Threshold                  │ │
 │ │  [-] ───●──────────────── [+]   │ │
-│ │         0.35                     │ │
+│ │         0.60                     │ │
 │ │ Always block if OCR confidence   │ │
 │ │ below this value (step: 0.05)    │ │
 │ └──────────────────────────────────┘ │
@@ -332,7 +332,7 @@ data class ValidationSettings(
 - Resets ALL thresholds to default values in one tap
 - Shows confirmation dialog: "Reset all thresholds to recommended values?"
 - Recommended values based on benchmark testing:
-  - OCR warn: 0.65, block: 0.35
+  - OCR warn: 0.65, block: 0.60
   - Laplacian warn: 100, block: 50
   - Overlap: 20%
 
@@ -425,8 +425,8 @@ data class ValidationSettings(
 | Confidence | Interpretation | App Behavior | Example |
 |------------|---------------|--------------|---------|
 | 0 elements | No text detected at all | **Blocked immediately** | Extreme motion (0 elements), focus blur (0 elements) |
-| < 0.35 | Text unreadable | **Blocked** | — |
-| 0.35–0.65 | Text partially readable | **Warning** | Screen motion blur (0.49) |
+| < 0.60 | Text unreadable | **Blocked** | Screen motion blur (0.49), shake product label (0.60) |
+| 0.60–0.65 | Text partially readable | **Warning** | — |
 | > 0.65 | Text clearly readable | **Pass** | Sharp keyboard (0.69), book page (0.82) |
 
 ### Laplacian Variance (fallback — when elements < 5)
@@ -439,7 +439,7 @@ data class ValidationSettings(
 
 ### Tuning Process
 
-1. Deploy with defaults (OCR warn=0.65, block=0.35)
+1. Deploy with defaults (OCR warn=0.65, block=0.60)
 2. Test with sample title deed photos in field conditions
 3. Check logcat: `adb logcat -s BlurValidationActivity`
 4. Check watermarks on submitted images for supervisor review
