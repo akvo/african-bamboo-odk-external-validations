@@ -45,7 +45,7 @@ class BlurDetectionBenchmarkTest {
     // =========================================================================
 
     @Test
-    fun benchmark_side_by_side_all_photos() = runBlocking {
+    fun benchmark_side_by_side_all_photos(): Unit = runBlocking {
         val photos = loadTestPhotos()
         assumeTrue(
             "No test photos in assets/blur_test_photos/ (fixtures are gitignored). " +
@@ -94,7 +94,7 @@ class BlurDetectionBenchmarkTest {
     // =========================================================================
 
     @Test
-    fun sharp_title_deed_should_have_high_ocr_confidence() = runBlocking {
+    fun sharp_title_deed_should_have_high_ocr_confidence(): Unit = runBlocking {
         val bitmap = loadPhoto("sharp_title_deed_amharic.png") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
@@ -110,7 +110,7 @@ class BlurDetectionBenchmarkTest {
     }
 
     @Test
-    fun sharp_keyboard_should_have_high_ocr_confidence() = runBlocking {
+    fun sharp_keyboard_should_have_high_ocr_confidence(): Unit = runBlocking {
         val bitmap = loadPhoto("sharp_keyboard_clear.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
@@ -125,7 +125,7 @@ class BlurDetectionBenchmarkTest {
     }
 
     @Test
-    fun sharp_book_page_should_have_high_ocr_confidence() = runBlocking {
+    fun sharp_book_page_should_have_high_ocr_confidence(): Unit = runBlocking {
         val bitmap = loadPhoto("sharp_book_page_indonesian.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
@@ -140,7 +140,7 @@ class BlurDetectionBenchmarkTest {
     }
 
     @Test
-    fun blurry_keyboard_focus_should_have_low_ocr_confidence() = runBlocking {
+    fun blurry_keyboard_focus_should_have_low_ocr_confidence(): Unit = runBlocking {
         val bitmap = loadPhoto("blurry_keyboard_focus.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
@@ -152,7 +152,7 @@ class BlurDetectionBenchmarkTest {
     }
 
     @Test
-    fun blurry_screen_motion_should_have_low_ocr_confidence() = runBlocking {
+    fun blurry_screen_motion_should_have_low_ocr_confidence(): Unit = runBlocking {
         val bitmap = loadPhoto("blurry_screen_motion.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
@@ -163,7 +163,7 @@ class BlurDetectionBenchmarkTest {
     }
 
     @Test
-    fun blurry_extreme_motion_should_have_very_low_ocr_confidence() = runBlocking {
+    fun blurry_extreme_motion_should_have_very_low_ocr_confidence(): Unit = runBlocking {
         val bitmap = loadPhoto("blurry_keyboard_extreme_motion.jpeg") ?: run { assumeTrue("Fixture not found (gitignored)", false); return@runBlocking }
         val result = runOcrAnalysis(bitmap)
         bitmap.recycle()
@@ -214,7 +214,7 @@ class BlurDetectionBenchmarkTest {
     // =========================================================================
 
     @Test
-    fun ocr_uniform_gray_returns_zero_elements() = runBlocking {
+    fun ocr_uniform_gray_returns_zero_elements(): Unit = runBlocking {
         val bitmap = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
         bitmap.eraseColor(Color.GRAY)
 

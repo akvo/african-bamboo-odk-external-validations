@@ -97,7 +97,7 @@ class BlurDetectorTest {
     @Test
     fun `default thresholds are set correctly`() {
         assertEquals(0.65, BlurDetector.DEFAULT_OCR_WARN, 0.001)
-        assertEquals(0.35, BlurDetector.DEFAULT_OCR_BLOCK, 0.001)
+        assertEquals(0.60, BlurDetector.DEFAULT_OCR_BLOCK, 0.001)
         assertEquals(100.0, BlurDetector.DEFAULT_LAP_WARN, 0.001)
         assertEquals(50.0, BlurDetector.DEFAULT_LAP_BLOCK, 0.001)
         assertEquals(5, BlurDetector.MIN_ELEMENTS_FOR_OCR)
