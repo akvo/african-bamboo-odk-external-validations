@@ -37,5 +37,5 @@ New plot for Abebe Kebede Tadesse overlaps with plot for Girma Tesfaye Hailu
 
 On successful validation, the plot is saved as a draft in the local database:
 - Stored with `isDraft = true`
-- Linked to form via `instanceName`
+- Keyed on the unique `instanceId` (from the `uuid=/data/meta/instanceID` extra) so same-named plots stay distinct; falls back to the non-unique `instanceName` only when no `uuid` is passed
 - Used for overlap detection with subsequent plots

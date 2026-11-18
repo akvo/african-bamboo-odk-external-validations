@@ -232,7 +232,7 @@ All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only
 | select_one sub_regions | sub_region | Select Sub-Region | | |
 | calculate | full_name | | | |
 | calculate | instance_id | | | |
-| text | validate_plot | Validate Plot | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${plot_boundary},plot_name=${full_name},region=${region},sub_region=${sub_region},instance_name=${instance_id}) | yes |
+| text | validate_plot | Validate Plot | ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(shape=${plot_boundary},plot_name=${full_name},region=${region},sub_region=${sub_region},instance_name=${instance_id},uuid=/data/meta/instanceID) | yes |
 
 **calculations sheet (for overlap detection):**
 
@@ -242,6 +242,8 @@ All validation uses the same external app intent (`VALIDATE_POLYGON`). Pass only
 | instance_id | concat(${enumerator_id}, '-', ${region}, '-', today()) |
 
 > **Note**: `instance_id` duplicates the logic from `instance_name` in the settings sheet because settings fields cannot be referenced directly in survey expressions.
+
+> **Important (v1.9+)**: Pass `uuid=/data/meta/instanceID` for overlap detection. The app keys each plot on this **unique** submission ID, not on `instance_name` — which isn't unique (enumerators reuse or leave the default), so two different plots with the same name were previously treated as one and overlaps between them slipped through. `instance_name` is now only the human-readable display/fallback name. Keep `uuid` exactly as `/data/meta/instanceID` (a fixed ODK reference, not a question name); ODK Collect evaluates it to the submission's real UUID.
 
 ### Installation
 

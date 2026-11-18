@@ -38,4 +38,5 @@ Pass these extras from XLSForm to enable overlap detection:
 | `plot_name` | Unique name or combination (e.g., full name) to identify the plot — shown in overlap error dialogs and map view labels | No (defaults to empty) |
 | `region` | Administrative region (metadata, stored with plot) | No (defaults to empty) |
 | `sub_region` | Sub-region (metadata, stored with plot) | No (defaults to empty) |
-| `instance_name` | Form instance name for draft matching and re-validation dedup | No (defaults to empty) |
+| `instance_name` | Human-readable display/fallback name (not unique). Used for dedup only when `uuid` is absent | No (defaults to empty) |
+| `uuid` | Unique submission ID that keys plot identity for overlap detection and re-validation dedup. Pass `uuid=/data/meta/instanceID` (a fixed ODK reference, not a question name); Collect evaluates it to the real UUID | Recommended (v1.9+) — without it the app falls back to the non-unique `instance_name` |

@@ -97,7 +97,7 @@ sequenceDiagram
 
     Note over ODK,DB: WORKFLOW 2 — Enumerator collects data in ODK Collect
     Note over ODK: XLSForm MUST have correct appearance:<br/>ex:org.akvo.afribamodkvalidator.VALIDATE_POLYGON(...)
-    ODK->>Val: Intent: VALIDATE_POLYGON<br/>(shape, plot_name, region, instance_name)
+    ODK->>Val: Intent: VALIDATE_POLYGON<br/>(shape, plot_name, region, instance_name, uuid)
 
     Val->>Val: Step 1: Geometry validation<br/>(vertices, area, self-intersection)
     alt Geometry invalid
