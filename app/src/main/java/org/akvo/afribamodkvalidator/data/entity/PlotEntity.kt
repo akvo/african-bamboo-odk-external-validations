@@ -31,6 +31,7 @@ import androidx.room.PrimaryKey
         Index(value = ["minLon"]),
         Index(value = ["maxLon"]),
         Index(value = ["instanceName"]),
+        Index(value = ["instanceId"], unique = true),
         Index(value = ["submissionUuid"], unique = true)
     ]
 )
@@ -41,8 +42,15 @@ data class PlotEntity(
     /** Farmer full name (First_Name + Father_s_Name + Grandfather_s_Name) */
     val plotName: String,
 
-    /** For matching to existing draft submissions */
+    /** For matching to existing draft submissions (human-readable, NOT unique per plot) */
     val instanceName: String,
+
+    /**
+     * ODK form-instance UUID (meta/instanceID), unique per submission.
+     * Null when the form does not pass the `uuid` extra (back-compat).
+     * This is the correct per-plot identity; instanceName is display only.
+     */
+    val instanceId: String? = null,
 
     /** Polygon in WKT (Well-Known Text) format for JTS geometry operations */
     val polygonWkt: String,

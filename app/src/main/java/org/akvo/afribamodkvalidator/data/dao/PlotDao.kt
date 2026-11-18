@@ -59,9 +59,19 @@ interface PlotDao {
 
     /**
      * Find a plot by instanceName (for draft matching).
+     *
+     * NOTE: instanceName is NOT unique per plot (enumerator-woreda-date), so this
+     * can collapse distinct plots. Prefer [findByInstanceId] when a uuid is available.
      */
     @Query("SELECT * FROM plots WHERE instanceName = :instanceName LIMIT 1")
     suspend fun findByInstanceName(instanceName: String): PlotEntity?
+
+    /**
+     * Find a plot by its ODK form-instance UUID (unique per submission).
+     * Correct key for re-validation dedup; two different plots never collide.
+     */
+    @Query("SELECT * FROM plots WHERE instanceId = :instanceId LIMIT 1")
+    suspend fun findByInstanceId(instanceId: String): PlotEntity?
 
     /**
      * Update draft status when a submission is synced.
