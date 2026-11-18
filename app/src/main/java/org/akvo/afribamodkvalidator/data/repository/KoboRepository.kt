@@ -207,27 +207,41 @@ class KoboRepository @Inject constructor(
         val instanceNames = drafts.map { it.instanceName }
         val matchingSubmissions = submissionDao.findByInstanceNames(instanceNames)
 
-        // Create lookup map for O(1) access
-        val submissionByInstanceName = matchingSubmissions
+        // instanceName is NOT unique per plot (issue #34): one enumerator capturing
+        // several plots in a woreda on a day reuses it. updateDraftStatus matches by
+        // instanceName, so an ambiguous group would stamp multiple drafts with one
+        // submissionUuid and violate the unique index (crash). Only link unambiguous
+        // 1:1 groups here; ambiguous groups need unique-id matching (issue #34 follow-up).
+        val draftsByName = drafts.groupBy { it.instanceName }
+        val submissionsByName = matchingSubmissions
             .filter { it.instanceName != null }
-            .associateBy { it.instanceName!! }
+            .groupBy { it.instanceName!! }
 
-        // Update matching drafts
         var matchedCount = 0
-        for (draft in drafts) {
-            val submission = submissionByInstanceName[draft.instanceName]
-            if (submission != null) {
-                plotDao.updateDraftStatus(
-                    instanceName = draft.instanceName,
-                    submissionUuid = submission._uuid
-                )
-                matchedCount++
+        var skippedAmbiguous = 0
+        for ((instanceName, draftGroup) in draftsByName) {
+            val submissionGroup = submissionsByName[instanceName]
+            when {
+                submissionGroup == null -> Unit // not synced yet
+                draftGroup.size == 1 && submissionGroup.size == 1 -> {
+                    plotDao.updateDraftStatus(
+                        instanceName = instanceName,
+                        submissionUuid = submissionGroup[0]._uuid
+                    )
+                    matchedCount++
+                }
+                else -> {
+                    skippedAmbiguous += draftGroup.size
+                    Log.w(TAG, "matchDraftsToSubmissions: skipping ambiguous instanceName " +
+                            "(${draftGroup.size} drafts, ${submissionGroup.size} submissions); " +
+                            "needs unique-id matching (issue #34 follow-up)")
+                }
             }
         }
 
         val elapsedMs = System.currentTimeMillis() - startTime
         Log.d(TAG, "matchDraftsToSubmissions: Processed ${drafts.size} drafts, " +
-                "matched $matchedCount in ${elapsedMs}ms")
+                "matched $matchedCount, skipped $skippedAmbiguous ambiguous in ${elapsedMs}ms")
     }
 
     /**

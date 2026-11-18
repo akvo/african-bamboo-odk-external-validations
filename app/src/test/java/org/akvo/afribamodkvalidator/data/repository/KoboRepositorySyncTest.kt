@@ -108,15 +108,18 @@ class KoboRepositorySyncTest {
     }
 
     @Test
-    fun `fetchSubmissions should handle multiple drafts with same instanceName`() = runTest {
+    fun `fetchSubmissions should skip ambiguous drafts sharing an instanceName`() = runTest {
         // Given - API returns one submission
         val submissions = listOf(createSubmission("uuid-1", "instance-A"))
         setupApiToReturnSubmissions(submissions)
 
-        // Multiple drafts with same instanceName (should not happen in practice but test robustness)
+        // Two different plots sharing one instanceName (issue #34): the common case
+        // now that the overlap fix lets siblings coexist. Matching by instanceName
+        // cannot tell them apart and would stamp both with uuid-1, violating the
+        // unique submissionUuid index. The ambiguous group must be skipped, not linked.
         val drafts = listOf(
             createDraftPlot("draft-1", "instance-A"),
-            createDraftPlot("draft-2", "instance-A")  // Duplicate instanceName
+            createDraftPlot("draft-2", "instance-A")
         )
         coEvery { plotDao.getAllDrafts() } returns drafts
 
@@ -135,9 +138,9 @@ class KoboRepositorySyncTest {
         // When
         repository.fetchSubmissions(testAssetUid).toList()
 
-        // Then - updateDraftStatus called twice (once per draft), both will match the same submission
-        // The updateDraftStatus query uses instanceName, so both drafts with "instance-A" will be updated
-        coVerify(exactly = 2) { plotDao.updateDraftStatus("instance-A", "uuid-1") }
+        // Then - the ambiguous group is skipped: updateDraftStatus is never called,
+        // so no unique-constraint crash and no mislinking.
+        coVerify(exactly = 0) { plotDao.updateDraftStatus(any(), any()) }
     }
 
     @Test

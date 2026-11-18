@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.akvo.afribamodkvalidator.BuildConfig
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
@@ -131,7 +132,8 @@ private fun buildHtml(context: Context, isDark: Boolean): String {
         .buildMarkdownTreeFromString(markdown)
     val body = HtmlGenerator(markdown, tree, flavour)
         .generateHtml()
-    return wrapWithStyle(body, isDark)
+    val footer = "<p class=\"app-version\">App version ${BuildConfig.VERSION_NAME}</p>"
+    return wrapWithStyle(body + footer, isDark)
 }
 
 private fun wrapWithStyle(body: String, isDark: Boolean): String {
@@ -142,6 +144,7 @@ private fun wrapWithStyle(body: String, isDark: Boolean): String {
     val thColor = if (isDark) "#ffffff" else "#1a1a1a"
     val evenRowBg = if (isDark) "#1e1e1e" else "#f8f8f8"
     val cellColor = if (isDark) "#e0e0e0" else "#1a1a1a"
+    val versionColor = if (isDark) "#888" else "#666"
     return """
 <!DOCTYPE html>
 <html>
@@ -179,6 +182,13 @@ private fun wrapWithStyle(body: String, isDark: Boolean): String {
     font-weight: 600;
   }
   tr:nth-child(even) { background: $evenRowBg; }
+  .app-version {
+    margin-top: 1.5em;
+    padding-top: 0.8em;
+    border-top: 1px solid $borderColor;
+    font-size: 0.85em;
+    color: $versionColor;
+  }
 </style>
 </head>
 <body>

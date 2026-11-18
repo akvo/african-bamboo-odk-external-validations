@@ -30,6 +30,7 @@ class PlotDaoTest : DatabaseTest() {
         uuid: String = "test-uuid",
         plotName: String = "Test Plot",
         instanceName: String = "test-instance",
+        instanceId: String? = null,
         region: String = "test-region",
         subRegion: String = "test-sub-region",
         formId: String = "test-form",
@@ -43,6 +44,7 @@ class PlotDaoTest : DatabaseTest() {
         uuid = uuid,
         plotName = plotName,
         instanceName = instanceName,
+        instanceId = instanceId,
         polygonWkt = "POLYGON (($minLon $minLat, $maxLon $minLat, $maxLon $maxLat, $minLon $maxLat, $minLon $minLat))",
         minLat = minLat,
         maxLat = maxLat,
@@ -214,6 +216,40 @@ class PlotDaoTest : DatabaseTest() {
         val result = plotDao.findByInstanceName("different-instance")
 
         assertNull(result)
+    }
+
+    @Test
+    fun `findByInstanceId should return matching plot`() = runTest {
+        plotDao.insertOrUpdate(createPlot(uuid = "plot-1", instanceId = "uuid-abc"))
+
+        val result = plotDao.findByInstanceId("uuid-abc")
+
+        assertNotNull(result)
+        assertEquals("plot-1", result?.uuid)
+    }
+
+    @Test
+    fun `findByInstanceId should return null for no match`() = runTest {
+        plotDao.insertOrUpdate(createPlot(uuid = "plot-1", instanceId = "uuid-abc"))
+
+        assertNull(plotDao.findByInstanceId("uuid-xyz"))
+    }
+
+    @Test
+    fun `findByInstanceId distinguishes sibling plots that share an instanceName`() = runTest {
+        // Regression for issue #34: two different farmers' plots captured by one
+        // enumerator in one woreda on one day share an identical instanceName.
+        // Keying on instanceName collapses them; keying on the unique instanceId must not.
+        val shared = "enum_036-ORO-01-2026-07-17"
+        plotDao.insertOrUpdateAll(listOf(
+            createPlot(uuid = "plot-233", instanceName = shared, instanceId = "uuid-233"),
+            createPlot(uuid = "plot-299", instanceName = shared, instanceId = "uuid-299")
+        ))
+
+        // Both siblings survive (no overwrite), and each id resolves to its own plot.
+        assertEquals(2, plotDao.getAll().size)
+        assertEquals("plot-233", plotDao.findByInstanceId("uuid-233")?.uuid)
+        assertEquals("plot-299", plotDao.findByInstanceId("uuid-299")?.uuid)
     }
 
     // ==================== Bounding Box Intersection Tests ====================

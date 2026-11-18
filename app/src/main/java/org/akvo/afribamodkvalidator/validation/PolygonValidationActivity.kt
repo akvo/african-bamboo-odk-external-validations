@@ -36,6 +36,7 @@ class PolygonValidationActivity : AppCompatActivity() {
         val region = intent.getStringExtra(EXTRA_REGION) ?: ""
         val subRegion = intent.getStringExtra(EXTRA_SUB_REGION) ?: ""
         val instanceName = intent.getStringExtra(EXTRA_INSTANCE_NAME) ?: ""
+        val instanceId = intent.getStringExtra(EXTRA_INSTANCE_ID) ?: ""
 
         // Get formId (assetUid) from session
         val formId = sessionManager.getSession()?.assetUid ?: ""
@@ -55,7 +56,8 @@ class PolygonValidationActivity : AppCompatActivity() {
                     region = region,
                     subRegion = subRegion,
                     formId = formId,
-                    instanceName = instanceName
+                    instanceName = instanceName,
+                    instanceId = instanceId
                 )
             }
             is ValidationResult.Error -> {
@@ -70,7 +72,8 @@ class PolygonValidationActivity : AppCompatActivity() {
         region: String,
         subRegion: String,
         formId: String,
-        instanceName: String
+        instanceName: String,
+        instanceId: String
     ) {
         // Parse the polygon to JTS format
         val polygon = overlapChecker.parseWkt(polygonData)
@@ -87,11 +90,13 @@ class PolygonValidationActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Check for existing plot with same instanceName to prevent duplicates on re-validation
-                val existingPlot = if (instanceName.isNotEmpty()) {
-                    plotDao.findByInstanceName(instanceName)
-                } else {
-                    null
+                // Match the existing draft to prevent duplicates on re-validation.
+                // Prefer the unique instanceId (ODK meta/instanceID); fall back to the
+                // non-unique instanceName only when the form didn't supply a uuid.
+                val existingPlot = when {
+                    instanceId.isNotEmpty() -> plotDao.findByInstanceId(instanceId)
+                    instanceName.isNotEmpty() -> plotDao.findByInstanceName(instanceName)
+                    else -> null
                 }
                 val plotUuid = existingPlot?.uuid ?: UUID.randomUUID().toString()
 
@@ -129,6 +134,7 @@ class PolygonValidationActivity : AppCompatActivity() {
                         uuid = plotUuid,
                         plotName = plotName,
                         instanceName = instanceName,
+                        instanceId = instanceId,
                         polygonWkt = polygonWkt,
                         bbox = bbox,
                         formId = formId,
@@ -152,6 +158,7 @@ class PolygonValidationActivity : AppCompatActivity() {
         uuid: String,
         plotName: String,
         instanceName: String,
+        instanceId: String,
         polygonWkt: String,
         bbox: BoundingBox,
         formId: String,
@@ -162,6 +169,10 @@ class PolygonValidationActivity : AppCompatActivity() {
             uuid = uuid,
             plotName = plotName,
             instanceName = instanceName,
+            // empty -> null: instanceId has a unique index; SQLite allows many NULLs
+            // but not many "", so storing "" would collide old-form drafts and
+            // REPLACE-delete an unrelated plot.
+            instanceId = instanceId.ifEmpty { null },
             polygonWkt = polygonWkt,
             minLat = bbox.minLat,
             maxLat = bbox.maxLat,
@@ -260,5 +271,6 @@ class PolygonValidationActivity : AppCompatActivity() {
         const val EXTRA_REGION = "region"
         const val EXTRA_SUB_REGION = "sub_region"
         const val EXTRA_INSTANCE_NAME = "instance_name"
+        const val EXTRA_INSTANCE_ID = "uuid"
     }
 }
