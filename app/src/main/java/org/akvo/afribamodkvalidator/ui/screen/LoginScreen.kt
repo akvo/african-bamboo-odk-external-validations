@@ -2,6 +2,7 @@ package org.akvo.afribamodkvalidator.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.akvo.afribamodkvalidator.BuildConfig
 import org.akvo.afribamodkvalidator.data.dto.KoboAsset
 import org.akvo.afribamodkvalidator.ui.theme.AfriBamODKValidatorTheme
 import org.akvo.afribamodkvalidator.ui.viewmodel.LoginUiState
@@ -90,8 +92,9 @@ private fun LoginScreenContent(
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -186,6 +189,16 @@ private fun LoginScreenContent(
                 }
             }
         }
+    }
+        Text(
+            text = "v${BuildConfig.VERSION_NAME}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 8.dp)
+        )
     }
 }
 
